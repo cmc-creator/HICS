@@ -18,6 +18,9 @@ const typeIcons: Record<string, string> = {
   'Public Health': '🧪',
   'Logistics': '📦',
   'Throughput': '🚪',
+  'Behavioral Health': '🧠',
+  'Safety': '🛡️',
+  'Medication Safety': '💊',
 };
 
 export default function ScenariosPage() {
@@ -27,7 +30,7 @@ export default function ScenariosPage() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl font-bold">Training Scenarios</h1>
           <p className="text-blue-200 text-sm mt-1">
-            Practice real-world response with interactive choices, practical feedback, and a little personality
+            Practice psychiatric inpatient response with interactive choices, practical feedback, and a little personality
           </p>
         </div>
       </div>
@@ -99,7 +102,7 @@ export default function ScenariosPage() {
               <p className="text-blue-700 text-sm mt-1">
                 These scenarios are based on real-world hospital emergency events and are designed to help you
                 practice HICS activation, decision-making, and coordination. Each scenario presents realistic
-                situations with multiple choice decisions. Learn from both correct and incorrect responses, and expect the occasional morale-boosting line.
+                situations with multiple choice decisions, including psychiatric inpatient operations such as elopement risk, behavioral escalation, and medication safety events. Learn from both correct and incorrect responses, and expect the occasional morale-boosting line.
               </p>
             </div>
           </div>

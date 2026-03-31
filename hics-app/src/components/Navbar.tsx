@@ -8,7 +8,12 @@ const navItems = [
   { path: '/chatbot', label: 'AI Assistant', icon: '🤖' },
 ];
 
-export default function Navbar() {
+interface NavbarProps {
+  theme: 'light' | 'dark';
+  onToggleTheme: () => void;
+}
+
+export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   const location = useLocation();
 
   return (
@@ -37,6 +42,16 @@ export default function Navbar() {
                 <span className="hidden md:inline">{item.label}</span>
               </Link>
             ))}
+            <button
+              type="button"
+              onClick={onToggleTheme}
+              className="ml-1 px-3 py-2 rounded-md text-sm font-medium text-blue-100 hover:bg-blue-800 hover:text-white transition-colors"
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+            >
+              <span className="mr-1">{theme === 'dark' ? '☀️' : '🌙'}</span>
+              <span className="hidden md:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+            </button>
           </div>
         </div>
       </div>

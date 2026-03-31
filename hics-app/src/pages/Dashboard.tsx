@@ -81,9 +81,9 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 motion-stagger">
           {stats.map((stat) => (
-            <div key={stat.label} className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
+            <div key={stat.label} className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4 card-lift">
               <div className={`${stat.color} text-white rounded-lg p-3 text-2xl flex items-center justify-center w-12 h-12`}>
                 {stat.icon}
               </div>
@@ -97,12 +97,12 @@ export default function Dashboard() {
 
         {/* Quick Links Grid */}
         <h2 className="text-xl font-bold text-gray-800 mb-4">Training Modules</h2>
-        <div className="grid md:grid-cols-2 gap-4 mb-8">
+        <div className="grid md:grid-cols-2 gap-4 mb-8 motion-stagger">
           {quickLinks.map((link) => (
             <Link
               key={link.path}
               to={link.path}
-              className={`bg-white rounded-xl shadow-sm p-6 border-l-4 ${link.color} hover:shadow-md transition-all group`}
+              className={`bg-white rounded-xl shadow-sm p-6 border-l-4 ${link.color} hover:shadow-md transition-all group card-lift`}
             >
               <div className="flex items-start justify-between mb-3">
                 <span className="text-3xl">{link.icon}</span>
@@ -149,12 +149,12 @@ export default function Dashboard() {
         {/* Emergency Types */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">Available Emergency Scenarios</h2>
-          <div className="grid md:grid-cols-2 gap-3">
+          <div className="grid md:grid-cols-2 gap-3 motion-stagger">
             {scenarios.map((scenario) => (
               <Link
                 key={scenario.id}
                 to={`/scenarios/${scenario.id}`}
-                className="flex items-center gap-4 p-4 rounded-lg border hover:border-blue-300 hover:bg-blue-50 transition-colors group"
+                className="flex items-center gap-4 p-4 rounded-lg border hover:border-blue-300 hover:bg-blue-50 transition-colors group card-lift"
               >
                 <div className="text-2xl">
                   {scenario.type === 'Mass Casualty' ? '🚑' :

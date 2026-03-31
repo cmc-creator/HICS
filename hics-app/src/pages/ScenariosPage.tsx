@@ -36,9 +36,9 @@ export default function ScenariosPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 motion-stagger">
           {scenarios.map((scenario) => (
-            <div key={scenario.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div key={scenario.id} className="bg-white rounded-xl shadow-sm overflow-hidden card-lift">
               <div className="bg-gradient-to-r from-blue-800 to-blue-600 text-white p-5">
                 <div className="flex items-start justify-between">
                   <div>

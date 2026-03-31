@@ -63,6 +63,13 @@ export default function ChatbotPage() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const nextMessageIdRef = useRef(1);
+
+  const getNextMessageId = (): string => {
+    const id = nextMessageIdRef.current;
+    nextMessageIdRef.current += 1;
+    return id.toString();
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -76,7 +83,7 @@ export default function ChatbotPage() {
     if (!text.trim()) return;
 
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: getNextMessageId(),
       role: 'user',
       content: text.trim(),
       timestamp: new Date(),
@@ -90,14 +97,14 @@ export default function ChatbotPage() {
     setTimeout(() => {
       const response = getBotResponse(text);
       const botMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: getNextMessageId(),
         role: 'assistant',
         content: response,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, botMessage]);
       setIsTyping(false);
-    }, 600 + Math.random() * 400);
+    }, 800);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

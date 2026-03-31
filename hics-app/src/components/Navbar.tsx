@@ -5,6 +5,7 @@ const navItems = [
   { path: '/roles', label: 'HICS Roles', icon: '👥' },
   { path: '/scenarios', label: 'Scenarios', icon: '🎯' },
   { path: '/quiz', label: 'Quiz', icon: '📝' },
+  { path: '/reports', label: 'Reports', icon: '📊' },
   { path: '/chatbot', label: 'AI Assistant', icon: '🤖' },
 ];
 

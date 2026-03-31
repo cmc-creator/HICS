@@ -31,6 +31,23 @@ body {
 	transition: background-color 240ms ease, color 240ms ease;
 }
 
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+	outline: 2px solid #5f9fda;
+	outline-offset: 2px;
+}
+
+html.dark a:focus-visible,
+html.dark button:focus-visible,
+html.dark select:focus-visible,
+html.dark input:focus-visible,
+html.dark textarea:focus-visible {
+	outline-color: #9fcbef;
+}
+
 .nyx-app {
 	position: relative;
 	isolation: isolate;

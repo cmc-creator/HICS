@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { hicsRoles, hicsCategories } from '../data/roles';
 import { scenarios } from '../data/scenarios';
 import { quizQuestions } from '../data/quiz';
+import { getScenarioAttempts, getTrainingSummary } from '../lib/trainingAnalytics';
 
 const stats = [
   { label: 'HICS Roles', value: hicsRoles.length, icon: '👥', color: 'bg-blue-500' },
@@ -43,9 +44,19 @@ const quickLinks = [
     color: 'border-orange-500',
     badge: '24/7 Available',
   },
+  {
+    path: '/reports',
+    title: 'Training Reports',
+    description: 'Review completion trends, score performance, and export facilitator-friendly training records.',
+    icon: '📊',
+    color: 'border-slate-500',
+    badge: 'CSV Export',
+  },
 ];
 
 export default function Dashboard() {
+  const progressSummary = getTrainingSummary(getScenarioAttempts());
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Banner */}
@@ -142,6 +153,29 @@ export default function Dashboard() {
           <div className="mt-4">
             <Link to="/roles" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
               View full interactive org chart →
+            </Link>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Learner Progress Snapshot</h2>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div className="rounded-lg border border-gray-200 p-4">
+              <div className="text-xs text-gray-500">Attempts Logged</div>
+              <div className="text-2xl font-bold text-gray-900">{progressSummary.totalAttempts}</div>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-4">
+              <div className="text-xs text-gray-500">Average Score</div>
+              <div className="text-2xl font-bold text-gray-900">{progressSummary.averageScore}%</div>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-4">
+              <div className="text-xs text-gray-500">Best Score</div>
+              <div className="text-2xl font-bold text-gray-900">{progressSummary.bestScore}%</div>
+            </div>
+          </div>
+          <div className="mt-4">
+            <Link to="/reports" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+              Open full training reports →
             </Link>
           </div>
         </div>

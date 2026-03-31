@@ -7,6 +7,7 @@ import ScenariosPage from './pages/ScenariosPage';
 import ScenarioPlayer from './pages/ScenarioPlayer';
 import QuizPage from './pages/QuizPage';
 import ChatbotPage from './pages/ChatbotPage';
+import TrainingReports from './pages/TrainingReports';
 
 export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="/scenarios/:id" element={<ScenarioPlayer />} />
             <Route path="/quiz" element={<QuizPage />} />
             <Route path="/chatbot" element={<ChatbotPage />} />
+            <Route path="/reports" element={<TrainingReports />} />
           </Routes>
         </main>
       </div>

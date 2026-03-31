@@ -59,6 +59,12 @@ export default function ScenarioPlayer() {
   };
 
   const scorePercent = Math.round((score / scenario.steps.length) * 100);
+  const completionNote =
+    scorePercent >= 80
+      ? 'Calm, clear, and command-ready. Your incident clipboard would be legendary.'
+      : scorePercent >= 60
+        ? 'Solid work. A quick refresher and you are even sharper for the next incident.'
+        : 'Great practice run. Every replay builds faster, safer decision-making.';
 
   if (completed) {
     return (
@@ -87,6 +93,7 @@ export default function ScenarioPlayer() {
             <div className="text-gray-500 text-sm mb-4">
               {score} of {scenario.steps.length} decisions correct
             </div>
+            <p className="text-sm text-gray-600 mb-4">{completionNote}</p>
             <div className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${
               scorePercent >= 80 ? 'bg-green-100 text-green-700' :
               scorePercent >= 60 ? 'bg-yellow-100 text-yellow-700' :

@@ -9,7 +9,7 @@ Overview of HICS structure, training modules, and quick access to all sections.
 
 ### 👥 HICS Roles & Interactive Org Chart
 - Visual organizational chart with clickable role nodes
-- 12 HICS positions across all sections
+- 24 HICS positions across all sections
 - Filter by section (Command, Operations, Planning, Logistics, Finance/Admin)
 - Detailed role descriptions, responsibilities, and reporting relationships
 

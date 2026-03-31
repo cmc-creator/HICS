@@ -33,88 +33,88 @@ export default function RolesPage() {
           <h2 className="text-lg font-bold text-gray-800 mb-6 text-center">
             HICS Organizational Chart
           </h2>
+          <p className="text-center text-xs text-gray-500 mb-4">
+            Scroll horizontally on smaller screens and select any role for full details.
+          </p>
 
-          {/* Incident Commander */}
-          <div className="flex justify-center mb-4">
-            {commandRole && (
-              <button
-                onClick={() => setSelectedRole(commandRole)}
-                className="px-5 py-3 rounded-lg text-white text-sm font-bold shadow-md hover:opacity-90 transition-opacity cursor-pointer"
-                style={{ backgroundColor: commandRole.color }}
-              >
-                <div className="text-xs opacity-80 mb-0.5">{commandRole.abbreviation}</div>
-                {commandRole.title}
-              </button>
-            )}
-          </div>
-
-          {/* Vertical connector */}
-          <div className="flex justify-center">
-            <div className="w-0.5 h-6 bg-gray-400" />
-          </div>
-
-          {/* Horizontal line spanning command staff + section chiefs */}
-          <div className="flex justify-center mb-0">
-            <div className="w-full max-w-5xl h-0.5 bg-gray-400" />
-          </div>
-
-          {/* Command Staff + Section Chiefs in one row */}
-          <div className="flex flex-wrap justify-center gap-4 mt-0">
-            {/* Command Staff */}
-            {commandStaff.map((role) => (
-              <div key={role.id} className="flex flex-col items-center">
-                <div className="w-0.5 h-4 bg-gray-400" />
-                <button
-                  onClick={() => setSelectedRole(role)}
-                  className="px-3 py-2 rounded-lg text-white text-xs font-semibold shadow hover:opacity-90 transition-opacity cursor-pointer"
-                  style={{ backgroundColor: role.color }}
-                >
-                  <div className="opacity-80 mb-0.5">{role.abbreviation}</div>
-                  <div className="max-w-24 text-center leading-tight">{role.title}</div>
-                </button>
-                <div className="mt-1 text-xs text-gray-400 italic">Command Staff</div>
-              </div>
-            ))}
-
-            {/* Divider */}
-            <div className="h-16 w-px bg-gray-300 mx-2 self-start mt-4" />
-
-            {/* Section Chiefs */}
-            {sectionChiefs.map((chief) => {
-              const subordinates = hicsRoles.filter((r) => r.reportsTo === chief.id);
-              return (
-                <div key={chief.id} className="flex flex-col items-center">
-                  <div className="w-0.5 h-4 bg-gray-400" />
+          <div className="overflow-x-auto pb-2">
+            <div className="min-w-[980px]">
+              {/* Incident Commander */}
+              <div className="flex justify-center mb-3">
+                {commandRole && (
                   <button
-                    onClick={() => setSelectedRole(chief)}
-                    className="px-3 py-2 rounded-lg text-white text-xs font-bold shadow-md hover:opacity-90 transition-opacity cursor-pointer"
-                    style={{ backgroundColor: chief.color }}
+                    onClick={() => setSelectedRole(commandRole)}
+                    className="px-6 py-3 rounded-lg text-white text-sm font-bold shadow-md hover:opacity-90 transition-opacity cursor-pointer"
+                    style={{ backgroundColor: commandRole.color }}
                   >
-                    <div className="opacity-80 mb-0.5">{chief.abbreviation}</div>
-                    <div className="max-w-28 text-center leading-tight">{chief.title}</div>
+                    <div className="text-xs opacity-80 mb-0.5">{commandRole.abbreviation}</div>
+                    {commandRole.title}
                   </button>
-                  {subordinates.length > 0 && (
-                    <div className="flex flex-col items-center mt-2">
-                      <div className="w-0.5 h-3 bg-gray-300" />
-                      <div className="flex gap-2 flex-wrap justify-center">
-                        {subordinates.map((sub) => (
-                          <div key={sub.id} className="flex flex-col items-center">
-                            <div className="w-0.5 h-3 bg-gray-300" />
+                )}
+              </div>
+
+              <div className="flex justify-center">
+                <div className="w-0.5 h-5 bg-gray-400" />
+              </div>
+
+              {/* Command Staff row */}
+              <div className="flex justify-center">
+                <div className="w-full max-w-4xl h-0.5 bg-gray-300" />
+              </div>
+              <div className="flex justify-center gap-4 mt-1 mb-6">
+                {commandStaff.map((role) => (
+                  <div key={role.id} className="flex flex-col items-center">
+                    <div className="w-0.5 h-3 bg-gray-300" />
+                    <button
+                      onClick={() => setSelectedRole(role)}
+                      className="px-3 py-2 rounded-lg text-white text-xs font-semibold shadow hover:opacity-90 transition-opacity cursor-pointer"
+                      style={{ backgroundColor: role.color }}
+                    >
+                      <div className="opacity-80 mb-0.5">{role.abbreviation}</div>
+                      <div className="max-w-28 text-center leading-tight">{role.title}</div>
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Section Chiefs and direct reports */}
+              <div className="grid grid-cols-4 gap-4">
+                {sectionChiefs.map((chief) => {
+                  const subordinates = hicsRoles.filter((r) => r.reportsTo === chief.id);
+                  return (
+                    <div key={chief.id} className="rounded-lg border border-gray-200 p-3 bg-gray-50">
+                      <button
+                        onClick={() => setSelectedRole(chief)}
+                        className="w-full px-3 py-2 rounded-lg text-white text-xs font-bold shadow hover:opacity-90 transition-opacity cursor-pointer"
+                        style={{ backgroundColor: chief.color }}
+                      >
+                        <div className="opacity-80 mb-0.5">{chief.abbreviation}</div>
+                        <div className="leading-tight">{chief.title}</div>
+                      </button>
+
+                      <div className="mt-3">
+                        <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                          Direct Reports
+                        </div>
+                        <div className="space-y-1.5">
+                          {subordinates.map((sub) => (
                             <button
+                              key={sub.id}
                               onClick={() => setSelectedRole(sub)}
-                              className="px-2 py-1.5 rounded text-white text-xs font-medium shadow hover:opacity-90 transition-opacity cursor-pointer"
+                              className="w-full text-left px-2.5 py-1.5 rounded text-white text-xs font-medium shadow hover:opacity-90 transition-opacity cursor-pointer"
                               style={{ backgroundColor: sub.color }}
                             >
-                              <div className="opacity-80 text-xs">{sub.abbreviation}</div>
+                              <span className="opacity-90 mr-1">{sub.abbreviation}</span>
+                              {sub.title}
                             </button>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
 

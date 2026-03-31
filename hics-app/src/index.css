@@ -159,6 +159,49 @@ html.dark .hover\:bg-gray-200:hover {
 	background-color: #374151 !important;
 }
 
+html.dark .bg-blue-50 {
+	background-color: rgba(30, 58, 95, 0.55) !important;
+}
+
+html.dark .hover\:bg-blue-50:hover {
+	background-color: rgba(37, 70, 112, 0.72) !important;
+}
+
+html.dark .bg-green-50 {
+	background-color: rgba(6, 78, 59, 0.48) !important;
+}
+
+html.dark .bg-green-100 {
+	background-color: rgba(5, 99, 76, 0.58) !important;
+}
+
+html.dark .text-green-800,
+html.dark .text-green-700 {
+	color: #d1fae5 !important;
+}
+
+html.dark .bg-red-50 {
+	background-color: rgba(127, 29, 29, 0.5) !important;
+}
+
+html.dark .bg-red-100 {
+	background-color: rgba(153, 27, 27, 0.58) !important;
+}
+
+html.dark .text-red-800,
+html.dark .text-red-700 {
+	color: #fee2e2 !important;
+}
+
+html.dark .bg-yellow-50 {
+	background-color: rgba(120, 53, 15, 0.5) !important;
+}
+
+html.dark .text-yellow-800,
+html.dark .text-yellow-700 {
+	color: #fef3c7 !important;
+}
+
 html.dark .shadow-sm,
 html.dark .shadow-md,
 html.dark .shadow-lg {

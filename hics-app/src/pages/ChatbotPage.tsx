@@ -120,7 +120,7 @@ export default function ChatbotPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-blue-900 text-white py-4 px-4">
+      <div className="nyx-hero text-white py-4 px-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center text-xl">
@@ -145,14 +145,14 @@ export default function ChatbotPage() {
 
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
         {/* Suggested Questions */}
-        <div className="bg-white border-b px-4 py-3">
+        <div className="nyx-panel border-b px-4 py-3 mt-3">
           <div className="text-xs text-gray-500 mb-2 font-medium">Suggested questions:</div>
           <div className="flex flex-wrap gap-2">
             {suggestedQuestions.map((q) => (
               <button
                 key={q}
                 onClick={() => sendMessage(q)}
-                className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-full hover:bg-blue-100 transition-colors"
+                className="text-xs nyx-chip px-3 py-1.5 rounded-full hover:bg-blue-100 transition-colors"
               >
                 {q}
               </button>
@@ -171,7 +171,7 @@ export default function ChatbotPage() {
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm">
                 🤖
               </div>
-              <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+              <div className="nyx-panel rounded-2xl rounded-tl-sm px-4 py-3">
                 <div className="flex gap-1">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -185,7 +185,7 @@ export default function ChatbotPage() {
         </div>
 
         {/* Input Area */}
-        <div className="bg-white border-t px-4 py-4">
+        <div className="nyx-panel border-t px-4 py-4 mb-4">
           <form onSubmit={handleSubmit} className="flex gap-3">
             <input
               ref={inputRef}
@@ -193,13 +193,13 @@ export default function ChatbotPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about HICS protocols, triage, emergency procedures..."
-              className="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="nyx-input flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isTyping}
             />
             <button
               type="submit"
               disabled={!input.trim() || isTyping}
-              className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              className="nyx-button-metal px-5 py-2.5 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
               Send
               <span>→</span>

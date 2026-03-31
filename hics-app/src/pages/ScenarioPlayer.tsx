@@ -17,7 +17,7 @@ export default function ScenarioPlayer() {
   if (!scenario) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center nyx-panel p-8">
           <p className="text-gray-600 mb-4">Scenario not found.</p>
           <Link to="/scenarios" className="text-blue-600 hover:underline">← Back to Scenarios</Link>
         </div>
@@ -69,7 +69,7 @@ export default function ScenarioPlayer() {
   if (completed) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-blue-900 text-white py-6 px-4">
+        <div className="nyx-hero text-white py-6 px-4">
           <div className="max-w-4xl mx-auto">
             <Link to="/scenarios" className="text-blue-300 hover:text-white text-sm mb-2 inline-block">
               ← Back to Scenarios
@@ -80,7 +80,7 @@ export default function ScenarioPlayer() {
 
         <div className="max-w-4xl mx-auto px-4 py-8">
           {/* Score Card */}
-          <div className="bg-white rounded-xl shadow-sm p-8 text-center mb-6">
+          <div className="nyx-panel p-8 text-center mb-6 animate-fade-in">
             <div className="text-6xl mb-4">
               {scorePercent >= 80 ? '🏆' : scorePercent >= 60 ? '👍' : '📚'}
             </div>
@@ -139,7 +139,7 @@ export default function ScenarioPlayer() {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={handleRestart}
-              className="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="nyx-button-metal px-5 py-2.5 rounded-lg font-semibold transition-colors"
             >
               🔄 Try Again
             </button>
@@ -164,7 +164,7 @@ export default function ScenarioPlayer() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-blue-900 text-white py-4 px-4">
+      <div className="nyx-hero text-white py-4 px-4">
         <div className="max-w-4xl mx-auto">
           <Link to="/scenarios" className="text-blue-300 hover:text-white text-sm mb-1 inline-block">
             ← Back to Scenarios
@@ -174,7 +174,7 @@ export default function ScenarioPlayer() {
       </div>
 
       {/* Progress Bar */}
-      <div className="bg-white border-b">
+      <div className="nyx-panel border-b">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm font-medium text-gray-600">
@@ -195,7 +195,7 @@ export default function ScenarioPlayer() {
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Step Header */}
-        <div className="bg-blue-800 text-white rounded-xl p-5 mb-4">
+        <div className="nyx-hero text-white rounded-xl p-5 mb-4">
           <div className="text-xs text-blue-300 mb-1 font-medium uppercase tracking-wide">
             Step {currentStepIndex + 1} — {currentStep.title}
           </div>
@@ -203,7 +203,7 @@ export default function ScenarioPlayer() {
         </div>
 
         {/* Question */}
-        <div className="bg-white rounded-xl shadow-sm p-5 mb-4">
+        <div className="nyx-panel p-5 mb-4 animate-fade-in">
           <h3 className="font-bold text-gray-900 mb-4 text-base">{currentStep.question}</h3>
 
           <div className="space-y-3">
@@ -284,7 +284,7 @@ export default function ScenarioPlayer() {
           <div className="flex justify-end">
             <button
               onClick={handleNext}
-              className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="nyx-button-metal px-6 py-2.5 rounded-lg font-semibold transition-colors"
             >
               {isLastStep ? 'View Results →' : 'Next Step →'}
             </button>

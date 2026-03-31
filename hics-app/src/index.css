@@ -212,3 +212,54 @@ html.dark .text-blue-900 {
 .font-semibold {
 	letter-spacing: -0.025em;
 }
+
+.nyx-panel {
+	background: var(--card-bg) !important;
+	border: 1px solid var(--surface-border);
+	border-radius: 1.25rem;
+	backdrop-filter: blur(22px);
+	-webkit-backdrop-filter: blur(22px);
+	box-shadow: var(--surface-shadow);
+}
+
+.nyx-hero {
+	background-image: var(--hero-gradient) !important;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.nyx-chip {
+	background: rgba(157, 188, 216, 0.18);
+	border: 1px solid rgba(130, 158, 184, 0.28);
+	color: #27435f;
+	border-radius: 9999px;
+}
+
+html.dark .nyx-chip {
+	background: rgba(43, 66, 86, 0.44);
+	border-color: rgba(132, 162, 189, 0.24);
+	color: #c6d6e7;
+}
+
+.nyx-button-metal {
+	background-image: var(--metal-gradient) !important;
+	color: #0f172a !important;
+	border: 1px solid rgba(255, 255, 255, 0.4);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 16px 28px rgba(17, 24, 39, 0.18);
+}
+
+.nyx-button-metal:hover {
+	background-image: var(--accent-gradient) !important;
+}
+
+.nyx-input {
+	background: rgba(255, 255, 255, 0.62);
+	border: 1px solid rgba(148, 163, 184, 0.38);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+html.dark .nyx-input {
+	background: rgba(17, 24, 39, 0.72);
+	border-color: rgba(107, 114, 128, 0.45);
+	color: #e5e7eb;
+}

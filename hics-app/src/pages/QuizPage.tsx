@@ -57,15 +57,15 @@ export default function QuizPage() {
   if (state === 'start') {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-blue-900 text-white py-6 px-4">
+        <div className="nyx-hero text-white py-6 px-4">
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold">HICS Knowledge Quiz</h1>
-            <p className="text-blue-200 text-sm mt-1">Test your knowledge of HICS protocols and emergency procedures</p>
+            <h1 className="text-2xl font-bold">NyxHICSlab Knowledge Quiz</h1>
+            <p className="text-blue-200 text-sm mt-1">Test command decisions for psychiatric inpatient incidents</p>
           </div>
         </div>
 
         <div className="max-w-3xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-xl shadow-sm p-8 text-center mb-6">
+          <div className="nyx-panel p-8 text-center mb-6 animate-fade-in">
             <div className="text-6xl mb-4">📝</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Ready to Test Your Knowledge?</h2>
             <p className="text-gray-600 mb-6">
@@ -81,8 +81,8 @@ export default function QuizPage() {
                     onClick={() => setFilterCategory(cat)}
                     className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                       filterCategory === cat
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'nyx-button-metal'
+                        : 'nyx-chip hover:bg-gray-200'
                     }`}
                   >
                     {cat === 'all' ? 'All Categories' : cat}
@@ -108,7 +108,7 @@ export default function QuizPage() {
 
             <button
               onClick={handleStart}
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold text-lg hover:bg-blue-700 transition-colors"
+              className="nyx-button-metal px-8 py-3 rounded-lg font-bold text-lg transition-colors"
             >
               Start Quiz →
             </button>
@@ -121,7 +121,7 @@ export default function QuizPage() {
   if (state === 'complete') {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-blue-900 text-white py-6 px-4">
+        <div className="nyx-hero text-white py-6 px-4">
           <div className="max-w-3xl mx-auto">
             <h1 className="text-2xl font-bold">Quiz Results</h1>
           </div>
@@ -129,7 +129,7 @@ export default function QuizPage() {
 
         <div className="max-w-3xl mx-auto px-4 py-8">
           {/* Score Card */}
-          <div className="bg-white rounded-xl shadow-sm p-8 text-center mb-6">
+          <div className="nyx-panel p-8 text-center mb-6 animate-fade-in">
             <div className="text-6xl mb-4">
               {scorePercent >= 80 ? '🏆' : scorePercent >= 60 ? '👍' : '📚'}
             </div>
@@ -178,7 +178,7 @@ export default function QuizPage() {
 
           {/* Wrong Answers Review */}
           {answers.filter((a) => !a.correct).length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <div className="nyx-panel p-6 mb-6">
               <h3 className="font-bold text-gray-800 mb-4">Review Incorrect Answers</h3>
               <div className="space-y-4">
                 {answers.filter((a) => !a.correct).map(({ question, answer }, i) => (
@@ -202,7 +202,7 @@ export default function QuizPage() {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={handleRestart}
-              className="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="nyx-button-metal px-5 py-2.5 rounded-lg font-semibold transition-colors"
             >
               🔄 Retake Quiz
             </button>
@@ -215,9 +215,9 @@ export default function QuizPage() {
   // Playing state
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-blue-900 text-white py-4 px-4">
+      <div className="nyx-hero text-white py-4 px-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold">HICS Quiz</h1>
+          <h1 className="text-xl font-bold">NyxHICSlab Quiz</h1>
           <button
             onClick={handleRestart}
             className="text-blue-300 hover:text-white text-sm"
@@ -228,7 +228,7 @@ export default function QuizPage() {
       </div>
 
       {/* Progress */}
-      <div className="bg-white border-b">
+      <div className="nyx-panel border-b">
         <div className="max-w-3xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm font-medium text-gray-600">
@@ -246,9 +246,9 @@ export default function QuizPage() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="nyx-panel p-6 animate-fade-in">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+            <span className="text-xs font-medium text-blue-700 nyx-chip px-3 py-1 rounded-full">
               {currentQuestion.category}
             </span>
           </div>
@@ -320,7 +320,7 @@ export default function QuizPage() {
           <div className="flex justify-end mt-4">
             <button
               onClick={handleNext}
-              className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="nyx-button-metal px-6 py-2.5 rounded-lg font-semibold transition-colors"
             >
               {currentIndex === totalQuestions - 1 ? 'View Results →' : 'Next Question →'}
             </button>

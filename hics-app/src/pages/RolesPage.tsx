@@ -18,9 +18,9 @@ export default function RolesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-blue-900 text-white py-6 px-4">
+      <div className="nyx-hero text-white py-6 px-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold">HICS Roles &amp; Structure</h1>
+          <h1 className="text-2xl font-bold">NyxHICSlab Roles &amp; Structure</h1>
           <p className="text-blue-200 text-sm mt-1">
             Explore the NyxHICSlab organizational chart and incident command role descriptions
           </p>
@@ -29,7 +29,7 @@ export default function RolesPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Org Chart */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div className="nyx-panel p-6 mb-6 animate-fade-in">
           <h2 className="text-lg font-bold text-gray-800 mb-6 text-center">
             HICS Organizational Chart
           </h2>
@@ -122,7 +122,7 @@ export default function RolesPage() {
         <div className="grid md:grid-cols-3 gap-6">
           {/* Role List */}
           <div className="md:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm p-4">
+            <div className="nyx-panel p-4">
               <h3 className="font-bold text-gray-800 mb-3">Filter by Section</h3>
               <div className="flex flex-wrap gap-2 mb-4">
                 <button
@@ -146,7 +146,7 @@ export default function RolesPage() {
                   </button>
                 ))}
               </div>
-              <div className="space-y-1 max-h-96 overflow-y-auto">
+              <div className="space-y-1 max-h-96 overflow-y-auto motion-stagger">
                 {filteredRoles.map((role) => (
                   <button
                     key={role.id}
@@ -169,7 +169,7 @@ export default function RolesPage() {
           {/* Role Detail */}
           <div className="md:col-span-2">
             {selectedRole ? (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="nyx-panel p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <div
@@ -240,7 +240,7 @@ export default function RolesPage() {
                 })()}
               </div>
             ) : (
-              <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col items-center justify-center h-64 text-center">
+              <div className="nyx-panel p-6 flex flex-col items-center justify-center h-64 text-center">
                 <span className="text-4xl mb-3">👆</span>
                 <h3 className="text-lg font-semibold text-gray-700">Select a Role</h3>
                 <p className="text-gray-500 text-sm mt-1">

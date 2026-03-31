@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { scenarios } from '../data/scenarios';
+import {
+  facilityOptions,
+  facilityShortLabel,
+  getScenarioFacilities,
+  normalizeFacility,
+  type FacilityType,
+} from '../data/facilityProfiles';
 
 const difficultyColors = {
   beginner: 'bg-green-100 text-green-700',
@@ -25,69 +32,22 @@ const typeIcons: Record<string, string> = {
   'Medication Safety': '💊',
 };
 
-type FacilityType =
-  | 'all'
-  | 'psychiatric-inpatient'
-  | 'general-acute-care'
-  | 'community-hospital'
-  | 'long-term-care'
-  | 'ambulatory-care';
-
-const facilityOptions: Array<{ value: FacilityType; label: string }> = [
-  { value: 'all', label: 'All Facilities' },
-  { value: 'psychiatric-inpatient', label: 'Psychiatric Inpatient' },
-  { value: 'general-acute-care', label: 'General Acute Care Hospital' },
-  { value: 'community-hospital', label: 'Community Hospital' },
-  { value: 'long-term-care', label: 'Long-Term Care / SNF' },
-  { value: 'ambulatory-care', label: 'Ambulatory / Outpatient Center' },
-];
-
-const defaultFacilitiesByType: Record<string, FacilityType[]> = {
-  'Mass Casualty': ['general-acute-care', 'community-hospital'],
-  'Fire/Evacuation': ['general-acute-care', 'community-hospital', 'long-term-care', 'psychiatric-inpatient'],
-  HazMat: ['general-acute-care', 'community-hospital'],
-  Infrastructure: ['general-acute-care', 'community-hospital', 'ambulatory-care', 'long-term-care'],
-  Weather: ['general-acute-care', 'community-hospital', 'long-term-care', 'ambulatory-care'],
-  Utilities: ['general-acute-care', 'community-hospital', 'long-term-care'],
-  'Pediatric Surge': ['general-acute-care', 'community-hospital'],
-  'Public Health': ['general-acute-care', 'community-hospital', 'long-term-care', 'ambulatory-care'],
-  Logistics: ['general-acute-care', 'community-hospital', 'long-term-care'],
-  Throughput: ['general-acute-care', 'community-hospital', 'ambulatory-care'],
-  'Behavioral Health': ['psychiatric-inpatient', 'general-acute-care'],
-  Safety: ['psychiatric-inpatient', 'general-acute-care', 'long-term-care', 'ambulatory-care'],
-  'Medication Safety': ['psychiatric-inpatient', 'general-acute-care', 'long-term-care'],
-  Security: ['psychiatric-inpatient', 'general-acute-care', 'community-hospital', 'ambulatory-care'],
-};
-
-const scenarioFacilityOverrides: Record<string, FacilityType[]> = {
-  'patient-elopement': ['psychiatric-inpatient'],
-  'code-gray-escalation': ['psychiatric-inpatient', 'general-acute-care'],
-  'contraband-overdose': ['psychiatric-inpatient'],
-  'med-error-psych': ['psychiatric-inpatient', 'general-acute-care'],
-  'active-shooter-lockdown': ['psychiatric-inpatient', 'general-acute-care', 'community-hospital', 'ambulatory-care'],
-  'bomb-threat-campus': ['psychiatric-inpatient', 'general-acute-care', 'community-hospital', 'ambulatory-care'],
-  'workplace-violence-staff': ['psychiatric-inpatient', 'general-acute-care', 'long-term-care', 'ambulatory-care'],
-};
-
-const facilityShortLabel: Record<Exclude<FacilityType, 'all'>, string> = {
-  'psychiatric-inpatient': 'Psych',
-  'general-acute-care': 'Acute',
-  'community-hospital': 'Community',
-  'long-term-care': 'LTC/SNF',
-  'ambulatory-care': 'Ambulatory',
-};
-
-function getScenarioFacilities(scenarioId: string, scenarioType: string): FacilityType[] {
-  const override = scenarioFacilityOverrides[scenarioId];
-  if (override) {
-    return override;
-  }
-
-  return defaultFacilitiesByType[scenarioType] ?? ['general-acute-care'];
-}
-
 export default function ScenariosPage() {
-  const [selectedFacility, setSelectedFacility] = useState<FacilityType>('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedFacility, setSelectedFacility] = useState<FacilityType>(() =>
+    normalizeFacility(searchParams.get('facility')),
+  );
+
+  const handleFacilityChange = (facility: FacilityType) => {
+    setSelectedFacility(facility);
+
+    if (facility === 'all') {
+      setSearchParams({});
+      return;
+    }
+
+    setSearchParams({ facility });
+  };
 
   const visibleScenarios = useMemo(() => {
     return scenarios.filter((scenario) => {
@@ -126,7 +86,7 @@ export default function ScenariosPage() {
               <select
                 id="facility-filter"
                 value={selectedFacility}
-                onChange={(e) => setSelectedFacility(e.target.value as FacilityType)}
+                onChange={(e) => handleFacilityChange(e.target.value as FacilityType)}
                 className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
               >
                 {facilityOptions.map((option) => (
@@ -207,7 +167,7 @@ export default function ScenariosPage() {
                     <span>📋 {scenario.steps.length} steps</span>
                   </div>
                   <Link
-                    to={`/scenarios/${scenario.id}`}
+                    to={selectedFacility === 'all' ? `/scenarios/${scenario.id}` : `/scenarios/${scenario.id}?facility=${selectedFacility}`}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
                   >
                     Start Scenario →

@@ -1,11 +1,16 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { scenarios } from '../data/scenarios';
 import type { ScenarioStep, ScenarioOption } from '../types';
+import { adaptScenarioText, facilityLabels, normalizeFacility } from '../data/facilityProfiles';
 
 export default function ScenarioPlayer() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const scenario = scenarios.find((s) => s.id === id);
+  const selectedFacility = normalizeFacility(searchParams.get('facility'));
+  const scenariosLink = selectedFacility === 'all' ? '/scenarios' : `/scenarios?facility=${selectedFacility}`;
+  const facilityContextLabel = facilityLabels[selectedFacility];
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<ScenarioOption | null>(null);
@@ -19,13 +24,27 @@ export default function ScenarioPlayer() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center nyx-panel p-8">
           <p className="text-gray-600 mb-4">Scenario not found.</p>
-          <Link to="/scenarios" className="text-blue-600 hover:underline">← Back to Scenarios</Link>
+          <Link to={scenariosLink} className="text-blue-600 hover:underline">← Back to Scenarios</Link>
         </div>
       </div>
     );
   }
 
+  const adaptText = (text: string) => adaptScenarioText(text, selectedFacility);
+
   const currentStep = scenario.steps[currentStepIndex];
+  const adaptedStep = {
+    ...currentStep,
+    title: adaptText(currentStep.title),
+    situation: adaptText(currentStep.situation),
+    question: adaptText(currentStep.question),
+    hint: currentStep.hint ? adaptText(currentStep.hint) : undefined,
+    options: currentStep.options.map((option) => ({
+      ...option,
+      text: adaptText(option.text),
+      feedback: adaptText(option.feedback),
+    })),
+  };
   const isLastStep = currentStepIndex === scenario.steps.length - 1;
   const progress = ((currentStepIndex + (selectedOption ? 1 : 0)) / scenario.steps.length) * 100;
 
@@ -71,10 +90,11 @@ export default function ScenarioPlayer() {
       <div className="min-h-screen bg-gray-50">
         <div className="nyx-hero text-white py-6 px-4">
           <div className="max-w-4xl mx-auto">
-            <Link to="/scenarios" className="text-blue-300 hover:text-white text-sm mb-2 inline-block">
+            <Link to={scenariosLink} className="text-blue-300 hover:text-white text-sm mb-2 inline-block">
               ← Back to Scenarios
             </Link>
-            <h1 className="text-2xl font-bold">{scenario.title}</h1>
+            <h1 className="text-2xl font-bold">{adaptText(scenario.title)}</h1>
+            <p className="text-blue-200 text-xs mt-1">Facility Profile: {facilityContextLabel}</p>
           </div>
         </div>
 
@@ -119,15 +139,15 @@ export default function ScenarioPlayer() {
                   <span className="text-xl">{option.isCorrect ? '✅' : '❌'}</span>
                   <div>
                     <div className="font-semibold text-gray-900 text-sm mb-1">
-                      Step {i + 1}: {step.title}
+                      Step {i + 1}: {adaptText(step.title)}
                     </div>
                     <div className="text-sm text-gray-600 mb-2">
-                      <span className="font-medium">Your choice:</span> {option.text}
+                      <span className="font-medium">Your choice:</span> {adaptText(option.text)}
                     </div>
                     <div className={`text-sm p-3 rounded-lg ${
                       option.isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
                     }`}>
-                      {option.feedback}
+                      {adaptText(option.feedback)}
                     </div>
                   </div>
                 </div>
@@ -144,7 +164,7 @@ export default function ScenarioPlayer() {
               🔄 Try Again
             </button>
             <Link
-              to="/scenarios"
+              to={scenariosLink}
               className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
             >
               ← All Scenarios
@@ -166,10 +186,11 @@ export default function ScenarioPlayer() {
       {/* Header */}
       <div className="nyx-hero text-white py-4 px-4">
         <div className="max-w-4xl mx-auto">
-          <Link to="/scenarios" className="text-blue-300 hover:text-white text-sm mb-1 inline-block">
+          <Link to={scenariosLink} className="text-blue-300 hover:text-white text-sm mb-1 inline-block">
             ← Back to Scenarios
           </Link>
-          <h1 className="text-xl font-bold">{scenario.title}</h1>
+          <h1 className="text-xl font-bold">{adaptText(scenario.title)}</h1>
+          <p className="text-blue-200 text-xs mt-1">Facility Profile: {facilityContextLabel}</p>
         </div>
       </div>
 
@@ -197,17 +218,17 @@ export default function ScenarioPlayer() {
         {/* Step Header */}
         <div className="nyx-hero text-white rounded-xl p-5 mb-4">
           <div className="text-xs text-blue-300 mb-1 font-medium uppercase tracking-wide">
-            Step {currentStepIndex + 1} — {currentStep.title}
+            Step {currentStepIndex + 1} — {adaptedStep.title}
           </div>
-          <h2 className="text-base font-semibold leading-relaxed">{currentStep.situation}</h2>
+          <h2 className="text-base font-semibold leading-relaxed">{adaptedStep.situation}</h2>
         </div>
 
         {/* Question */}
         <div className="nyx-panel p-5 mb-4 animate-fade-in">
-          <h3 className="font-bold text-gray-900 mb-4 text-base">{currentStep.question}</h3>
+          <h3 className="font-bold text-gray-900 mb-4 text-base">{adaptedStep.question}</h3>
 
           <div className="space-y-3">
-            {currentStep.options.map((option) => {
+            {adaptedStep.options.map((option) => {
               let optionStyle = 'border border-gray-200 hover:border-blue-300 hover:bg-blue-50';
               if (selectedOption) {
                 if (option.isCorrect) {
@@ -262,7 +283,7 @@ export default function ScenarioPlayer() {
           </div>
 
           {/* Hint */}
-          {currentStep.hint && !selectedOption && (
+          {adaptedStep.hint && !selectedOption && (
             <div className="mt-4">
               <button
                 onClick={() => setShowHint(!showHint)}
@@ -272,7 +293,7 @@ export default function ScenarioPlayer() {
               </button>
               {showHint && (
                 <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-                  {currentStep.hint}
+                  {adaptedStep.hint}
                 </div>
               )}
             </div>

@@ -26,7 +26,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="flex flex-col min-h-screen">
+      <div className="nyx-app flex flex-col min-h-screen">
         <Navbar theme={theme} onToggleTheme={toggleTheme} />
         <main className="flex-1 animate-fade-in">
           <Routes>

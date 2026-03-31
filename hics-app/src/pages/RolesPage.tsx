@@ -22,7 +22,7 @@ export default function RolesPage() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl font-bold">HICS Roles &amp; Structure</h1>
           <p className="text-blue-200 text-sm mt-1">
-            Explore the Hospital Incident Command System organizational chart and role descriptions
+            Explore the NyxHICSlab organizational chart and incident command role descriptions
           </p>
         </div>
       </div>

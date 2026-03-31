@@ -28,7 +28,7 @@ export default function ScenariosPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-blue-900 text-white py-6 px-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold">Training Scenarios</h1>
+          <h1 className="text-2xl font-bold">NyxHICSlab Scenarios</h1>
           <p className="text-blue-200 text-sm mt-1">
             Practice psychiatric inpatient response with interactive choices, practical feedback, and a little personality
           </p>

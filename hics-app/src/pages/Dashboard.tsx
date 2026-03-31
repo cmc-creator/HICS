@@ -54,13 +54,13 @@ export default function Dashboard() {
           <div className="flex items-center gap-4 mb-4">
             <span className="text-5xl">🏥</span>
             <div>
-              <h1 className="text-3xl font-bold">HICS Training Portal</h1>
-              <p className="text-blue-200 text-lg">Hospital Incident Command System</p>
+              <h1 className="text-3xl font-bold">NyxHICSlab</h1>
+              <p className="text-blue-200 text-lg">Luxury psychiatric incident command training by NyxCollective LLC</p>
             </div>
           </div>
           <p className="text-blue-100 max-w-2xl text-base leading-relaxed">
-            Prepare your team for hospital emergencies with interactive scenarios, role-based training,
-            and an AI-powered assistant. Master HICS protocols to protect patients and staff during crises.
+            Prepare behavioral health teams for real-world incidents with premium interactive scenarios, role-based training,
+            and an AI assistant designed for psychiatric inpatient operations.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
@@ -96,7 +96,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Links Grid */}
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Training Modules</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Platform Modules</h2>
         <div className="grid md:grid-cols-2 gap-4 mb-8 motion-stagger">
           {quickLinks.map((link) => (
             <Link
@@ -120,7 +120,7 @@ export default function Dashboard() {
 
         {/* HICS Overview */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">HICS Organizational Structure Overview</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-4">NyxHICSlab Command Structure Overview</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {hicsCategories.map((cat) => {
               const roles = hicsRoles.filter((r) => r.category === cat.id);

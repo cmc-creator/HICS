@@ -17,14 +17,14 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   const location = useLocation();
 
   return (
-    <nav className="bg-blue-900 text-white shadow-lg">
+    <nav className="sticky top-0 z-50 bg-blue-900 text-white shadow-lg border-b border-white/10 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🏥</span>
             <div>
-              <span className="text-lg font-bold tracking-wide">HICS Training</span>
-              <span className="hidden sm:block text-xs text-blue-300">Hospital Incident Command System</span>
+              <span className="text-lg font-bold tracking-wide">NyxHICSlab</span>
+              <span className="hidden sm:block text-xs text-blue-300">NyxCollective LLC · Psychiatric Incident Command Training</span>
             </div>
           </div>
           <div className="flex items-center gap-1">

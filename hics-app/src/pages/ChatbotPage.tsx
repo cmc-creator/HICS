@@ -127,7 +127,7 @@ export default function ChatbotPage() {
               🤖
             </div>
             <div>
-              <h1 className="text-lg font-bold">HICS AI Assistant</h1>
+              <h1 className="text-lg font-bold">NyxHICSlab Assistant</h1>
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 bg-green-400 rounded-full" />
                 <span className="text-xs text-blue-200">Online – Ready to help</span>
@@ -206,7 +206,7 @@ export default function ChatbotPage() {
             </button>
           </form>
           <p className="text-xs text-gray-400 mt-2 text-center">
-            AI assistant provides HICS training guidance. Always consult your hospital's Emergency Operations Plan for official procedures.
+            NyxHICSlab provides training guidance. Always consult your hospital's Emergency Operations Plan for official procedures.
           </p>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { scenarios } from '../data/scenarios';
 
@@ -24,7 +25,80 @@ const typeIcons: Record<string, string> = {
   'Medication Safety': '💊',
 };
 
+type FacilityType =
+  | 'all'
+  | 'psychiatric-inpatient'
+  | 'general-acute-care'
+  | 'community-hospital'
+  | 'long-term-care'
+  | 'ambulatory-care';
+
+const facilityOptions: Array<{ value: FacilityType; label: string }> = [
+  { value: 'all', label: 'All Facilities' },
+  { value: 'psychiatric-inpatient', label: 'Psychiatric Inpatient' },
+  { value: 'general-acute-care', label: 'General Acute Care Hospital' },
+  { value: 'community-hospital', label: 'Community Hospital' },
+  { value: 'long-term-care', label: 'Long-Term Care / SNF' },
+  { value: 'ambulatory-care', label: 'Ambulatory / Outpatient Center' },
+];
+
+const defaultFacilitiesByType: Record<string, FacilityType[]> = {
+  'Mass Casualty': ['general-acute-care', 'community-hospital'],
+  'Fire/Evacuation': ['general-acute-care', 'community-hospital', 'long-term-care', 'psychiatric-inpatient'],
+  HazMat: ['general-acute-care', 'community-hospital'],
+  Infrastructure: ['general-acute-care', 'community-hospital', 'ambulatory-care', 'long-term-care'],
+  Weather: ['general-acute-care', 'community-hospital', 'long-term-care', 'ambulatory-care'],
+  Utilities: ['general-acute-care', 'community-hospital', 'long-term-care'],
+  'Pediatric Surge': ['general-acute-care', 'community-hospital'],
+  'Public Health': ['general-acute-care', 'community-hospital', 'long-term-care', 'ambulatory-care'],
+  Logistics: ['general-acute-care', 'community-hospital', 'long-term-care'],
+  Throughput: ['general-acute-care', 'community-hospital', 'ambulatory-care'],
+  'Behavioral Health': ['psychiatric-inpatient', 'general-acute-care'],
+  Safety: ['psychiatric-inpatient', 'general-acute-care', 'long-term-care', 'ambulatory-care'],
+  'Medication Safety': ['psychiatric-inpatient', 'general-acute-care', 'long-term-care'],
+  Security: ['psychiatric-inpatient', 'general-acute-care', 'community-hospital', 'ambulatory-care'],
+};
+
+const scenarioFacilityOverrides: Record<string, FacilityType[]> = {
+  'patient-elopement': ['psychiatric-inpatient'],
+  'code-gray-escalation': ['psychiatric-inpatient', 'general-acute-care'],
+  'contraband-overdose': ['psychiatric-inpatient'],
+  'med-error-psych': ['psychiatric-inpatient', 'general-acute-care'],
+  'active-shooter-lockdown': ['psychiatric-inpatient', 'general-acute-care', 'community-hospital', 'ambulatory-care'],
+  'bomb-threat-campus': ['psychiatric-inpatient', 'general-acute-care', 'community-hospital', 'ambulatory-care'],
+  'workplace-violence-staff': ['psychiatric-inpatient', 'general-acute-care', 'long-term-care', 'ambulatory-care'],
+};
+
+const facilityShortLabel: Record<Exclude<FacilityType, 'all'>, string> = {
+  'psychiatric-inpatient': 'Psych',
+  'general-acute-care': 'Acute',
+  'community-hospital': 'Community',
+  'long-term-care': 'LTC/SNF',
+  'ambulatory-care': 'Ambulatory',
+};
+
+function getScenarioFacilities(scenarioId: string, scenarioType: string): FacilityType[] {
+  const override = scenarioFacilityOverrides[scenarioId];
+  if (override) {
+    return override;
+  }
+
+  return defaultFacilitiesByType[scenarioType] ?? ['general-acute-care'];
+}
+
 export default function ScenariosPage() {
+  const [selectedFacility, setSelectedFacility] = useState<FacilityType>('all');
+
+  const visibleScenarios = useMemo(() => {
+    return scenarios.filter((scenario) => {
+      if (selectedFacility === 'all') {
+        return true;
+      }
+
+      return getScenarioFacilities(scenario.id, scenario.type).includes(selectedFacility);
+    });
+  }, [selectedFacility]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-blue-900 text-white py-6 px-4">
@@ -37,8 +111,42 @@ export default function ScenariosPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 md:p-5 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-bold text-gray-800">Facility Profile</h2>
+              <p className="text-xs text-gray-600 mt-1">
+                Tailor scenario recommendations by facility type.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <label htmlFor="facility-filter" className="text-xs font-semibold text-gray-600">
+                Facility:
+              </label>
+              <select
+                id="facility-filter"
+                value={selectedFacility}
+                onChange={(e) => setSelectedFacility(e.target.value as FacilityType)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                {facilityOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-3">
+            Showing {visibleScenarios.length} scenario{visibleScenarios.length === 1 ? '' : 's'} for this profile.
+          </p>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-6 motion-stagger">
-          {scenarios.map((scenario) => (
+          {visibleScenarios.map((scenario) => {
+            const facilities = getScenarioFacilities(scenario.id, scenario.type);
+
+            return (
             <div key={scenario.id} className="bg-white rounded-xl shadow-sm overflow-hidden card-lift">
               <div className="bg-gradient-to-r from-blue-800 to-blue-600 text-white p-5">
                 <div className="flex items-start justify-between">
@@ -59,6 +167,22 @@ export default function ScenariosPage() {
 
               <div className="p-5">
                 <p className="text-gray-600 text-sm mb-4 leading-relaxed">{scenario.description}</p>
+
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {facilities.slice(0, 3).map((facility) => (
+                    <span
+                      key={`${scenario.id}-${facility}`}
+                      className="text-[10px] font-semibold px-2 py-1 rounded-full bg-slate-100 text-slate-600"
+                    >
+                      {facilityShortLabel[facility as Exclude<FacilityType, 'all'>]}
+                    </span>
+                  ))}
+                  {facilities.length > 3 && (
+                    <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-slate-100 text-slate-500">
+                      +{facilities.length - 3} more
+                    </span>
+                  )}
+                </div>
 
                 <div className="mb-4">
                   <h3 className="text-sm font-bold text-gray-800 mb-2">Learning Objectives:</h3>
@@ -91,8 +215,18 @@ export default function ScenariosPage() {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
+
+        {visibleScenarios.length === 0 && (
+          <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-5">
+            <h3 className="font-bold text-amber-900">No scenarios matched this profile yet</h3>
+            <p className="text-amber-700 text-sm mt-1">
+              Try a different facility profile, or choose All Facilities to view the full library.
+            </p>
+          </div>
+        )}
 
         {/* Info Banner */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-5">

@@ -4,12 +4,25 @@ import type { QuizQuestion } from '../types';
 
 type QuizState = 'start' | 'playing' | 'review' | 'complete';
 
+const quizCorrectQuips = [
+  'Correct. Incident command approves this vibe.',
+  'Yep, that answer had charge-nurse confidence.',
+  'Excellent call. Clipboard sparkle unlocked.',
+];
+
+const quizWrongQuips = [
+  'Close, but protocol had other plans.',
+  'Not this round. Training montage continues.',
+  'A bold guess, now we sharpen it.',
+];
+
 export default function QuizPage() {
   const [state, setState] = useState<QuizState>('start');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [answers, setAnswers] = useState<Array<{ question: QuizQuestion; answer: number; correct: boolean }>>([]);
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [quizQuip, setQuizQuip] = useState('');
 
   const categories = ['all', ...Array.from(new Set(quizQuestions.map((q) => q.category)))];
 
@@ -27,12 +40,16 @@ export default function QuizPage() {
     setSelectedAnswer(index);
     const correct = index === currentQuestion.correctAnswer;
     setAnswers((prev) => [...prev, { question: currentQuestion, answer: index, correct }]);
+    setQuizQuip(correct
+      ? quizCorrectQuips[currentIndex % quizCorrectQuips.length]
+      : quizWrongQuips[currentIndex % quizWrongQuips.length]);
   };
 
   const handleNext = () => {
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex((i) => i + 1);
       setSelectedAnswer(null);
+      setQuizQuip('');
     } else {
       setState('complete');
     }
@@ -42,6 +59,7 @@ export default function QuizPage() {
     setCurrentIndex(0);
     setSelectedAnswer(null);
     setAnswers([]);
+    setQuizQuip('');
     setState('playing');
   };
 
@@ -50,6 +68,7 @@ export default function QuizPage() {
     setSelectedAnswer(null);
     setAnswers([]);
     setState('start');
+    setQuizQuip('');
   };
 
   const scorePercent = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
@@ -147,6 +166,13 @@ export default function QuizPage() {
             }`}>
               {scorePercent >= 80 ? '✓ PASS' : '✗ Did Not Pass'}
             </div>
+            <p className="text-sm text-gray-600 mt-3 fun-callout p-3">
+              {scorePercent >= 80
+                ? 'Legendary work. The incident board would frame this score.'
+                : scorePercent >= 60
+                  ? 'Solid performance. A quick review and you are command-floor ready.'
+                  : 'Great practice rep. Every quiz run upgrades response reflexes.'}
+            </p>
 
             {/* Category Breakdown */}
             <div className="mt-6 text-left">
@@ -273,7 +299,7 @@ export default function QuizPage() {
                   key={index}
                   onClick={() => handleSelectAnswer(index)}
                   disabled={selectedAnswer !== null}
-                  className={`w-full text-left p-4 rounded-lg transition-all ${optionStyle}`}
+                  className={`w-full text-left p-4 rounded-lg transition-all ${optionStyle} ${selectedAnswer !== null && index === currentQuestion.correctAnswer ? 'fx-pop-correct' : ''} ${selectedAnswer !== null && index === selectedAnswer && index !== currentQuestion.correctAnswer ? 'fx-shake-wrong' : ''}`}
                 >
                   <div className="flex items-start gap-3">
                     <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm ${
@@ -312,6 +338,11 @@ export default function QuizPage() {
               }`}>
                 {currentQuestion.explanation}
               </p>
+              {quizQuip && (
+                <p className="text-sm text-gray-700 mt-3 fun-callout p-2.5">
+                  {quizQuip}
+                </p>
+              )}
             </div>
           )}
         </div>

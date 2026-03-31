@@ -123,6 +123,46 @@ html.dark textarea:focus-visible {
 	}
 }
 
+@keyframes popGlow {
+	0% { transform: scale(0.98); box-shadow: 0 0 0 rgba(16, 185, 129, 0); }
+	60% { transform: scale(1.015); box-shadow: 0 0 18px rgba(16, 185, 129, 0.22); }
+	100% { transform: scale(1); box-shadow: 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes wrongShake {
+	0% { transform: translateX(0); }
+	20% { transform: translateX(-2px); }
+	40% { transform: translateX(2px); }
+	60% { transform: translateX(-2px); }
+	80% { transform: translateX(2px); }
+	100% { transform: translateX(0); }
+}
+
+@keyframes pulseSpark {
+	0% { opacity: 0.72; transform: scale(0.98); }
+	100% { opacity: 1; transform: scale(1); }
+}
+
+.fx-pop-correct {
+	animation: popGlow 420ms ease-out;
+}
+
+.fx-shake-wrong {
+	animation: wrongShake 280ms ease-out;
+}
+
+.fun-callout {
+	background: rgba(245, 245, 255, 0.7);
+	border: 1px dashed rgba(100, 116, 139, 0.4);
+	border-radius: 0.9rem;
+	animation: pulseSpark 360ms ease-out;
+}
+
+html.dark .fun-callout {
+	background: rgba(30, 41, 59, 0.65);
+	border-color: rgba(148, 163, 184, 0.45);
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.animate-fade-in,
 	.motion-stagger > *,

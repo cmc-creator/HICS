@@ -9,6 +9,23 @@ const FACILITATOR_KEY = 'nyx-facilitator-mode';
 const TIMED_KEY = 'nyx-timed-mode';
 const STEP_SECONDS_KEY = 'nyx-step-seconds';
 
+const correctQuips = [
+  'Nice call, command center energy activated.',
+  'That was smoother than a fully stocked crash cart.',
+  'Great decision, your clipboard just gained +5 charisma.',
+];
+
+const wrongQuips = [
+  'Plot twist, but this is why we train.',
+  'Not ideal, but your growth arc is strong.',
+  'That one zigged when protocol wanted a zag.',
+];
+
+const timeoutQuips = [
+  'Timer said no mercy, just like real surge ops.',
+  'The clock sprinted, but you can still recover next step.',
+];
+
 export default function ScenarioPlayer() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
@@ -26,6 +43,7 @@ export default function ScenarioPlayer() {
   const [showCorrectReveal, setShowCorrectReveal] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [timeoutNotice, setTimeoutNotice] = useState<string | null>(null);
+  const [momentQuip, setMomentQuip] = useState<string>('');
 
   const [facilitatorMode, setFacilitatorMode] = useState(() => localStorage.getItem(FACILITATOR_KEY) === 'true');
   const [timedMode, setTimedMode] = useState(() => localStorage.getItem(TIMED_KEY) === 'true');
@@ -101,6 +119,7 @@ export default function ScenarioPlayer() {
           setSelectedOption(timeoutOption);
           setAnswers((existing) => [...existing, { step: currentStep, option: timeoutOption }]);
           setTimeoutNotice('Time expired on this step. Review rationale, then continue.');
+          setMomentQuip(timeoutQuips[currentStepIndex % timeoutQuips.length]);
           trackEvent('scenario_step_timeout', {
             scenarioId: scenario.id,
             stepId: currentStep.id,
@@ -114,7 +133,7 @@ export default function ScenarioPlayer() {
     }, 1000);
 
     return () => window.clearTimeout(timer);
-  }, [scenario, timedMode, selectedOption, completed, isPaused, secondsLeft, currentStep, selectedFacility]);
+  }, [scenario, timedMode, selectedOption, completed, isPaused, secondsLeft, currentStep, selectedFacility, currentStepIndex]);
 
   useEffect(() => {
     if (!completed || completionSavedRef.current) {
@@ -168,6 +187,9 @@ export default function ScenarioPlayer() {
     setTimeoutNotice(null);
     if (option.isCorrect) {
       setScore((s) => s + 1);
+      setMomentQuip(correctQuips[currentStepIndex % correctQuips.length]);
+    } else {
+      setMomentQuip(wrongQuips[currentStepIndex % wrongQuips.length]);
     }
     setAnswers((prev) => [...prev, { step: currentStep, option }]);
 
@@ -192,6 +214,7 @@ export default function ScenarioPlayer() {
     setShowCorrectReveal(false);
     setTimeoutNotice(null);
     setSecondsLeft(stepSeconds);
+    setMomentQuip('');
   };
 
   const handleRestart = () => {
@@ -205,6 +228,7 @@ export default function ScenarioPlayer() {
     setTimeoutNotice(null);
     setIsPaused(false);
     setSecondsLeft(stepSeconds);
+    setMomentQuip('');
     startedAtRef.current = Date.now();
     completionSavedRef.current = false;
 
@@ -429,6 +453,12 @@ export default function ScenarioPlayer() {
             </div>
           )}
 
+          {momentQuip && (
+            <div className="mb-3 p-3 text-sm text-gray-700 fun-callout">
+              {momentQuip}
+            </div>
+          )}
+
           <div className="space-y-3">
             {adaptedStep.options.map((option) => {
               let optionStyle = 'border border-gray-200 hover:border-blue-300 hover:bg-blue-50';
@@ -447,7 +477,7 @@ export default function ScenarioPlayer() {
                   key={option.id}
                   onClick={() => handleSelectOption(option)}
                   disabled={!!selectedOption || isPaused}
-                  className={`w-full text-left p-4 rounded-lg transition-all ${optionStyle} ${(!!selectedOption || isPaused) ? 'cursor-default' : 'cursor-pointer'}`}
+                  className={`w-full text-left p-4 rounded-lg transition-all ${optionStyle} ${(!!selectedOption || isPaused) ? 'cursor-default' : 'cursor-pointer'} ${selectedOption && option.isCorrect ? 'fx-pop-correct' : ''} ${selectedOption && option.id === selectedOption.id && !option.isCorrect ? 'fx-shake-wrong' : ''}`}
                 >
                   <div className="flex items-start gap-3">
                     <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${

@@ -189,22 +189,22 @@ export const scenarios: Scenario[] = [
   },
   {
     id: 'hospital-fire',
-    title: 'Hospital Fire Emergency',
+    title: 'Psych Unit Fire and Smoke Event',
     type: 'Fire/Evacuation',
     difficulty: 'beginner',
     duration: '20 min',
-    description: 'A fire breaks out in the hospital kitchen area. Practice RACE protocol, patient evacuation procedures, and HICS activation for internal emergencies.',
+    description: 'Smoke is reported from a laundry room adjacent to a locked behavioral health unit. Practice RACE protocol, controlled movement of psychiatric inpatients, and HICS activation.',
     objectives: [
       'Apply RACE protocol (Rescue, Alarm, Confine, Extinguish/Evacuate)',
-      'Initiate partial or full evacuation as appropriate',
+      'Initiate partial evacuation while maintaining unit security and observation',
       'Activate HICS for internal emergency',
-      'Coordinate with fire department',
+      'Coordinate with fire department and behavioral response staff',
     ],
     steps: [
       {
         id: 'fire-step-1',
         title: 'Fire Discovery',
-        situation: 'A kitchen employee reports seeing flames and smoke coming from the kitchen exhaust system at 11:30 AM. Approximately 180 patients are in the hospital.',
+        situation: 'A staff member reports smoke coming from a utility closet near a locked psychiatric inpatient unit at 11:30 AM. Several high-acuity patients are in group therapy.',
         question: 'What is the correct RACE protocol response?',
         options: [
           {
@@ -238,7 +238,7 @@ export const scenarios: Scenario[] = [
       {
         id: 'fire-step-2',
         title: 'Evacuation Decision',
-        situation: 'The fire is contained to the kitchen area. Fire department has arrived. You are the Incident Commander. The kitchen is adjacent to the cafeteria but separated from patient care areas by fire doors.',
+        situation: 'The fire is contained but smoke is entering one locked unit corridor. Fire department has arrived. You are Incident Commander and need to move patients while preserving safety observations.',
         question: 'What evacuation strategy should you implement?',
         options: [
           {
@@ -255,9 +255,9 @@ export const scenarios: Scenario[] = [
           },
           {
             id: 'c',
-            text: 'Horizontal evacuation of patients in adjacent areas; prepare vertical evacuation if fire spreads',
+            text: 'Horizontal evacuation to a secure adjacent unit dayroom with assigned observers; prepare vertical evacuation if conditions worsen',
             isCorrect: true,
-            feedback: 'Correct! Horizontal evacuation (moving patients within the same floor to a safer zone) is less risky than vertical evacuation. Prepare for vertical evacuation if needed. The fire department will guide the IC on fire spread.',
+            feedback: 'Correct! Horizontal evacuation to a secure area with assigned observation maintains both life safety and behavioral safety while reducing transfer risk.',
             nextStep: 'fire-step-3',
           },
           {
@@ -271,7 +271,7 @@ export const scenarios: Scenario[] = [
       {
         id: 'fire-step-3',
         title: 'Patient Safety and Documentation',
-        situation: 'The fire is extinguished. All affected areas have been evacuated. You have 45 patients who were moved to alternate areas. Staff are exhausted after the 2-hour response.',
+        situation: 'The fire is extinguished. Affected unit patients were moved to alternate secure spaces. Several patients are dysregulated from the disruption and staff are exhausted.',
         question: 'What is your priority now?',
         options: [
           {
@@ -282,9 +282,9 @@ export const scenarios: Scenario[] = [
           },
           {
             id: 'b',
-            text: 'Account for all patients and staff, coordinate with fire department for re-entry clearance, document all actions taken',
+            text: 'Account for all patients/staff, complete behavioral and medical reassessment, coordinate re-entry clearance, and document all actions taken',
             isCorrect: true,
-            feedback: 'Correct! Patient and staff accounting is critical. Re-entry requires fire department clearance. Documentation is essential for patient safety handoffs and after-action review.',
+            feedback: 'Correct! In psychiatric settings, post-event reassessment and observation planning are as important as re-entry clearance and documentation.',
           },
           {
             id: 'c',
@@ -386,22 +386,22 @@ export const scenarios: Scenario[] = [
   },
   {
     id: 'cyber-attack',
-    title: 'Cyberattack / IT Outage',
+    title: 'Cyberattack and Behavioral Health EHR Downtime',
     type: 'Infrastructure',
     difficulty: 'intermediate',
     duration: '20 min',
-    description: 'A ransomware attack has taken down your hospital\'s EHR, scheduling, and communication systems. Practice downtime procedures and maintaining patient safety without IT systems.',
+    description: 'A ransomware event takes down psychiatric inpatient EHR, eMAR, and observation documentation systems. Practice downtime workflows while maintaining legal and clinical safety standards.',
     objectives: [
       'Activate downtime procedures immediately',
-      'Maintain patient safety without electronic systems',
+      'Maintain patient safety and required observation levels without electronic systems',
       'Coordinate with IT and cybersecurity teams',
-      'Implement manual documentation protocols',
+      'Implement manual medication and behavioral event documentation protocols',
     ],
     steps: [
       {
         id: 'cyber-step-1',
         title: 'System Failure Detected',
-        situation: 'At 3 AM, the EHR system crashes. Staff report they cannot access patient records, lab results, or medication administration records. IT reports it may be ransomware.',
+        situation: 'At 3 AM, psychiatric unit EHR access fails. Staff cannot access treatment plans, MARs, or seclusion/restraint documentation templates. IT reports likely ransomware.',
         question: 'What is your first action?',
         options: [
           {
@@ -412,9 +412,9 @@ export const scenarios: Scenario[] = [
           },
           {
             id: 'b',
-            text: 'Activate downtime procedures; notify leadership; isolate affected systems; ensure patient safety with paper-based processes',
+            text: 'Activate downtime procedures; notify leadership; isolate affected systems; switch to paper MAR/observation tools and safety checks',
             isCorrect: true,
-            feedback: 'Correct! Downtime procedures ensure continued patient care. Notifying leadership activates the response chain. Isolating systems prevents spread of malware. Paper-based processes maintain care continuity.',
+            feedback: 'Correct! Paper workflows for meds, observations, and legal safety documentation are essential in psychiatric inpatient downtime events.',
           },
           {
             id: 'c',
@@ -435,16 +435,16 @@ export const scenarios: Scenario[] = [
   },
   {
     id: 'severe-weather',
-    title: 'Severe Weather & Shelter-in-Place',
+    title: 'Severe Weather on a Locked Behavioral Campus',
     type: 'Weather',
     difficulty: 'beginner',
     duration: '18 min',
-    description: 'A tornado warning is issued with ETA 12 minutes. Practice rapid shelter-in-place decisions, communication, and patient safety coordination.',
+    description: 'A tornado warning is issued with ETA 12 minutes for a locked psychiatric campus. Practice shelter-in-place, supervised movement, and unit calming strategies.',
     objectives: [
       'Activate weather emergency procedures quickly',
-      'Prioritize patient movement to interior safe zones',
+      'Prioritize supervised patient movement to interior safe zones',
       'Coordinate clear communication across units',
-      'Maintain safe clinical operations during shelter-in-place',
+      'Maintain behavioral safety and therapeutic stability during shelter-in-place',
     ],
     steps: [
       {
@@ -484,14 +484,14 @@ export const scenarios: Scenario[] = [
       {
         id: 'weather-step-2',
         title: 'Movement Priorities',
-        situation: 'You have 8 minutes before impact window. ICU has ventilated patients, ED has ambulatory patients, and outpatient waiting area is full.',
+        situation: 'You have 8 minutes before impact window. One unit has highly anxious patients, another has patients on close observation, and an outdoor courtyard group must be moved inside.',
         question: 'Which movement strategy is most appropriate?',
         options: [
           {
             id: 'a',
-            text: 'Move ambulatory patients first to interior hallways, then move critical patients with full support teams',
+            text: 'Move lower-acuity groups first to interior secure zones, then move high-risk observation patients with assigned staff pairs',
             isCorrect: true,
-            feedback: 'Correct. Rapidly relocating ambulatory patients clears space and teams can then safely move high-acuity patients with equipment.',
+            feedback: 'Correct. Sequenced movement with assigned observers protects safety while minimizing escalation.',
             nextStep: 'weather-step-3',
           },
           {
@@ -892,14 +892,14 @@ export const scenarios: Scenario[] = [
   },
   {
     id: 'supply-chain',
-    title: 'Critical Supply Chain Disruption',
+    title: 'Psych Medication and PPE Supply Disruption',
     type: 'Logistics',
     difficulty: 'intermediate',
     duration: '21 min',
-    description: 'A vendor outage delays key PPE and medication deliveries for 48 hours. Practice conservation, substitution pathways, and transparent command decisions.',
+    description: 'A vendor outage delays key psychiatric medications, emergency IM kits, and PPE for 48 hours. Practice conservation, substitution planning, and risk-based allocation.',
     objectives: [
       'Implement conservation and substitution protocols',
-      'Coordinate pharmacy, materials management, and clinical leads',
+      'Coordinate pharmacy, behavioral health nursing, and materials management',
       'Prioritize supply usage by patient risk',
       'Communicate realistic operational constraints',
     ],
@@ -907,7 +907,7 @@ export const scenarios: Scenario[] = [
       {
         id: 'supply-step-1',
         title: 'Delivery Failure Alert',
-        situation: 'Your largest supplier reports a regional outage. Two high-use PPE items and one critical medication are backordered for 48 hours.',
+        situation: 'Your largest supplier reports a regional outage. One long-acting antipsychotic, one emergency IM medication, and two high-use PPE items are backordered for 48 hours.',
         question: 'What is the best first move?',
         options: [
           {
@@ -940,7 +940,7 @@ export const scenarios: Scenario[] = [
       {
         id: 'supply-step-2',
         title: 'Clinical Prioritization',
-        situation: 'You can cover 30 hours at current use. Pharmacy identifies two alternative meds with modified monitoring requirements.',
+        situation: 'You can cover 30 hours at current use. Pharmacy identifies alternatives requiring additional monitoring for EPS and sedation risk.',
         question: 'How should command proceed?',
         options: [
           {
@@ -951,9 +951,9 @@ export const scenarios: Scenario[] = [
           },
           {
             id: 'b',
-            text: 'Approve substitution protocols with pharmacy oversight, prioritize high-risk populations, and update orders/workflows',
+            text: 'Approve psych-focused substitution protocols with pharmacy oversight, prioritize high-risk patients, and update orders/monitoring workflows',
             isCorrect: true,
-            feedback: 'Correct. Controlled substitution preserves safety and continuity during shortages.',
+            feedback: 'Correct. Psychiatric medication substitution must include monitoring safeguards and clear unit workflows.',
             nextStep: 'supply-step-3',
           },
           {

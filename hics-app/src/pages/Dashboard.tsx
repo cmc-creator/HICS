@@ -45,6 +45,14 @@ const quickLinks = [
     badge: '24/7 Available',
   },
   {
+    path: '/quick-start',
+    title: 'Facilitator Quick Start',
+    description: 'Launch guided setup, debrief prompts, and a practical 30-minute training flow for team leads.',
+    icon: '⚡',
+    color: 'border-amber-500',
+    badge: 'Session Guide',
+  },
+  {
     path: '/reports',
     title: 'Training Reports',
     description: 'Review completion trends, score performance, and export facilitator-friendly training records.',

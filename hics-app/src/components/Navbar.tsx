@@ -5,6 +5,7 @@ const navItems = [
   { path: '/roles', label: 'HICS Roles', icon: '👥' },
   { path: '/scenarios', label: 'Scenarios', icon: '🎯' },
   { path: '/quiz', label: 'Quiz', icon: '📝' },
+  { path: '/quick-start', label: 'Quick Start', icon: '⚡' },
   { path: '/reports', label: 'Reports', icon: '📊' },
   { path: '/chatbot', label: 'AI Assistant', icon: '🤖' },
 ];
@@ -20,7 +21,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   return (
     <nav className="sticky top-0 z-50 bg-blue-900 text-white shadow-lg border-b border-white/10 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between min-h-16 py-2 gap-3">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🏥</span>
             <div>
@@ -28,12 +29,12 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
               <span className="hidden sm:block text-xs text-blue-300">NyxCollective LLC · Psychiatric Incident Command Training</span>
             </div>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-[65vw] md:max-w-none">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center gap-1.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                   location.pathname === item.path
                     ? 'bg-blue-700 text-white'
                     : 'text-blue-200 hover:bg-blue-800 hover:text-white'

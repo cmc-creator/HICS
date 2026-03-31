@@ -18,6 +18,7 @@ const typeIcons: Record<string, string> = {
   'Public Health': '🧪',
   'Logistics': '📦',
   'Throughput': '🚪',
+  Security: '🚨',
   'Behavioral Health': '🧠',
   'Safety': '🛡️',
   'Medication Safety': '💊',

@@ -13,7 +13,7 @@ Overview of HICS structure, training modules, and quick access to all sections.
 - Filter by section (Command, Operations, Planning, Logistics, Finance/Admin)
 - Detailed role descriptions, responsibilities, and reporting relationships
 
-### 🎯 Training Scenarios (4 scenarios)
+### 🎯 Training Scenarios (17 scenarios)
 - **Mass Casualty Incident (MCI)** – Intermediate, 5 steps
 - **Hospital Fire Emergency** – Beginner, 3 steps (RACE protocol)
 - **Hazardous Materials Exposure** – Advanced, 2 steps (decontamination zones)

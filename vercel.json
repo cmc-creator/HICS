@@ -3,10 +3,13 @@
   "installCommand": "cd hics-app && npm install",
   "buildCommand": "cd hics-app && npm run build",
   "outputDirectory": "hics-app/dist",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
+      "dest": "/index.html"
     }
   ]
 }

@@ -624,6 +624,24 @@ html.dark .text-blue-900 {
 	background: linear-gradient(145deg, rgba(255, 255, 255, 0.76), rgba(243, 235, 250, 0.62));
 }
 
+.role-node-card {
+	box-shadow: 0 10px 20px rgba(23, 13, 31, 0.28);
+	border: 1px solid rgba(255, 255, 255, 0.26);
+}
+
+.role-section-card {
+	background: linear-gradient(145deg, rgba(255, 255, 255, 0.8), rgba(245, 237, 252, 0.64));
+}
+
+.role-selected-row {
+	background: rgba(177, 154, 201, 0.2) !important;
+	border-color: rgba(162, 129, 194, 0.48) !important;
+}
+
+.role-link-accent {
+	color: #8c6f4a !important;
+}
+
 html.dark .training-option-card {
 	background: linear-gradient(145deg, rgba(40, 31, 51, 0.82), rgba(26, 21, 34, 0.7));
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -646,6 +664,15 @@ html.dark .report-table-shell {
 
 html.dark .report-event-card {
 	background: linear-gradient(145deg, rgba(39, 30, 49, 0.84), rgba(27, 22, 35, 0.72));
+}
+
+html.dark .role-section-card {
+	background: linear-gradient(145deg, rgba(39, 30, 49, 0.84), rgba(27, 22, 35, 0.72));
+}
+
+html.dark .role-selected-row {
+	background: rgba(109, 88, 132, 0.32) !important;
+	border-color: rgba(157, 129, 191, 0.52) !important;
 }
 
 html.dark .nyx-chip {

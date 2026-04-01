@@ -17,13 +17,16 @@ export default function RolesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="nyx-hero text-white py-6 px-4">
+    <div className="min-h-screen bg-gray-50 lux-page">
+      <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
+        <div className="lux-grid-pattern" />
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold">NyxHICSlab Roles &amp; Structure</h1>
-          <p className="text-blue-200 text-sm mt-1">
-            Explore the NyxHICSlab organizational chart and incident command role descriptions
-          </p>
+          <div className="lux-hero-shell">
+            <h1 className="text-2xl font-bold lux-title">NyxHICSlab Roles &amp; Structure</h1>
+            <p className="text-blue-200 text-sm mt-1 lux-subtitle">
+              Explore the NyxHICSlab organizational chart and incident command role descriptions
+            </p>
+          </div>
         </div>
       </div>
 
@@ -44,7 +47,7 @@ export default function RolesPage() {
                 {commandRole && (
                   <button
                     onClick={() => setSelectedRole(commandRole)}
-                    className="px-6 py-3 rounded-lg text-white text-sm font-bold shadow-md hover:opacity-90 transition-opacity cursor-pointer"
+                    className="px-6 py-3 rounded-lg text-white text-sm font-bold shadow-md hover:opacity-90 transition-opacity cursor-pointer role-node-card"
                     style={{ backgroundColor: commandRole.color }}
                   >
                     <div className="text-xs opacity-80 mb-0.5">{commandRole.abbreviation}</div>
@@ -67,7 +70,7 @@ export default function RolesPage() {
                     <div className="w-0.5 h-3 bg-gray-300" />
                     <button
                       onClick={() => setSelectedRole(role)}
-                      className="px-3 py-2 rounded-lg text-white text-xs font-semibold shadow hover:opacity-90 transition-opacity cursor-pointer"
+                      className="px-3 py-2 rounded-lg text-white text-xs font-semibold shadow hover:opacity-90 transition-opacity cursor-pointer role-node-card"
                       style={{ backgroundColor: role.color }}
                     >
                       <div className="opacity-80 mb-0.5">{role.abbreviation}</div>
@@ -82,10 +85,10 @@ export default function RolesPage() {
                 {sectionChiefs.map((chief) => {
                   const subordinates = hicsRoles.filter((r) => r.reportsTo === chief.id);
                   return (
-                    <div key={chief.id} className="rounded-lg border border-gray-200 p-3 bg-gray-50">
+                    <div key={chief.id} className="rounded-lg border border-gray-200 p-3 bg-gray-50 role-section-card">
                       <button
                         onClick={() => setSelectedRole(chief)}
-                        className="w-full px-3 py-2 rounded-lg text-white text-xs font-bold shadow hover:opacity-90 transition-opacity cursor-pointer"
+                        className="w-full px-3 py-2 rounded-lg text-white text-xs font-bold shadow hover:opacity-90 transition-opacity cursor-pointer role-node-card"
                         style={{ backgroundColor: chief.color }}
                       >
                         <div className="opacity-80 mb-0.5">{chief.abbreviation}</div>
@@ -101,7 +104,7 @@ export default function RolesPage() {
                             <button
                               key={sub.id}
                               onClick={() => setSelectedRole(sub)}
-                              className="w-full text-left px-2.5 py-1.5 rounded text-white text-xs font-medium shadow hover:opacity-90 transition-opacity cursor-pointer"
+                              className="w-full text-left px-2.5 py-1.5 rounded text-white text-xs font-medium shadow hover:opacity-90 transition-opacity cursor-pointer role-node-card"
                               style={{ backgroundColor: sub.color }}
                             >
                               <span className="opacity-90 mr-1">{sub.abbreviation}</span>
@@ -152,7 +155,7 @@ export default function RolesPage() {
                     key={role.id}
                     onClick={() => setSelectedRole(role)}
                     className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-3 ${
-                      selectedRole?.id === role.id ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'
+                      selectedRole?.id === role.id ? 'bg-blue-50 border border-blue-200 role-selected-row' : 'hover:bg-gray-50'
                     }`}
                   >
                     <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: role.color }} />
@@ -183,7 +186,7 @@ export default function RolesPage() {
                       <p className="text-sm text-gray-500 mt-1">
                         Reports to:{' '}
                         <button
-                          className="text-blue-600 hover:underline font-medium"
+                          className="text-blue-600 hover:underline font-medium role-link-accent"
                           onClick={() => {
                             const parent = hicsRoles.find((r) => r.id === selectedRole.reportsTo);
                             if (parent) setSelectedRole(parent);

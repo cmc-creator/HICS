@@ -29,11 +29,14 @@ export default function FacilityAdminPage() {
   }, [scopedAttempts]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="nyx-hero text-white py-6 px-4">
+    <div className="min-h-screen bg-gray-50 lux-page">
+      <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
+        <div className="lux-grid-pattern" />
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold">Facility Administration</h1>
-          <p className="text-blue-200 text-sm mt-1">Tenant controls, role permissions, and facility-scoped reporting context</p>
+          <div className="lux-hero-shell">
+            <h1 className="text-2xl font-bold lux-title">Facility Administration</h1>
+            <p className="text-blue-200 text-sm mt-1 lux-subtitle">Tenant controls, role permissions, and facility-scoped reporting context</p>
+          </div>
         </div>
       </div>
 
@@ -84,15 +87,15 @@ export default function FacilityAdminPage() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
-          <div className="nyx-panel p-4">
+          <div className="nyx-panel p-4 report-stat-card">
             <div className="text-xs text-gray-500">Current Scope</div>
             <div className="text-lg font-bold text-gray-900 mt-1">{facilityLabels[facility]}</div>
           </div>
-          <div className="nyx-panel p-4">
+          <div className="nyx-panel p-4 report-stat-card">
             <div className="text-xs text-gray-500">Attempts in Scope</div>
             <div className="text-2xl font-bold text-gray-900 mt-1">{scopedAttempts.length}</div>
           </div>
-          <div className="nyx-panel p-4">
+          <div className="nyx-panel p-4 report-stat-card">
             <div className="text-xs text-gray-500">Average Score in Scope</div>
             <div className="text-2xl font-bold text-gray-900 mt-1">{completionRate}%</div>
           </div>
@@ -111,7 +114,7 @@ export default function FacilityAdminPage() {
               <div className="text-xs mt-1 text-gray-600">Clear telemetry/attempt data and manage retention actions</div>
               <div className="text-xs font-bold mt-2">{canManageData ? 'ENABLED' : 'RESTRICTED'}</div>
             </div>
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 role-selected-row">
               <div className="font-semibold">Report Export</div>
               <div className="text-xs mt-1 text-gray-600">CSV export for audit and training compliance records</div>
               <div className="text-xs font-bold mt-2">{role === 'observer' ? 'DISABLED' : 'ENABLED'}</div>

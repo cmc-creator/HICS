@@ -17,11 +17,14 @@ const debriefPrompts = [
 
 export default function FacilitatorQuickStart() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="nyx-hero text-white py-6 px-4">
+    <div className="min-h-screen bg-gray-50 lux-page">
+      <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
+        <div className="lux-grid-pattern" />
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-2xl font-bold">Facilitator Quick Start</h1>
-          <p className="text-blue-200 text-sm mt-1">Run a high-quality drill in under 10 minutes of setup</p>
+          <div className="lux-hero-shell">
+            <h1 className="text-2xl font-bold lux-title">Facilitator Quick Start</h1>
+            <p className="text-blue-200 text-sm mt-1 lux-subtitle">Run a high-quality drill in under 10 minutes of setup</p>
+          </div>
         </div>
       </div>
 
@@ -31,7 +34,7 @@ export default function FacilitatorQuickStart() {
           <ol className="space-y-2 text-sm text-gray-700">
             {checklist.map((item, index) => (
               <li key={item} className="flex gap-2">
-                <span className="font-semibold text-blue-700">{index + 1}.</span>
+                <span className="font-semibold text-blue-700 role-link-accent">{index + 1}.</span>
                 <span>{item}</span>
               </li>
             ))}
@@ -62,7 +65,7 @@ export default function FacilitatorQuickStart() {
             <ul className="space-y-2 text-sm text-gray-700">
               {debriefPrompts.map((prompt) => (
                 <li key={prompt} className="flex gap-2">
-                  <span className="text-blue-600">•</span>
+                  <span className="text-blue-600 role-link-accent">•</span>
                   <span>{prompt}</span>
                 </li>
               ))}

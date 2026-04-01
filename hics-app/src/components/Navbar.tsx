@@ -23,7 +23,11 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between min-h-16 py-2 gap-3">
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold tracking-widest px-2 py-1 rounded border border-blue-400 text-blue-100">NX</span>
+            <img
+              src="/hicslogo.png"
+              alt="HICS logo"
+              className="h-8 w-8 rounded-md object-contain border border-blue-400/60 bg-blue-950/40 p-0.5"
+            />
             <div>
               <span className="text-lg font-bold tracking-wide">NyxHICSlab</span>
               <span className="hidden sm:block text-xs text-blue-300">NyxCollective LLC · Psychiatric Incident Command Training</span>

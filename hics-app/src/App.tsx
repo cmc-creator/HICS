@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import EnterpriseFooter from './components/EnterpriseFooter';
 import Dashboard from './pages/Dashboard';
 import RolesPage from './pages/RolesPage';
 import ScenariosPage from './pages/ScenariosPage';
@@ -34,6 +35,7 @@ function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; on
       <main className="flex-1 animate-fade-in">
         <Outlet />
       </main>
+      <EnterpriseFooter />
     </div>
   );
 }

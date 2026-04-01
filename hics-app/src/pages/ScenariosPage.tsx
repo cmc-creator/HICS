@@ -158,7 +158,7 @@ export default function ScenariosPage() {
                 id="facility-filter"
                 value={selectedFacility}
                 onChange={(e) => handleFacilityChange(e.target.value as FacilityType)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="select-comfort border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
               >
                 {facilityOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -177,7 +177,7 @@ export default function ScenariosPage() {
                   key={playlist}
                   type="button"
                   onClick={() => setSelectedPlaylist(playlist)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                  className={`touch-target px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                     selectedPlaylist === playlist
                       ? 'bg-blue-600 text-slate-900'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -196,7 +196,7 @@ export default function ScenariosPage() {
                 id="difficulty-filter"
                 value={selectedDifficulty}
                 onChange={(e) => setSelectedDifficulty(e.target.value as DifficultyFilter)}
-                className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800"
+                className="select-comfort mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800"
               >
                 <option value="all">All Levels</option>
                 <option value="beginner">Beginner</option>
@@ -210,7 +210,7 @@ export default function ScenariosPage() {
                 id="type-filter"
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800"
+                className="select-comfort mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800"
               >
                 {typeOptions.map((type) => (
                   <option key={type} value={type}>
@@ -225,7 +225,7 @@ export default function ScenariosPage() {
                 id="duration-filter"
                 value={selectedDuration}
                 onChange={(e) => setSelectedDuration(e.target.value as DurationFilter)}
-                className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800"
+                className="select-comfort mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800"
               >
                 <option value="all">Any Length</option>
                 <option value="short">Short (15 min or less)</option>
@@ -313,7 +313,7 @@ export default function ScenariosPage() {
                           playlist: selectedPlaylist,
                         });
                       }}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+                      className="touch-target bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
                     >
                       Start Scenario →
                     </Link>

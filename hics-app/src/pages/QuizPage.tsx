@@ -127,7 +127,7 @@ export default function QuizPage() {
 
             <button
               onClick={handleStart}
-              className="nyx-button-metal px-8 py-3 rounded-lg font-bold text-lg transition-colors"
+              className="touch-target nyx-button-metal px-8 py-3 rounded-lg font-bold text-lg transition-colors"
             >
               Start Quiz →
             </button>
@@ -228,7 +228,7 @@ export default function QuizPage() {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={handleRestart}
-              className="nyx-button-metal px-5 py-2.5 rounded-lg font-semibold transition-colors"
+              className="touch-target nyx-button-metal px-5 py-2.5 rounded-lg font-semibold transition-colors"
             >
               🔄 Retake Quiz
             </button>
@@ -246,7 +246,7 @@ export default function QuizPage() {
           <h1 className="text-xl font-bold">NyxHICSlab Quiz</h1>
           <button
             onClick={handleRestart}
-            className="text-blue-300 hover:text-white text-sm"
+            className="touch-target text-blue-300 hover:text-white text-sm px-2"
           >
             ✕ Exit
           </button>
@@ -351,7 +351,7 @@ export default function QuizPage() {
           <div className="flex justify-end mt-4">
             <button
               onClick={handleNext}
-              className="nyx-button-metal px-6 py-2.5 rounded-lg font-semibold transition-colors"
+              className="touch-target nyx-button-metal px-6 py-2.5 rounded-lg font-semibold transition-colors"
             >
               {currentIndex === totalQuestions - 1 ? 'View Results →' : 'Next Question →'}
             </button>

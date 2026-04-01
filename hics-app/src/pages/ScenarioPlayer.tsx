@@ -319,19 +319,19 @@ export default function ScenarioPlayer() {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={handleRestart}
-              className="nyx-button-metal px-5 py-2.5 rounded-lg font-semibold transition-colors"
+              className="touch-target nyx-button-metal px-5 py-2.5 rounded-lg font-semibold transition-colors"
             >
               Restart Scenario
             </button>
             <Link
               to={scenariosLink}
-              className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+              className="touch-target border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
             >
               All Scenarios
             </Link>
             <Link
               to="/reports"
-              className="border border-blue-300 text-blue-700 px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+              className="touch-target border border-blue-300 text-blue-700 px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
             >
               View Reports
             </Link>
@@ -379,14 +379,14 @@ export default function ScenarioPlayer() {
             <button
               type="button"
               onClick={() => setFacilitatorMode((prev) => !prev)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${facilitatorMode ? 'bg-blue-600 text-slate-900' : 'bg-slate-100 text-slate-700'}`}
+              className={`touch-target px-3 py-1.5 rounded-lg text-xs font-semibold ${facilitatorMode ? 'bg-blue-600 text-slate-900' : 'bg-slate-100 text-slate-700'}`}
             >
               Facilitator Mode: {facilitatorMode ? 'On' : 'Off'}
             </button>
             <button
               type="button"
               onClick={() => setTimedMode((prev) => !prev)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${timedMode ? 'bg-blue-600 text-slate-900' : 'bg-slate-100 text-slate-700'}`}
+              className={`touch-target px-3 py-1.5 rounded-lg text-xs font-semibold ${timedMode ? 'bg-blue-600 text-slate-900' : 'bg-slate-100 text-slate-700'}`}
             >
               Timed Mode: {timedMode ? 'On' : 'Off'}
             </button>
@@ -398,7 +398,7 @@ export default function ScenarioPlayer() {
                   setStepSeconds(nextSeconds);
                   setSecondsLeft(nextSeconds);
                 }}
-                className="border border-gray-300 rounded-lg px-2 py-1.5 text-xs bg-white text-gray-800"
+                className="select-comfort border border-gray-300 rounded-lg px-2 py-1.5 text-xs bg-white text-gray-800"
               >
                 <option value={60}>60s / step</option>
                 <option value={90}>90s / step</option>
@@ -409,7 +409,7 @@ export default function ScenarioPlayer() {
               <button
                 type="button"
                 onClick={() => setIsPaused((prev) => !prev)}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700"
+                className="touch-target px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700"
               >
                 {isPaused ? 'Resume' : 'Pause'}
               </button>
@@ -418,7 +418,7 @@ export default function ScenarioPlayer() {
               <button
                 type="button"
                 onClick={() => setShowCorrectReveal((prev) => !prev)}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700"
+                className="touch-target px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700"
               >
                 {showCorrectReveal ? 'Hide Correct Answer' : 'Reveal Correct Answer'}
               </button>
@@ -516,7 +516,7 @@ export default function ScenarioPlayer() {
             <div className="mt-4">
               <button
                 onClick={() => setShowHint((prev) => !prev)}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                className="touch-target text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 px-2"
               >
                 Hint: {showHint ? 'Hide' : 'Show'}
               </button>
@@ -533,7 +533,7 @@ export default function ScenarioPlayer() {
           <div className="flex justify-end">
             <button
               onClick={handleNext}
-              className="nyx-button-metal px-6 py-2.5 rounded-lg font-semibold transition-colors"
+              className="touch-target nyx-button-metal px-6 py-2.5 rounded-lg font-semibold transition-colors"
             >
               {isLastStep ? 'View Results' : 'Next Step'}
             </button>

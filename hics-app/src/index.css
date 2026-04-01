@@ -367,6 +367,35 @@ html.dark .nyx-chip {
 	display: none;
 }
 
+.touch-target {
+	min-height: 44px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tap-comfort {
+	padding-top: 0.65rem;
+	padding-bottom: 0.65rem;
+}
+
+@media (max-width: 768px) {
+	.nyx-panel {
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
+
+	.touch-target {
+		min-height: 46px;
+	}
+
+	.select-comfort {
+		min-height: 44px;
+		padding-top: 0.55rem;
+		padding-bottom: 0.55rem;
+	}
+}
+
 html.dark .nyx-input {
 	background: rgba(17, 24, 39, 0.72);
 	border-color: rgba(107, 114, 128, 0.45);

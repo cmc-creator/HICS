@@ -34,7 +34,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-1.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`touch-target flex items-center gap-1.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                   location.pathname === item.path
                     ? 'bg-blue-700 text-white'
                     : 'text-blue-200 hover:bg-blue-800 hover:text-white'
@@ -47,7 +47,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
             <button
               type="button"
               onClick={onToggleTheme}
-              className="ml-1 px-3 py-2 rounded-md text-sm font-medium text-blue-100 hover:bg-blue-800 hover:text-white transition-colors"
+              className="touch-target ml-1 px-3 py-2 rounded-md text-sm font-medium text-blue-100 hover:bg-blue-800 hover:text-white transition-colors"
               aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
               title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
             >

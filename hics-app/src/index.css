@@ -623,6 +623,15 @@ html.dark .nyx-chip {
 	-webkit-backdrop-filter: blur(9px);
 }
 
+.lux-nav-scroll {
+	scroll-snap-type: x proximity;
+}
+
+.lux-nav-item {
+	scroll-snap-align: start;
+	min-height: 46px;
+}
+
 .lux-nav-link {
 	position: relative;
 	border: 1px solid transparent;
@@ -666,6 +675,26 @@ html.dark .nyx-chip {
 	.nyx-panel {
 		padding-left: 1rem;
 		padding-right: 1rem;
+	}
+
+	.lux-nav-top {
+		padding-bottom: 0.7rem;
+	}
+
+	.lux-nav-rail {
+		border-radius: 0.85rem;
+		padding-left: 0.3rem;
+		padding-right: 0.3rem;
+	}
+
+	.lux-nav-item {
+		padding-left: 0.62rem;
+		padding-right: 0.62rem;
+		min-height: 48px;
+	}
+
+	.lux-theme-toggle {
+		min-width: 44px;
 	}
 
 	.touch-target {

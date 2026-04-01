@@ -25,8 +25,8 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
 
   return (
     <nav className="sticky top-0 z-50 text-white shadow-lg border-b border-white/10 backdrop-blur-xl lux-nav-shell">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center py-3 gap-2 md:gap-4 lux-nav-top">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center py-2.5 md:py-3 gap-2 md:gap-4 lux-nav-top">
           <div className="justify-self-start">
             <span className="hidden lg:inline-flex text-[10px] tracking-[0.2em] uppercase text-amber-100/80 border border-amber-100/25 rounded-full px-2.5 py-1">Command Ready</span>
           </div>
@@ -36,7 +36,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
               <img
                 src="/hicslogo.png"
                 alt="HICS logo"
-                className="h-24 w-24 md:h-28 md:w-28 lg:h-[120px] lg:w-[120px] rounded-lg object-contain lux-logo-img"
+                className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 lg:h-[120px] lg:w-[120px] rounded-lg object-contain lux-logo-img"
               />
             </div>
             <span className="text-2xl md:text-3xl font-bold tracking-wide block truncate lux-brand-title">NyxHICSlab</span>
@@ -47,7 +47,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
             <button
               type="button"
               onClick={onToggleTheme}
-              className="touch-target px-3 py-2 rounded-md text-sm font-medium text-stone-200 hover:bg-white/10 hover:text-white transition-colors lux-nav-link"
+              className="touch-target px-2.5 sm:px-3 py-2 rounded-md text-sm font-medium text-stone-200 hover:bg-white/10 hover:text-white transition-colors lux-nav-link lux-theme-toggle"
               aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
               title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
             >
@@ -64,12 +64,12 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
         </div>
 
         <div className="pb-3">
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar lux-nav-rail px-1 py-1.5">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar lux-nav-rail lux-nav-scroll px-1 py-1.5">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`touch-target flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap lux-nav-link ${
+                className={`touch-target flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap lux-nav-link lux-nav-item ${
                   location.pathname === item.path
                     ? 'text-white lux-nav-active'
                     : 'text-stone-200 hover:bg-white/10 hover:text-white'
@@ -78,7 +78,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
                 <span className="opacity-95 rounded-md overflow-hidden border border-white/20 bg-black/20 p-0.5">
                   <img src={item.icon} alt="" className="h-4 w-4 object-contain" />
                 </span>
-                <span className="hidden md:inline tracking-tight">{item.label}</span>
+                <span className="inline text-[11px] sm:text-xs md:text-sm tracking-tight">{item.label}</span>
               </Link>
             ))}
           </div>

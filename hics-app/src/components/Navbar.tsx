@@ -40,7 +40,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
               />
             </div>
             <span className="text-2xl md:text-3xl font-bold tracking-wide block truncate lux-brand-title">NyxHICSlab</span>
-            <span className="hidden sm:block text-xs md:text-sm text-amber-100/80 truncate">NyxCollective LLC · Enterprise Psychiatric Command Training</span>
+            <span className="hidden sm:block text-xs md:text-sm text-amber-100/80 truncate">NyxCollective LLC · Enterprise Hospital Incident Command System Training</span>
           </div>
 
           <div className="flex items-center justify-self-end">

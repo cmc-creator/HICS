@@ -552,6 +552,27 @@ html.dark .text-blue-900 {
 	border-radius: 9999px;
 }
 
+.scenario-card-shell {
+	border-radius: 1.1rem;
+}
+
+.scenario-card-head {
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(128deg, rgba(35, 27, 40, 0.96), rgba(73, 60, 82, 0.92), rgba(46, 37, 52, 0.95));
+	border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.scenario-card-head::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.13), transparent);
+	transform: translateX(-120%);
+	animation: sheenSweep 8s ease-in-out infinite;
+	pointer-events: none;
+}
+
 html.dark .nyx-chip {
 	background: rgba(58, 45, 70, 0.46);
 	border-color: rgba(181, 155, 204, 0.3);

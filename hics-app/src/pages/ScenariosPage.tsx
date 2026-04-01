@@ -12,9 +12,9 @@ import { trackEvent } from '../lib/trainingAnalytics';
 import { useTenant } from '../lib/tenantContext';
 
 const difficultyColors = {
-  beginner: 'bg-green-100 text-green-700',
-  intermediate: 'bg-yellow-100 text-yellow-700',
-  advanced: 'bg-red-100 text-red-700',
+  beginner: 'bg-emerald-100 text-emerald-800 border border-emerald-300',
+  intermediate: 'bg-amber-100 text-amber-800 border border-amber-300',
+  advanced: 'bg-rose-100 text-rose-800 border border-rose-300',
 };
 
 const typeColors: Record<string, string> = {
@@ -151,18 +151,23 @@ export default function ScenariosPage() {
   }, [selectedFacility, selectedDifficulty, selectedType, selectedDuration, selectedPlaylist]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-blue-900 text-white py-6 px-4">
+    <div className="min-h-screen bg-gray-50 lux-page">
+      <div className="nyx-hero text-white py-8 md:py-10 px-4 relative overflow-hidden">
+        <div className="lux-grid-pattern" />
+        <div className="lux-orb lux-orb-a" />
+        <div className="lux-orb lux-orb-b" />
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold">NyxHICSlab Scenarios</h1>
-          <p className="text-blue-200 text-sm mt-1">
-            Practice incident response with playlists, facility profiles, and realistic decision pressure.
-          </p>
+          <div className="lux-hero-shell">
+            <h1 className="text-2xl md:text-3xl font-bold lux-title">NyxHICSlab Scenarios</h1>
+            <p className="text-blue-200 text-sm md:text-base mt-2 lux-subtitle max-w-3xl">
+              Practice incident response with curated playlists, facility profiles, and realistic decision pressure.
+            </p>
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-xl shadow-sm p-4 md:p-5 mb-6 space-y-4">
+        <div className="nyx-panel p-4 md:p-5 mb-6 space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
               <h2 className="text-sm font-bold text-gray-800">Facility Profile</h2>
@@ -199,8 +204,8 @@ export default function ScenariosPage() {
                   onClick={() => setSelectedPlaylist(playlist)}
                   className={`touch-target px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                     selectedPlaylist === playlist
-                      ? 'bg-blue-600 text-slate-900'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-blue-600 text-slate-900 shadow-sm'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-white/40'
                   }`}
                 >
                   {playlistLabels[playlist]}
@@ -260,13 +265,13 @@ export default function ScenariosPage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 motion-stagger">
+        <div className="grid md:grid-cols-2 gap-5 motion-stagger">
           {visibleScenarios.map((scenario) => {
             const facilities = getScenarioFacilities(scenario.id, scenario.type);
 
             return (
-              <div key={scenario.id} className="bg-white rounded-xl shadow-sm overflow-hidden card-lift">
-                <div className="bg-gradient-to-r from-blue-800 to-blue-600 text-white p-5">
+              <div key={scenario.id} className="nyx-panel overflow-hidden card-lift scenario-card-shell">
+                <div className="scenario-card-head text-white p-5">
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-2">
@@ -335,7 +340,7 @@ export default function ScenariosPage() {
                           playlist: selectedPlaylist,
                         });
                       }}
-                      className="touch-target bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+                      className="touch-target bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
                     >
                       Start Scenario →
                     </Link>

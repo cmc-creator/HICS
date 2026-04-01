@@ -52,3 +52,15 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
 }
+
+export type AppUserRole =
+  | 'enterprise-admin'
+  | 'facility-admin'
+  | 'training-manager'
+  | 'facilitator'
+  | 'observer';
+
+export interface TenantProfile {
+  displayName: string;
+  role: AppUserRole;
+}

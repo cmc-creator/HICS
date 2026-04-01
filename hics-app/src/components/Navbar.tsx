@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useTenant } from '../lib/tenantContext';
 
-const navItems = [
+const baseNavItems = [
   { path: '/', label: 'Dashboard', icon: 'DSH' },
   { path: '/roles', label: 'HICS Roles', icon: 'ORG' },
   { path: '/scenarios', label: 'Scenarios', icon: 'SIM' },
@@ -17,6 +18,10 @@ interface NavbarProps {
 
 export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   const location = useLocation();
+  const { canManageUsers } = useTenant();
+  const navItems = canManageUsers
+    ? [...baseNavItems, { path: '/admin', label: 'Admin', icon: 'ADM' }]
+    : baseNavItems;
 
   return (
     <nav className="sticky top-0 z-50 bg-blue-900 text-white shadow-lg border-b border-white/10 backdrop-blur-xl lux-nav-shell">

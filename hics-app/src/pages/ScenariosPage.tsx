@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { scenarios } from '../data/scenarios';
 import {
@@ -9,6 +9,7 @@ import {
   type FacilityType,
 } from '../data/facilityProfiles';
 import { trackEvent } from '../lib/trainingAnalytics';
+import { useTenant } from '../lib/tenantContext';
 
 const difficultyColors = {
   beginner: 'bg-green-100 text-green-700',
@@ -87,9 +88,12 @@ function getPlaylistScenarioIds(playlist: PlaylistFilter): string[] {
 }
 
 export default function ScenariosPage() {
+  const { facility: tenantFacility, setFacility: setTenantFacility } = useTenant();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedFacility, setSelectedFacility] = useState<FacilityType>(() =>
-    normalizeFacility(searchParams.get('facility')),
+    normalizeFacility(searchParams.get('facility')) === 'all'
+      ? tenantFacility
+      : normalizeFacility(searchParams.get('facility')),
   );
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyFilter>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -103,6 +107,7 @@ export default function ScenariosPage() {
 
   const handleFacilityChange = (facility: FacilityType) => {
     setSelectedFacility(facility);
+    setTenantFacility(facility);
 
     if (facility === 'all') {
       setSearchParams({});
@@ -111,6 +116,13 @@ export default function ScenariosPage() {
 
     setSearchParams({ facility });
   };
+
+  useEffect(() => {
+    const urlFacility = normalizeFacility(searchParams.get('facility'));
+    if (urlFacility === 'all' && selectedFacility !== tenantFacility) {
+      setSelectedFacility(tenantFacility);
+    }
+  }, [tenantFacility, searchParams, selectedFacility]);
 
   const visibleScenarios = useMemo(() => {
     const playlistIds = new Set(getPlaylistScenarioIds(selectedPlaylist));

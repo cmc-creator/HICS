@@ -8,8 +8,11 @@ import {
   getTrainingSummary,
   type ScenarioAttempt,
 } from '../lib/trainingAnalytics';
+import { facilityLabels, type FacilityType } from '../data/facilityProfiles';
+import { useTenant } from '../lib/tenantContext';
 
 export default function TrainingReports() {
+  const { facility, canManageData, canExportReports } = useTenant();
   const [attempts, setAttempts] = useState<ScenarioAttempt[]>(() => getScenarioAttempts());
   const [eventCounts, setEventCounts] = useState<Array<{ event: string; count: number }>>(() => getEventCounts());
 
@@ -18,10 +21,30 @@ export default function TrainingReports() {
     setEventCounts(getEventCounts());
   };
 
-  const summary = useMemo(() => getTrainingSummary(attempts), [attempts]);
+  const scopedAttempts = useMemo(
+    () => (facility === 'all' ? attempts : attempts.filter((attempt) => attempt.facility === facility)),
+    [attempts, facility],
+  );
+
+  const scopedEvents = useMemo(() => {
+    if (facility === 'all') {
+      return eventCounts;
+    }
+
+    return eventCounts.filter((event) => {
+      if (!event.event.includes(':')) {
+        return true;
+      }
+
+      const [, eventFacility] = event.event.split(':');
+      return eventFacility === facility;
+    });
+  }, [eventCounts, facility]);
+
+  const summary = useMemo(() => getTrainingSummary(scopedAttempts), [scopedAttempts]);
 
   const handleExportCsv = () => {
-    const csv = exportAttemptsCsv(attempts);
+    const csv = exportAttemptsCsv(scopedAttempts);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -74,7 +97,7 @@ export default function TrainingReports() {
                 type="button"
                 onClick={handleExportCsv}
                 className="nyx-button-metal px-4 py-2 rounded-lg text-sm font-semibold"
-                disabled={attempts.length === 0}
+                disabled={scopedAttempts.length === 0 || !canExportReports}
               >
                 Export CSV
               </button>
@@ -82,14 +105,18 @@ export default function TrainingReports() {
                 type="button"
                 onClick={handleClear}
                 className="border border-red-300 text-red-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-50"
-                disabled={attempts.length === 0 && eventCounts.length === 0}
+                disabled={(attempts.length === 0 && eventCounts.length === 0) || !canManageData}
               >
                 Clear Data
               </button>
             </div>
           </div>
 
-          {attempts.length === 0 ? (
+          <p className="text-xs text-gray-500 mb-3">
+            Scope: {facilityLabels[facility as FacilityType]}{facility !== 'all' ? ' (facility-filtered view)' : ' (enterprise view)'}
+          </p>
+
+          {scopedAttempts.length === 0 ? (
             <p className="text-sm text-gray-500">No completed scenario attempts yet.</p>
           ) : (
             <div className="overflow-auto">
@@ -106,7 +133,7 @@ export default function TrainingReports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {attempts.slice(0, 50).map((attempt) => (
+                  {scopedAttempts.slice(0, 50).map((attempt) => (
                     <tr key={attempt.id} className="border-b border-gray-100 text-gray-800">
                       <td className="py-2 pr-4">{new Date(attempt.completedAt).toLocaleString()}</td>
                       <td className="py-2 pr-4">{attempt.scenarioTitle}</td>
@@ -125,11 +152,11 @@ export default function TrainingReports() {
 
         <div className="nyx-panel p-4">
           <h2 className="text-lg font-bold text-gray-900 mb-3">Telemetry Events</h2>
-          {eventCounts.length === 0 ? (
+          {scopedEvents.length === 0 ? (
             <p className="text-sm text-gray-500">No telemetry events captured yet.</p>
           ) : (
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {eventCounts.slice(0, 9).map((event) => (
+              {scopedEvents.slice(0, 9).map((event) => (
                 <div key={event.event} className="rounded-lg border border-gray-200 p-3">
                   <div className="text-xs text-gray-500">Event</div>
                   <div className="font-semibold text-sm text-gray-900">{event.event}</div>

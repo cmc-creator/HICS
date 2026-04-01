@@ -34,25 +34,13 @@ const typeColors: Record<string, string> = {
   'Medication Safety': 'bg-sky-100 border-sky-300 text-sky-700',
 };
 
-function TypeGlyph({ type }: { type: string }) {
-  if (type === 'Mass Casualty') {
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5"><path d="M3 12h18M12 3v18" /></svg>;
-  }
-
-  if (type === 'Fire/Evacuation') {
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5"><path d="M12 3s3 3.2 3 6.2A3 3 0 019 9c0-2.6 3-6 3-6z" /><path d="M7 14a5 5 0 0010 0" /></svg>;
-  }
-
-  if (type === 'Security') {
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5"><path d="M12 3l7 4v5c0 4.2-2.8 7.8-7 9-4.2-1.2-7-4.8-7-9V7l7-4z" /></svg>;
-  }
-
-  if (type === 'Behavioral Health') {
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5"><path d="M12 20c-4-2.5-7-5.2-7-9a4 4 0 017-2 4 4 0 017 2c0 3.8-3 6.5-7 9z" /></svg>;
-  }
-
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5"><path d="M4 12h16M12 4v16" /></svg>;
-}
+const typeImages: Record<string, string> = {
+  'Mass Casualty': '/lux-icons/alerts.svg',
+  'Fire/Evacuation': '/lux-icons/fire.svg',
+  HazMat: '/lux-icons/hazmat.svg',
+  Security: '/lux-icons/admin.svg',
+  'Behavioral Health': '/lux-icons/assistant.svg',
+};
 
 type DifficultyFilter = 'all' | 'beginner' | 'intermediate' | 'advanced';
 type DurationFilter = 'all' | 'short' | 'medium' | 'long';
@@ -283,7 +271,7 @@ export default function ScenariosPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <span className={`h-7 w-7 inline-flex items-center justify-center rounded-full border ${typeColors[scenario.type] || 'bg-slate-100 border-slate-300 text-slate-700'}`}>
-                          <TypeGlyph type={scenario.type} />
+                          <img src={typeImages[scenario.type] || '/lux-icons/scenarios.svg'} alt="" className="h-3.5 w-3.5 object-contain" />
                         </span>
                         <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
                           {scenario.type}

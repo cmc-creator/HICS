@@ -5,10 +5,10 @@ import { quizQuestions } from '../data/quiz';
 import { getScenarioAttempts, getTrainingSummary } from '../lib/trainingAnalytics';
 
 const stats = [
-  { label: 'HICS Roles', value: hicsRoles.length, icon: 'roles', color: 'bg-blue-500' },
-  { label: 'Training Scenarios', value: scenarios.length, icon: 'scenarios', color: 'bg-green-500' },
-  { label: 'Quiz Questions', value: quizQuestions.length, icon: 'quiz', color: 'bg-purple-500' },
-  { label: 'HICS Sections', value: 5, icon: 'sections', color: 'bg-red-500' },
+  { label: 'HICS Roles', value: hicsRoles.length, icon: '/lux-icons/roles.svg', color: 'bg-blue-500' },
+  { label: 'Training Scenarios', value: scenarios.length, icon: '/lux-icons/scenarios.svg', color: 'bg-green-500' },
+  { label: 'Quiz Questions', value: quizQuestions.length, icon: '/lux-icons/quiz.svg', color: 'bg-purple-500' },
+  { label: 'HICS Sections', value: 5, icon: '/lux-icons/admin.svg', color: 'bg-red-500' },
 ];
 
 const quickLinks = [
@@ -16,7 +16,7 @@ const quickLinks = [
     path: '/roles',
     title: 'Explore HICS Roles',
     description: 'Learn about each position in the HICS organizational structure, including responsibilities and reporting relationships.',
-    icon: 'roles',
+    icon: '/lux-icons/roles.svg',
     color: 'border-blue-500',
     badge: 'Interactive Chart',
   },
@@ -24,7 +24,7 @@ const quickLinks = [
     path: '/scenarios',
     title: 'Training Scenarios',
     description: 'Practice responding to real-world hospital emergencies including mass casualty incidents, fires, and hazmat events.',
-    icon: 'scenarios',
+    icon: '/lux-icons/scenarios.svg',
     color: 'border-green-500',
     badge: `${scenarios.length} Scenarios`,
   },
@@ -32,7 +32,7 @@ const quickLinks = [
     path: '/quiz',
     title: 'Knowledge Quiz',
     description: 'Test your HICS knowledge with scenario-based questions covering triage, protocols, and emergency management.',
-    icon: 'quiz',
+    icon: '/lux-icons/quiz.svg',
     color: 'border-purple-500',
     badge: `${quizQuestions.length} Questions`,
   },
@@ -40,7 +40,7 @@ const quickLinks = [
     path: '/chatbot',
     title: 'AI Training Assistant',
     description: 'Ask questions and get instant answers about HICS protocols, procedures, and best practices from our AI assistant.',
-    icon: 'assistant',
+    icon: '/lux-icons/assistant.svg',
     color: 'border-orange-500',
     badge: '24/7 Available',
   },
@@ -48,7 +48,7 @@ const quickLinks = [
     path: '/quick-start',
     title: 'Facilitator Quick Start',
     description: 'Launch guided setup, debrief prompts, and a practical 30-minute training flow for team leads.',
-    icon: 'guide',
+    icon: '/lux-icons/guide.svg',
     color: 'border-amber-500',
     badge: 'Session Guide',
   },
@@ -56,39 +56,11 @@ const quickLinks = [
     path: '/reports',
     title: 'Training Reports',
     description: 'Review completion trends, score performance, and export facilitator-friendly training records.',
-    icon: 'reports',
+    icon: '/lux-icons/reports.svg',
     color: 'border-slate-500',
     badge: 'CSV Export',
   },
 ];
-
-function DashboardIcon({ icon }: { icon: string }) {
-  if (icon === 'roles') {
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5"><circle cx="6" cy="8" r="2.5" /><circle cx="18" cy="8" r="2.5" /><path d="M3 19c.6-2.2 2.2-3.5 4.2-3.5S10.8 16.8 11.4 19M12.6 19c.6-2.2 2.2-3.5 4.2-3.5s3.6 1.3 4.2 3.5" /></svg>;
-  }
-
-  if (icon === 'scenarios') {
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5"><path d="M4 6h16M4 12h10M4 18h16" /><circle cx="18" cy="12" r="2.5" /></svg>;
-  }
-
-  if (icon === 'quiz') {
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5"><path d="M8.5 8.8a3.5 3.5 0 117 0c0 2.2-1.5 3.1-2.7 3.9-.8.5-1.3 1-1.3 1.8" /><circle cx="12" cy="18" r="1" /></svg>;
-  }
-
-  if (icon === 'assistant') {
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5"><rect x="5" y="6" width="14" height="12" rx="3" /><circle cx="10" cy="12" r="1" /><circle cx="14" cy="12" r="1" /><path d="M12 3v3" /></svg>;
-  }
-
-  if (icon === 'guide') {
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5"><path d="M5 4h10a3 3 0 013 3v13H8a3 3 0 00-3 3V4z" /><path d="M8 20h11" /></svg>;
-  }
-
-  if (icon === 'reports') {
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5"><path d="M5 5h14v14H5z" /><path d="M9 14l2-2 2 1 2-3" /></svg>;
-  }
-
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /></svg>;
-}
 
 export default function Dashboard() {
   const progressSummary = getTrainingSummary(getScenarioAttempts());
@@ -138,8 +110,8 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 motion-stagger">
           {stats.map((stat) => (
             <div key={stat.label} className="lux-stat-card p-5 flex items-center gap-4 card-lift">
-              <div className={`${stat.color} text-white rounded-xl p-3 flex items-center justify-center w-12 h-12 shadow-lg`}>
-                <DashboardIcon icon={stat.icon} />
+              <div className={`${stat.color} text-white rounded-xl p-2.5 flex items-center justify-center w-12 h-12 shadow-lg`}>
+                <img src={stat.icon} alt="" className="h-7 w-7 object-contain" />
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
@@ -160,7 +132,7 @@ export default function Dashboard() {
             >
               <div className="flex items-start justify-between mb-3">
                 <span className="rounded-lg bg-slate-900/90 text-white p-2.5">
-                  <DashboardIcon icon={link.icon} />
+                  <img src={link.icon} alt="" className="h-6 w-6 object-contain" />
                 </span>
                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-medium">
                   {link.badge}
@@ -237,7 +209,7 @@ export default function Dashboard() {
               >
                 <div className="text-2xl">
                   <span className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-blue-200 bg-blue-50 text-blue-700">
-                    <DashboardIcon icon="scenarios" />
+                    <img src="/lux-icons/scenarios.svg" alt="" className="h-5 w-5 object-contain" />
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">

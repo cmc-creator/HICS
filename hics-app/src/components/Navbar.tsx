@@ -26,23 +26,24 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   return (
     <nav className="sticky top-0 z-50 text-white shadow-lg border-b border-white/10 backdrop-blur-xl lux-nav-shell">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between py-3 gap-4 lux-nav-top">
-          <div className="flex items-center gap-4 min-w-0">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center py-3 gap-2 md:gap-4 lux-nav-top">
+          <div className="justify-self-start">
+            <span className="hidden lg:inline-flex text-[10px] tracking-[0.2em] uppercase text-amber-100/80 border border-amber-100/25 rounded-full px-2.5 py-1">Command Ready</span>
+          </div>
+
+          <div className="flex flex-col items-center text-center min-w-0">
             <div className="lux-logo-frame">
               <img
                 src="/hicslogo.png"
                 alt="HICS logo"
-                className="h-20 w-20 md:h-24 md:w-24 rounded-lg object-contain lux-logo-img"
+                className="h-24 w-24 md:h-28 md:w-28 lg:h-[120px] lg:w-[120px] rounded-lg object-contain lux-logo-img"
               />
             </div>
-            <div className="min-w-0">
-              <span className="text-2xl md:text-3xl font-bold tracking-wide block truncate lux-brand-title">NyxHICSlab</span>
-              <span className="hidden sm:block text-xs md:text-sm text-amber-100/80 truncate">NyxCollective LLC · Enterprise Psychiatric Command Training</span>
-            </div>
+            <span className="text-2xl md:text-3xl font-bold tracking-wide block truncate lux-brand-title">NyxHICSlab</span>
+            <span className="hidden sm:block text-xs md:text-sm text-amber-100/80 truncate">NyxCollective LLC · Enterprise Psychiatric Command Training</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="hidden lg:inline-flex text-[10px] tracking-[0.2em] uppercase text-amber-100/80 border border-amber-100/25 rounded-full px-2.5 py-1">Command Ready</span>
+          <div className="flex items-center justify-self-end">
             <button
               type="button"
               onClick={onToggleTheme}

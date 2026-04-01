@@ -15,12 +15,17 @@ Overview of HICS structure, training modules, and quick access to all sections.
 - Filter by section (Command, Operations, Planning, Logistics, Finance/Admin)
 - Detailed role descriptions, responsibilities, and reporting relationships
 
-### Training Scenarios (17 scenarios)
+### Training Scenarios (13 scenarios)
 
+Expanding clinical and security decision-making across diverse emergency types:
 - **Mass Casualty Incident (MCI)** - Intermediate, 5 steps
 - **Hospital Fire Emergency** - Beginner, 3 steps (RACE protocol)
 - **Hazardous Materials Exposure** - Advanced, 2 steps (decontamination zones)
 - **Cyberattack / IT Outage** - Intermediate, 1 step (downtime procedures)
+- **Psychiatric Emergency Transport During Lockdown** - Advanced, 3 steps
+- **Mass Fatality Event Activation** - Advanced, 3 steps
+- **Critical Resource Rationing During Surge** - Advanced, 3 steps
+- Plus 6 additional scenarios covering power failure, pediatric surge, water contamination, supply disruption, bomb threats, and workplace violence
 
 ### Interactive Scenario Player
 
@@ -28,16 +33,17 @@ Overview of HICS structure, training modules, and quick access to all sections.
 - 4 answer choices with immediate feedback and explanations
 - Hint system, progress tracking, and score review
 
-### Knowledge Quiz (15 questions)
+### Knowledge Quiz (25 questions)
 
-- Category filtering (HICS Structure, MCI, Fire Safety, HazMat, HIPAA, and more)
+- Category filtering (HICS Structure, MCI, Fire Safety, HazMat, HIPAA, Planning, Safety, Triage, and more)
 - Immediate answer feedback with detailed explanations
 - Category performance breakdown and pass/fail result (80% threshold)
+- Expanded coverage including organizational strategies, incident recovery, resource management, and psychological support
 
 ### AI Training Assistant (Chatbot)
 
-- 18-topic HICS knowledge base
-- Covers: organizational structure, START triage, RACE protocol, hazmat zones, IAP, NIMS/ICS, HIPAA, span of control, and more
+- 25-topic HICS knowledge base (expanded)
+- Covers: organizational structure, START triage, RACE protocol, hazmat zones, IAP, NIMS/ICS, HIPAA, span of control, psychiatric considerations, workforce resilience, family assistance centers, incident documentation, exercises & training, and more
 - Suggested quick-questions, typing indicator, and markdown-formatted responses
 
 ## Tech Stack

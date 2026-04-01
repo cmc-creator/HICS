@@ -388,7 +388,151 @@ What would you like to learn about?`,
 
 Just ask a question and I'll do my best to help!`,
   },
+  {
+    patterns: [/psychiatric|mental health|behavioral health/i, /psychiatric patient|mental health crisis/i],
+    response: `**Psychiatric Considerations in HICS**
+
+Healthcare emergencies often involve or affect psychiatric patients. Key principles:
+
+**Patient Safety & Movement:**
+- Maintain continuity of psychiatric medications during evacuations and relocations
+- Ensure appropriate supervision levels during transfers (1:1 for high-risk patients)
+- Brief receiving facilities on psychiatric history and current risk factors
+
+**Staff Training & Readiness:**
+- Include psychiatric staff in incident simulation planning
+- Cross-train non-psychiatric staff on basic de-escalation and behavioral observation
+- Recognize that psychiatric patients may exhibit altered communication during stress
+
+**Integration with HICS:**
+- Include psychiatric leadership in command planning for incident-related mental health surge
+- Coordinate psychological first aid for both patients and staff
+- Plan for crisis psychiatric interventions alongside medical surge response
+
+**Psychiatric Surge Capacity:**
+- Extend observation units; activate crisis respite areas
+- Mobilize crisis prevention specialists and peer support specialists
+- Coordinate with community psychiatric facilities if transfer is needed`,
+  },
+  {
+    patterns: [/workforce|staffing|fatigue|burnout/i, /staff resilience/i],
+    response: `**Workforce Management & Staff Resilience**
+
+During extended incidents, staff fatigue and psychological strain can impact safety and care quality.
+
+**Shift Management:**
+- Limit shifts to 8-12 hours during full HICS activation
+- Provide 6-8 hour recovery periods before redeployment
+- Rotate high-stress roles (like ED triage) to prevent individual burnout
+
+**Basic Needs Support:**
+- Ensure adequate food, water, rest areas, and restroom facilities
+- Provide hand hygiene and comfort supplies to reduce disease transmission and stress
+- Consider on-site childcare for staff with children during extended incidents
+
+**Psychological Support:**
+- Establish staff briefing areas for Information Officer updates and morale
+- Deploy peer support specialists and employee assistance representatives
+- Conduct brief mental health check-ins for debrief and early identification of trauma responses
+
+**Recognition & Thank You:**
+- Acknowledge staff contributions formally during and after incidents
+- Document heroic or exemplary actions for recognition programs
+- Plan small celebrations (pizza, coffee) when operationally safe`,
+  },
+  {
+    patterns: [/family assistance|missing persons|family center/i],
+    response: `**Family Assistance Centers & Victim Support**
+
+When hospital incidents affect multiple patients/families, organized family services are essential.
+
+**Family Assistance Center Setup:**
+- Establish a separate, quiet location with adequate seating, restrooms, and phones
+- Provide comfort items: water, tissues, chairs, minimal privacy screens
+- Staffed by trained counselors, case managers, and bilingual support if available
+
+**Information Management:**
+- Develop standardized intake forms to track who is seeking what information
+- Use unambiguous identification processes (ID photos, descriptions) to match families with patients
+- Provide regular updates on processing status, even if status hasn't changed
+
+**Support Services:**
+- Offer immediate counseling and support groups for traumatized families
+- Connect families with financial assistance, insurance, and legal support information
+- Provide identification and disposition information for deaths with respect and compassion
+
+**Cultural Sensitivity:**
+- Include chaplains and cultural leaders from major religions/traditions
+- Respect family decision-making around religious practices and rituals
+- Avoid making assumptions about family structure or communication preferences`,
+  },
+  {
+    patterns: [/documentation|recording|evidence|chain of custody/i],
+    response: `**Incident Documentation & Evidence Preservation**
+
+Proper documentation during and after incidents ensures legal accountability, quality improvement, and appropriate reimbursement.
+
+**What to Document:**
+- Time, description, and personnel involved in significant events (injuries, security incidents, deaths)
+- Resource requests, acquisitions, and usage (supplies, staff hours, equipment)
+- Decisions made and the facts/reasoning that informed them (IAP sections, allocation decisions)
+- Photos/video of damage, setup, or operational areas (per institutional policy)
+
+**Chain of Custody Principles:**
+- If evidence is collected (suspicious items, weapons, etc.), maintain a clear record of who handled it and when
+- Separate from routine clinical documentation if law enforcement is involved
+- Notify security/legal immediately for incidents involving criminal elements
+
+**Incident-Specific Records:**
+- Maintain hospitalization records as normal, including incident context
+- Create summary "incident narratives" for key decisions (e.g., deactivation reason, final resource count)
+- Preserve copies of all IAPs, huddle notes, and communications logs
+
+**FEMA/Reimbursement Documentation:**
+- Track all overtime, supply purchases, and equipment costs by category
+- Keep receipts and vendor contact information for large purchases
+- Document donated resources separately from purchased resources
+- Include volunteer hours and mutual aid contributions
+
+**Legal Considerations:**
+- Consult your hospital attorney before releasing records to media or public
+- Be aware that incident documentation may be subject to discovery in litigation
+- Balance transparency with legal privilege protection`,
+  },
+  {
+    patterns: [/exercise|simulation|drill|tabletop|training/i],
+    response: `**Incident Response Exercises & Training**
+
+Regular exercises, simulations, and drills are essential for maintaining HICS readiness and identifying gaps.
+
+**Types of Exercises:**
+
+1. **Tabletop Exercise** – Discussion-based; command staff discuss scenario and decisions. Low cost, high learning.
+2. **Functional Exercise** – Tests specific functions (EOC activation, communication system launch). Moderate cost and complexity.
+3. **Full-Scale Exercise** – Simulates actual incident with realistic props, actors, and operational testing. High cost but most effective.
+4. **Drill** – Tests one specific skill or system (fire evacuation, lockdown procedures). Frequent, low-cost practice.
+
+**Scheduling & Frequency:**
+- Full-scale exercise: At least annually
+- Functional exercises: 2-4 annually targeting specific gaps
+- Tabletop/drills: Monthly during formal training season
+
+**After-Exercise Evaluation:**
+- Conduct hot wash (immediate debrief) while details are fresh
+- Issue formal AAR with strengths, gaps, and corrective actions
+- Track improvement over successive exercises
+
+**Cross-Training & Confidence:**
+- Use exercises to cross-train staff in backup roles
+- Document proficiency achieved during successful drills
+- Build staff confidence that HICS activation is doable and practices are realistic
+
+**Records Retention:**
+- Keep exercise plans, scenarios, and evaluation reports as reference materials
+- Track which personnel have participated in exercises for training documentation`,
+  },
 ];
+
 
 export function getBotResponse(userMessage: string): string {
   const lowerMessage = userMessage.toLowerCase().trim();

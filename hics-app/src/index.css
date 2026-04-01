@@ -35,6 +35,15 @@ body {
 	transition: background-color 240ms ease, color 240ms ease;
 }
 
+h1,
+h2,
+h3,
+.lux-brand-title {
+	font-family: "Aptos Display", "Bahnschrift", "Segoe UI Variable Display", sans-serif;
+	letter-spacing: -0.03em;
+	text-wrap: balance;
+}
+
 .lux-page {
 	position: relative;
 	overflow: hidden;
@@ -271,6 +280,12 @@ html.dark textarea:focus-visible {
 	100% { transform: translateX(180%); }
 }
 
+@keyframes metallicBorderFlow {
+	0% { background-position: 0% 50%; }
+	50% { background-position: 100% 50%; }
+	100% { background-position: 0% 50%; }
+}
+
 .fx-pop-correct {
 	animation: popGlow 420ms ease-out;
 }
@@ -474,6 +489,22 @@ html.dark .text-blue-900 {
 	overflow: hidden;
 }
 
+.nyx-panel::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	padding: 1px;
+	border-radius: inherit;
+	background: linear-gradient(120deg, rgba(255, 241, 206, 0.64), rgba(182, 188, 198, 0.44), rgba(88, 194, 184, 0.42), rgba(255, 241, 206, 0.64));
+	background-size: 200% 200%;
+	animation: metallicBorderFlow 7s ease infinite;
+	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask-composite: exclude;
+	pointer-events: none;
+}
+
 .nyx-panel::after {
 	content: "";
 	position: absolute;
@@ -577,6 +608,18 @@ html.dark .nyx-chip {
 	background: linear-gradient(150deg, #ffffff 0%, #faf0d9 45%, #2c2a24 100%);
 	box-shadow: inset 0 0 0 1px rgba(40, 34, 24, 0.35);
 	padding: 0.35rem;
+}
+
+.lux-nav-top {
+	border-bottom: 1px solid rgba(255, 244, 217, 0.16);
+}
+
+.lux-nav-rail {
+	border-radius: 1rem;
+	background: linear-gradient(135deg, rgba(255, 250, 236, 0.08), rgba(89, 190, 181, 0.08));
+	border: 1px solid rgba(255, 236, 196, 0.18);
+	backdrop-filter: blur(9px);
+	-webkit-backdrop-filter: blur(9px);
 }
 
 .lux-nav-link {

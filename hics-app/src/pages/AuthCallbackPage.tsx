@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/authContext';
-import { exchangeOidcCode, type OidcProvider, validateOidcState } from '../lib/oidc';
+import { exchangeOidcCode, getStoredOidcProvider, type OidcProvider, validateOidcState } from '../lib/oidc';
 
 export default function AuthCallbackPage() {
   const [searchParams] = useSearchParams();
@@ -14,8 +14,7 @@ export default function AuthCallbackPage() {
     const run = async () => {
       const code = searchParams.get('code');
       const state = searchParams.get('state');
-      const providerParam = searchParams.get('provider') as OidcProvider | null;
-      const provider: OidcProvider = providerParam === 'okta' ? 'okta' : 'entra';
+      const provider: OidcProvider = getStoredOidcProvider();
 
       if (!code || !state) {
         setError('Missing identity callback parameters. Please try sign in again.');

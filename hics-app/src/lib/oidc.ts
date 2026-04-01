@@ -2,6 +2,7 @@ export type OidcProvider = 'entra' | 'okta';
 
 const STATE_KEY = 'nyx-oidc-state';
 const VERIFIER_KEY = 'nyx-oidc-verifier';
+const PROVIDER_KEY = 'nyx-oidc-provider';
 
 interface ProviderConfig {
   name: string;
@@ -55,6 +56,7 @@ export async function beginOidcLogin(provider: OidcProvider, redirectUri: string
 
   sessionStorage.setItem(STATE_KEY, state);
   sessionStorage.setItem(VERIFIER_KEY, verifier);
+  sessionStorage.setItem(PROVIDER_KEY, provider);
 
   const url = new URL(config.authorizeEndpoint);
   url.searchParams.set('client_id', config.clientId);
@@ -64,9 +66,13 @@ export async function beginOidcLogin(provider: OidcProvider, redirectUri: string
   url.searchParams.set('state', state);
   url.searchParams.set('code_challenge', challenge);
   url.searchParams.set('code_challenge_method', 'S256');
-  url.searchParams.set('provider', provider);
 
   window.location.assign(url.toString());
+}
+
+export function getStoredOidcProvider(): OidcProvider {
+  const stored = sessionStorage.getItem(PROVIDER_KEY);
+  return stored === 'okta' ? 'okta' : 'entra';
 }
 
 export function validateOidcState(state: string): boolean {

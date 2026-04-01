@@ -22,6 +22,27 @@ const pillars = [
 
 const trustItems = ['SSO-ready authentication flow', 'Tenant-aware access model', 'Exportable compliance reporting', 'Rapid onboarding in under 30 minutes'];
 
+const pricingTiers = [
+  {
+    name: 'Pilot',
+    price: '$7,500',
+    cadence: '/facility/year',
+    points: ['Up to 50 users', 'Core scenarios, quiz, assistant', 'CSV export and facilitator mode'],
+  },
+  {
+    name: 'Enterprise',
+    price: 'Custom',
+    cadence: 'annual contract',
+    points: ['Multi-facility tenant hierarchy', 'SSO, role mapping, and policy controls', 'Deployment onboarding + success plan'],
+  },
+  {
+    name: 'System-Wide',
+    price: 'Custom',
+    cadence: 'MSA + SLA',
+    points: ['Unlimited facilities', 'Advanced governance and compliance exports', 'Dedicated roadmap and integration support'],
+  },
+];
+
 export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
   return (
     <div className="min-h-screen bg-gray-50 lux-page">
@@ -53,29 +74,60 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-10 space-y-8">
-        <section className="nyx-panel p-8 md:p-10">
-          <p className="text-xs tracking-[0.2em] text-gray-500 font-bold mb-3">SELL-READY PLATFORM</p>
-          <h1 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight max-w-4xl">
-            Enterprise-grade incident command training for behavioral health systems.
-          </h1>
-          <p className="text-gray-600 text-base md:text-lg mt-4 max-w-3xl leading-relaxed">
-            Deploy secure, role-aware HICS simulation across facilities with one platform for scenarios, assessment,
-            facilitator operations, and compliance reporting.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link to="/login" className="nyx-button-metal px-5 py-2.5 rounded-lg text-sm font-semibold">Launch Enterprise Workspace</Link>
-            <Link to="/request-demo" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Request Demo</Link>
-            <a href="#capabilities" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Explore Capabilities</a>
+        <section className="grid lg:grid-cols-[1.15fr_1fr] gap-6 items-stretch">
+          <div className="nyx-panel p-8 md:p-10">
+            <p className="text-xs tracking-[0.2em] text-gray-500 font-bold mb-3">SELL-READY PLATFORM</p>
+            <h1 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight max-w-4xl">
+              Enterprise-grade incident command training for behavioral health systems.
+            </h1>
+            <p className="text-gray-600 text-base md:text-lg mt-4 max-w-3xl leading-relaxed">
+              Deploy secure, role-aware HICS simulation across facilities with one platform for scenarios, assessment,
+              facilitator operations, and compliance reporting.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link to="/login" className="nyx-button-metal px-5 py-2.5 rounded-lg text-sm font-semibold">Launch Enterprise Workspace</Link>
+              <Link to="/request-demo" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Request Demo</Link>
+              <a href="#capabilities" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Explore Capabilities</a>
+            </div>
+          </div>
+          <div className="nyx-panel p-3 flex items-center">
+            <img src="/landing/operations.svg" alt="NyxHICSlab enterprise operations dashboard preview" className="w-full h-auto rounded-xl" />
           </div>
         </section>
 
         <section id="capabilities" className="grid md:grid-cols-3 gap-4 motion-stagger">
           {pillars.map((pillar) => (
             <article key={pillar.title} className="nyx-panel p-5 card-lift">
+              <img
+                src={pillar.title === 'Enterprise Governance' ? '/landing/governance.svg' : pillar.title === 'High-Fidelity Simulation' ? '/landing/operations.svg' : '/landing/readiness.svg'}
+                alt={`${pillar.title} illustration`}
+                className="w-full h-28 object-cover rounded-lg mb-3"
+              />
               <h2 className="text-lg font-bold text-gray-900 mb-2">{pillar.title}</h2>
               <p className="text-sm text-gray-600 leading-relaxed">{pillar.detail}</p>
             </article>
           ))}
+        </section>
+
+        <section className="nyx-panel p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Enterprise Pricing Paths</h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            {pricingTiers.map((tier) => (
+              <article key={tier.name} className="rounded-xl border border-gray-300 bg-white/60 p-4">
+                <h3 className="text-lg font-bold text-gray-900">{tier.name}</h3>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{tier.price}</p>
+                <p className="text-xs text-gray-500 mt-1">{tier.cadence}</p>
+                <ul className="mt-3 space-y-1.5 text-sm text-gray-700">
+                  {tier.points.map((point) => (
+                    <li key={point} className="flex items-start gap-2">
+                      <span className="text-[10px] font-bold tracking-widest px-2 py-0.5 rounded border border-green-300 text-green-700 mt-0.5">OK</span>
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="nyx-panel p-6">
@@ -93,6 +145,12 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
             <Link to="/login" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Enterprise Sign In</Link>
           </div>
         </section>
+
+        <footer className="nyx-panel p-4 text-xs text-gray-500 leading-relaxed">
+          <p>NyxHICSlab is a product of NyxCollective LLC.</p>
+          <p className="mt-1">Copyright (c) 2026 NyxCollective LLC. All rights reserved.</p>
+          <p className="mt-1">NyxHICSlab, NyxCollective, and related names, logos, product marks, and design marks are trademarks of NyxCollective LLC.</p>
+        </footer>
       </main>
     </div>
   );

@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(nextSession);
     setNow(Date.now());
 
-    if (remember) {
+    if (payload.remember) {
       localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(nextSession));
     } else {
       localStorage.removeItem(AUTH_SESSION_KEY);

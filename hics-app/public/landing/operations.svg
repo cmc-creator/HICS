@@ -1,0 +1,40 @@
+<svg width="960" height="640" viewBox="0 0 960 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="960" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#110C16"/>
+      <stop offset="0.5" stop-color="#2A1E35"/>
+      <stop offset="1" stop-color="#3B2D23"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="120" y1="120" x2="820" y2="540" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F9F1DB"/>
+      <stop offset="0.4" stop-color="#C7AB70"/>
+      <stop offset="0.7" stop-color="#7B688D"/>
+      <stop offset="1" stop-color="#5EA5A0"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="640" rx="28" fill="url(#bg)"/>
+  <rect x="48" y="48" width="864" height="544" rx="22" stroke="#A88D61" stroke-opacity="0.5"/>
+  <rect x="88" y="96" width="784" height="108" rx="16" fill="#1D1724" stroke="#C1A46D" stroke-opacity="0.45"/>
+  <circle cx="136" cy="150" r="18" fill="#5EA5A0" fill-opacity="0.6"/>
+  <rect x="172" y="136" width="330" height="10" rx="5" fill="#EFE7D2" fill-opacity="0.9"/>
+  <rect x="172" y="158" width="210" height="8" rx="4" fill="#C9BC9F" fill-opacity="0.75"/>
+
+  <rect x="88" y="236" width="360" height="300" rx="16" fill="#1A1421" stroke="#7A688D" stroke-opacity="0.6"/>
+  <rect x="476" y="236" width="396" height="300" rx="16" fill="#1A1421" stroke="#6EA9A4" stroke-opacity="0.6"/>
+
+  <rect x="120" y="278" width="296" height="16" rx="8" fill="url(#metal)"/>
+  <rect x="120" y="312" width="214" height="10" rx="5" fill="#AFC0C4" fill-opacity="0.72"/>
+  <rect x="120" y="340" width="258" height="10" rx="5" fill="#AFC0C4" fill-opacity="0.56"/>
+
+  <rect x="120" y="392" width="240" height="110" rx="12" fill="#241C2D" stroke="#7A688D" stroke-opacity="0.45"/>
+  <rect x="372" y="392" width="44" height="110" rx="12" fill="#241C2D" stroke="#7A688D" stroke-opacity="0.45"/>
+
+  <rect x="512" y="278" width="328" height="180" rx="14" fill="#201A28" stroke="#A88D61" stroke-opacity="0.5"/>
+  <path d="M544 430C594 368 638 395 684 352C724 314 760 320 812 292" stroke="#F0E1BF" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="544" cy="430" r="8" fill="#5EA5A0"/>
+  <circle cx="684" cy="352" r="8" fill="#C7AB70"/>
+  <circle cx="812" cy="292" r="8" fill="#7B688D"/>
+
+  <rect x="512" y="472" width="150" height="30" rx="8" fill="#32273E"/>
+  <rect x="676" y="472" width="164" height="30" rx="8" fill="url(#metal)"/>
+</svg>

@@ -72,6 +72,33 @@ npm run build
 
 The production build is output to `hics-app/dist/`.
 
+## Enterprise Setup
+
+The app now includes a sell-ready enterprise flow with:
+
+- Public landing page and request-demo funnel
+- Enterprise login and OIDC-ready callback route
+- Protected app routes for authenticated sessions
+- Session inactivity timeout and token-aware API client scaffolding
+
+### Environment variables
+
+Copy settings from:
+
+- `hics-app/.env.example`
+
+Set values in your deployment platform for:
+
+- `VITE_API_BASE_URL`
+- `VITE_AUTH_EXCHANGE_ENDPOINT`
+- `VITE_OIDC_ENTRA_*`
+- `VITE_OIDC_OKTA_*`
+
+### Backend contract and deployment checklist
+
+- `hics-app/docs/ENTERPRISE_AUTH_EXCHANGE_CONTRACT.md`
+- `hics-app/docs/ENTERPRISE_DEPLOYMENT_CHECKLIST.md`
+
 ## Deploy on Cloudflare Pages (Vercel Alternative)
 
 This app can be hosted on Cloudflare Pages with a much lower cost profile for static traffic.
@@ -101,3 +128,11 @@ If you need subpath hosting, set environment variable `VITE_BASE_PATH` during bu
 ```bash
 VITE_BASE_PATH=/HICS/ npm run build
 ```
+
+## Ownership and Marks
+
+NyxHICSlab is a product of NyxCollective LLC.
+
+Copyright (c) 2026 NyxCollective LLC. All rights reserved.
+
+NyxHICSlab, NyxCollective, and related names, logos, product marks, and design marks are trademarks of NyxCollective LLC.

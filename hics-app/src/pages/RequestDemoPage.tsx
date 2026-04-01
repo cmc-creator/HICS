@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import EnterpriseFooter from '../components/EnterpriseFooter';
 
 const LEAD_KEY = 'nyx-sales-leads';
 
@@ -117,6 +118,7 @@ export default function RequestDemoPage() {
           </div>
         )}
       </main>
+      <EnterpriseFooter />
     </div>
   );
 }

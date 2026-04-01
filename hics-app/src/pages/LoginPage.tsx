@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/authContext';
 import { beginOidcLogin } from '../lib/oidc';
+import EnterpriseFooter from '../components/EnterpriseFooter';
 
 interface LoginPageProps {
   theme: 'light' | 'dark';
@@ -108,6 +109,7 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
           </section>
         </div>
       </main>
+      <EnterpriseFooter />
     </div>
   );
 }

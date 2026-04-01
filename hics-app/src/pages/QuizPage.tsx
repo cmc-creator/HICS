@@ -129,7 +129,7 @@ export default function QuizPage() {
               onClick={handleStart}
               className="touch-target nyx-button-metal px-8 py-3 rounded-lg font-bold text-lg transition-colors"
             >
-              Start Quiz ->
+              Start Quiz
             </button>
           </div>
         </div>

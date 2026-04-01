@@ -1,8 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTenant } from '../lib/tenantContext';
+import { useAuth } from '../lib/authContext';
 
 const baseNavItems = [
-  { path: '/', label: 'Dashboard', icon: '/lux-icons/dashboard.svg' },
+  { path: '/dashboard', label: 'Dashboard', icon: '/lux-icons/dashboard.svg' },
   { path: '/roles', label: 'HICS Roles', icon: '/lux-icons/roles.svg' },
   { path: '/scenarios', label: 'Scenarios', icon: '/lux-icons/scenarios.svg' },
   { path: '/quiz', label: 'Quiz', icon: '/lux-icons/quiz.svg' },
@@ -19,6 +20,7 @@ interface NavbarProps {
 export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   const location = useLocation();
   const { canManageUsers } = useTenant();
+  const { user, logout } = useAuth();
   const navItems = canManageUsers
     ? [...baseNavItems, { path: '/admin', label: 'Admin', icon: '/lux-icons/admin.svg' }]
     : baseNavItems;
@@ -43,7 +45,12 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
             <span className="hidden sm:block text-xs md:text-sm text-amber-100/80 truncate">NyxCollective LLC · Enterprise Hospital Incident Command System Training</span>
           </div>
 
-          <div className="flex items-center justify-self-end">
+          <div className="flex items-center justify-self-end gap-2">
+            {user && (
+              <span className="hidden xl:inline-flex text-[10px] tracking-[0.12em] uppercase text-amber-100/85 border border-amber-100/25 rounded-full px-2.5 py-1">
+                {user.organization}
+              </span>
+            )}
             <button
               type="button"
               onClick={onToggleTheme}
@@ -59,6 +66,15 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
                 )}
               </span>
               <span className="hidden md:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={logout}
+              className="touch-target px-2.5 sm:px-3 py-2 rounded-md text-sm font-medium text-stone-200 hover:bg-white/10 hover:text-white transition-colors lux-nav-link"
+              title="Sign out"
+            >
+              <span className="hidden md:inline">Sign Out</span>
+              <span className="md:hidden">Out</span>
             </button>
           </div>
         </div>

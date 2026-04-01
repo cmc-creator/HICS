@@ -75,11 +75,16 @@ export default function QuizPage() {
 
   if (state === 'start') {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="nyx-hero text-white py-6 px-4">
+      <div className="min-h-screen bg-gray-50 lux-page">
+        <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
+          <div className="lux-grid-pattern" />
+          <div className="lux-orb lux-orb-a" />
+          <div className="lux-orb lux-orb-b" />
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold">NyxHICSlab Knowledge Quiz</h1>
-            <p className="text-blue-200 text-sm mt-1">Test command decisions for psychiatric inpatient incidents</p>
+            <div className="lux-hero-shell">
+              <h1 className="text-2xl font-bold lux-title">NyxHICSlab Knowledge Quiz</h1>
+              <p className="text-blue-200 text-sm mt-1 lux-subtitle">Test command decisions for psychiatric inpatient incidents</p>
+            </div>
           </div>
         </div>
 
@@ -139,10 +144,13 @@ export default function QuizPage() {
 
   if (state === 'complete') {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="nyx-hero text-white py-6 px-4">
+      <div className="min-h-screen bg-gray-50 lux-page">
+        <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
+          <div className="lux-grid-pattern" />
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold">Quiz Results</h1>
+            <div className="lux-hero-shell">
+              <h1 className="text-2xl font-bold lux-title">Quiz Results</h1>
+            </div>
           </div>
         </div>
 
@@ -240,8 +248,9 @@ export default function QuizPage() {
 
   // Playing state
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="nyx-hero text-white py-4 px-4">
+    <div className="min-h-screen bg-gray-50 lux-page">
+      <div className="nyx-hero text-white py-4 px-4 relative overflow-hidden">
+        <div className="lux-grid-pattern" />
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <h1 className="text-xl font-bold">NyxHICSlab Quiz</h1>
           <button
@@ -254,7 +263,7 @@ export default function QuizPage() {
       </div>
 
       {/* Progress */}
-      <div className="nyx-panel border-b">
+      <div className="nyx-panel training-progress-shell border-b">
         <div className="max-w-3xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm font-medium text-gray-600">
@@ -262,9 +271,9 @@ export default function QuizPage() {
             </span>
             <span className="text-sm text-gray-500">Score: {score}</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200/70 rounded-full h-2.5">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+              className="training-progress-bar h-2.5 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -283,14 +292,14 @@ export default function QuizPage() {
 
           <div className="space-y-3">
             {currentQuestion.options.map((option, index) => {
-              let optionStyle = 'border border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer';
+              let optionStyle = 'training-option-card border border-gray-200 hover:border-purple-300 hover:bg-purple-50/80 cursor-pointer';
               if (selectedAnswer !== null) {
                 if (index === currentQuestion.correctAnswer) {
-                  optionStyle = 'border-2 border-green-500 bg-green-50 cursor-default';
+                  optionStyle = 'training-option-card border-2 border-green-500 bg-green-50 cursor-default';
                 } else if (index === selectedAnswer && index !== currentQuestion.correctAnswer) {
-                  optionStyle = 'border-2 border-red-500 bg-red-50 cursor-default';
+                  optionStyle = 'training-option-card border-2 border-red-500 bg-red-50 cursor-default';
                 } else {
-                  optionStyle = 'border border-gray-200 opacity-50 cursor-default';
+                  optionStyle = 'training-option-card border border-gray-200 opacity-50 cursor-default';
                 }
               }
 

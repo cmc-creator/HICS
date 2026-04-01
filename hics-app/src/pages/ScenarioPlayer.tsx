@@ -250,14 +250,18 @@ export default function ScenarioPlayer() {
 
   if (completed) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="nyx-hero text-white py-6 px-4">
+      <div className="min-h-screen bg-gray-50 lux-page">
+        <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
+          <div className="lux-grid-pattern" />
+          <div className="lux-orb lux-orb-a" />
           <div className="max-w-4xl mx-auto">
             <Link to={scenariosLink} className="text-blue-300 hover:text-white text-sm mb-2 inline-block">
               ← Back to Scenarios
             </Link>
-            <h1 className="text-2xl font-bold">{adaptText(scenario.title)}</h1>
-            <p className="text-blue-200 text-xs mt-1">Facility Profile: {facilityContextLabel}</p>
+            <div className="lux-hero-shell">
+              <h1 className="text-2xl font-bold lux-title">{adaptText(scenario.title)}</h1>
+              <p className="text-blue-200 text-xs mt-1 lux-subtitle">Facility Profile: {facilityContextLabel}</p>
+            </div>
           </div>
         </div>
 
@@ -342,8 +346,9 @@ export default function ScenarioPlayer() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="nyx-hero text-white py-4 px-4">
+    <div className="min-h-screen bg-gray-50 lux-page">
+      <div className="nyx-hero text-white py-4 px-4 relative overflow-hidden">
+        <div className="lux-grid-pattern" />
         <div className="max-w-4xl mx-auto">
           <Link to={scenariosLink} className="text-blue-300 hover:text-white text-sm mb-1 inline-block">
             ← Back to Scenarios
@@ -353,7 +358,7 @@ export default function ScenarioPlayer() {
         </div>
       </div>
 
-      <div className="nyx-panel border-b">
+      <div className="nyx-panel training-progress-shell border-b">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm font-medium text-gray-600">
@@ -364,9 +369,9 @@ export default function ScenarioPlayer() {
               {timedMode && <span className="font-semibold text-gray-700">Timer: {secondsLeft}s</span>}
             </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200/70 rounded-full h-2.5">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+              className="training-progress-bar h-2.5 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -461,14 +466,14 @@ export default function ScenarioPlayer() {
 
           <div className="space-y-3">
             {adaptedStep.options.map((option) => {
-              let optionStyle = 'border border-gray-200 hover:border-blue-300 hover:bg-blue-50';
+              let optionStyle = 'training-option-card border border-gray-200 hover:border-purple-300 hover:bg-purple-50/80';
               if (selectedOption) {
                 if (option.isCorrect) {
-                  optionStyle = 'border-2 border-green-500 bg-green-50';
+                  optionStyle = 'training-option-card border-2 border-green-500 bg-green-50';
                 } else if (option.id === selectedOption.id && !option.isCorrect) {
-                  optionStyle = 'border-2 border-red-500 bg-red-50';
+                  optionStyle = 'training-option-card border-2 border-red-500 bg-red-50';
                 } else {
-                  optionStyle = 'border border-gray-200 opacity-60';
+                  optionStyle = 'training-option-card border border-gray-200 opacity-60';
                 }
               }
 

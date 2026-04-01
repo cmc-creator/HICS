@@ -573,6 +573,26 @@ html.dark .text-blue-900 {
 	pointer-events: none;
 }
 
+.training-progress-shell {
+	overflow: hidden;
+}
+
+.training-progress-bar {
+	background: linear-gradient(130deg, rgba(163, 130, 77, 0.95), rgba(106, 87, 121, 0.92), rgba(67, 145, 136, 0.9));
+	box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2), 0 8px 18px rgba(24, 14, 30, 0.25);
+}
+
+.training-option-card {
+	border-radius: 0.9rem;
+	background: linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(248, 243, 253, 0.62));
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+html.dark .training-option-card {
+	background: linear-gradient(145deg, rgba(40, 31, 51, 0.82), rgba(26, 21, 34, 0.7));
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
 html.dark .nyx-chip {
 	background: rgba(58, 45, 70, 0.46);
 	border-color: rgba(181, 155, 204, 0.3);

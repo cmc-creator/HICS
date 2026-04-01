@@ -94,34 +94,41 @@ export default function Dashboard() {
   const progressSummary = getTrainingSummary(getScenarioAttempts());
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 lux-page">
       {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-12 px-4">
+      <div className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-12 px-4 relative overflow-hidden">
+        <div className="lux-grid-pattern" />
+        <div className="lux-orb lux-orb-a" />
+        <div className="lux-orb lux-orb-b" />
         <div className="max-w-7xl mx-auto">
+          <div className="lux-hero-shell">
           <div className="flex items-center gap-4 mb-4">
-            <span className="text-sm font-bold tracking-[0.2em] px-3 py-2 rounded border border-blue-400">NX CORE</span>
+            <span className="h-14 w-14 rounded-xl overflow-hidden border border-white/45 bg-white/90 shadow-lg flex items-center justify-center">
+              <img src="/hicslogo.png" alt="HICS" className="h-12 w-12 object-contain" />
+            </span>
             <div>
-              <h1 className="text-3xl font-bold">NyxHICSlab</h1>
-              <p className="text-blue-200 text-lg">Luxury psychiatric incident command training by NyxCollective LLC</p>
+              <h1 className="text-3xl md:text-4xl font-bold lux-title">NyxHICSlab</h1>
+              <p className="text-blue-100/95 text-base md:text-lg lux-subtitle">Enterprise psychiatric incident command simulation platform</p>
             </div>
           </div>
-          <p className="text-blue-100 max-w-2xl text-base leading-relaxed">
+          <p className="text-blue-100/95 max-w-3xl text-base leading-relaxed">
             Prepare behavioral health teams for real-world incidents with premium interactive scenarios, role-based training,
             and an AI assistant designed for psychiatric inpatient operations.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               to="/scenarios"
-              className="bg-white text-blue-900 px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+              className="lux-button-primary px-5 py-2.5 font-semibold"
             >
-              Start Training →
+              Start Training
             </Link>
             <Link
               to="/roles"
-              className="border border-white text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-800 transition-colors"
+              className="lux-button-secondary text-white px-5 py-2.5 font-semibold"
             >
               Explore HICS Structure
             </Link>
+          </div>
           </div>
         </div>
       </div>
@@ -130,7 +137,7 @@ export default function Dashboard() {
         {/* Stats Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 motion-stagger">
           {stats.map((stat) => (
-            <div key={stat.label} className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4 card-lift">
+            <div key={stat.label} className="lux-stat-card p-5 flex items-center gap-4 card-lift">
               <div className={`${stat.color} text-white rounded-xl p-3 flex items-center justify-center w-12 h-12 shadow-lg`}>
                 <DashboardIcon icon={stat.icon} />
               </div>

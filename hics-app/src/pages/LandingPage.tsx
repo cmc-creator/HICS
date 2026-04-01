@@ -64,6 +64,7 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link to="/login" className="nyx-button-metal px-5 py-2.5 rounded-lg text-sm font-semibold">Launch Enterprise Workspace</Link>
+            <Link to="/request-demo" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Request Demo</Link>
             <a href="#capabilities" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Explore Capabilities</a>
           </div>
         </section>
@@ -86,6 +87,10 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
                 <span>{item}</span>
               </div>
             ))}
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link to="/request-demo" className="nyx-button-metal px-5 py-2.5 rounded-lg text-sm font-semibold">Talk to Sales</Link>
+            <Link to="/login" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Enterprise Sign In</Link>
           </div>
         </section>
       </main>

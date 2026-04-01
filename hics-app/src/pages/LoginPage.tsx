@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/authContext';
+import { beginOidcLogin } from '../lib/oidc';
 
 interface LoginPageProps {
   theme: 'light' | 'dark';
@@ -9,7 +10,7 @@ interface LoginPageProps {
 
 export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { loginSession } = useAuth();
   const [organization, setOrganization] = useState('North Campus Behavioral Health');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,31 +24,31 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
       return;
     }
 
-    login(
+    loginSession(
       {
-        fullName: email.split('@')[0].replace('.', ' '),
-        email,
-        organization,
-        mfaEnabled: true,
-        plan: 'enterprise',
+        user: {
+          fullName: email.split('@')[0].replace('.', ' '),
+          email,
+          organization,
+          mfaEnabled: true,
+          plan: 'enterprise',
+        },
+        accessToken: `pwd-${Math.random().toString(36).slice(2)}`,
+        authMethod: 'password',
+        expiresInSeconds: 3600,
+        remember,
       },
-      remember,
     );
     navigate('/dashboard');
   };
 
-  const handleSsoLogin = (provider: 'Microsoft Entra' | 'Okta') => {
-    login(
-      {
-        fullName: `${provider} User`,
-        email: provider === 'Okta' ? 'admin@healthsystem.com' : 'it.admin@healthsystem.com',
-        organization,
-        mfaEnabled: true,
-        plan: 'enterprise',
-      },
-      true,
-    );
-    navigate('/dashboard');
+  const handleSsoLogin = async (provider: 'entra' | 'okta') => {
+    try {
+      const redirectUri = `${window.location.origin}/auth/callback`;
+      await beginOidcLogin(provider, redirectUri);
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : 'Unable to start enterprise SSO flow.');
+    }
   };
 
   return (
@@ -80,8 +81,8 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
           <section className="nyx-panel p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Login</h2>
             <div className="grid grid-cols-2 gap-2 mb-4">
-              <button type="button" onClick={() => handleSsoLogin('Microsoft Entra')} className="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-gray-50">Microsoft Entra</button>
-              <button type="button" onClick={() => handleSsoLogin('Okta')} className="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-gray-50">Okta</button>
+              <button type="button" onClick={() => handleSsoLogin('entra')} className="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-gray-50">Microsoft Entra</button>
+              <button type="button" onClick={() => handleSsoLogin('okta')} className="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-gray-50">Okta</button>
             </div>
 
             <form onSubmit={handleCredentialLogin} className="space-y-3">

@@ -20,7 +20,8 @@ interface NavbarProps {
 export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   const location = useLocation();
   const { canManageUsers } = useTenant();
-  const { user, logout } = useAuth();
+  const { user, logout, sessionRemainingMs } = useAuth();
+  const sessionMinutes = Math.max(1, Math.floor(sessionRemainingMs / 60000));
   const navItems = canManageUsers
     ? [...baseNavItems, { path: '/admin', label: 'Admin', icon: '/lux-icons/admin.svg' }]
     : baseNavItems;
@@ -48,7 +49,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
           <div className="flex items-center justify-self-end gap-2">
             {user && (
               <span className="hidden xl:inline-flex text-[10px] tracking-[0.12em] uppercase text-amber-100/85 border border-amber-100/25 rounded-full px-2.5 py-1">
-                {user.organization}
+                {user.organization} · {sessionMinutes}m session
               </span>
             )}
             <button

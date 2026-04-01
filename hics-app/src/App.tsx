@@ -12,11 +12,18 @@ import FacilitatorQuickStart from './pages/FacilitatorQuickStart';
 import FacilityAdminPage from './pages/FacilityAdminPage';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
+import RequestDemoPage from './pages/RequestDemoPage';
 import { TenantProvider } from './lib/tenantContext';
 import { AuthProvider, useAuth } from './lib/authContext';
 
 function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggleTheme: () => void }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, touchActivity } = useAuth();
+
+  useEffect(() => {
+    touchActivity();
+  }, [touchActivity]);
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -38,6 +45,8 @@ function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggle
     <Routes>
       <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage theme={theme} onToggleTheme={onToggleTheme} />} />
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage theme={theme} onToggleTheme={onToggleTheme} />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      <Route path="/request-demo" element={<RequestDemoPage />} />
 
       <Route element={<ProtectedLayout theme={theme} onToggleTheme={onToggleTheme} />}>
         <Route path="/dashboard" element={<Dashboard />} />

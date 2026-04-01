@@ -557,7 +557,9 @@ html.dark .nyx-chip {
 .lux-nav-shell {
 	position: relative;
 	overflow: hidden;
-	background: linear-gradient(120deg, rgba(10, 10, 11, 0.9), rgba(22, 22, 24, 0.88), rgba(58, 44, 30, 0.84));
+	background:
+		linear-gradient(140deg, rgba(8, 10, 12, 0.94) 0%, rgba(54, 58, 63, 0.9) 22%, rgba(214, 220, 226, 0.26) 40%, rgba(96, 102, 109, 0.9) 58%, rgba(21, 24, 28, 0.96) 100%),
+		linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
 	backdrop-filter: blur(18px);
 	-webkit-backdrop-filter: blur(18px);
 	box-shadow: 0 20px 45px rgba(3, 8, 16, 0.46), inset 0 -1px 0 rgba(255, 255, 255, 0.08);
@@ -569,9 +571,9 @@ html.dark .nyx-chip {
 	inset: 0;
 	pointer-events: none;
 	background:
-		linear-gradient(115deg, transparent 6%, rgba(255, 255, 255, 0.11) 32%, transparent 58%),
-		repeating-linear-gradient(90deg, transparent 0 22px, rgba(212, 180, 115, 0.16) 22px 23px);
-	opacity: 0.62;
+		radial-gradient(140% 75% at 50% -20%, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.02) 55%),
+		linear-gradient(100deg, rgba(255, 255, 255, 0.16) 4%, rgba(255, 255, 255, 0.03) 38%, rgba(255, 255, 255, 0.2) 54%, rgba(255, 255, 255, 0.02) 82%);
+	opacity: 0.74;
 }
 
 .lux-nav-shell::after {

@@ -15,9 +15,10 @@ Overview of HICS structure, training modules, and quick access to all sections.
 - Filter by section (Command, Operations, Planning, Logistics, Finance/Admin)
 - Detailed role descriptions, responsibilities, and reporting relationships
 
-### Training Scenarios (13 scenarios)
+### Training Scenarios (20 scenarios)
 
 Expanding clinical and security decision-making across diverse emergency types:
+
 - **Mass Casualty Incident (MCI)** - Intermediate, 5 steps
 - **Hospital Fire Emergency** - Beginner, 3 steps (RACE protocol)
 - **Hazardous Materials Exposure** - Advanced, 2 steps (decontamination zones)
@@ -42,7 +43,7 @@ Expanding clinical and security decision-making across diverse emergency types:
 
 ### AI Training Assistant (Chatbot)
 
-- 25-topic HICS knowledge base (expanded)
+- 26-topic HICS knowledge base (expanded)
 - Covers: organizational structure, START triage, RACE protocol, hazmat zones, IAP, NIMS/ICS, HIPAA, span of control, psychiatric considerations, workforce resilience, family assistance centers, incident documentation, exercises & training, and more
 - Suggested quick-questions, typing indicator, and markdown-formatted responses
 

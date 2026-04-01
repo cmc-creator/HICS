@@ -270,7 +270,7 @@ export default function ScenariosPage() {
             const facilities = getScenarioFacilities(scenario.id, scenario.type);
 
             return (
-              <div key={scenario.id} className="nyx-panel overflow-hidden card-lift scenario-card-shell">
+              <div key={scenario.id} className="scenario-list-card overflow-hidden card-lift scenario-card-shell">
                 <div className="scenario-card-head text-white p-5">
                   <div className="flex items-start justify-between">
                     <div>

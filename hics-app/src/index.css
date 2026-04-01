@@ -556,6 +556,21 @@ html.dark .text-blue-900 {
 	border-radius: 1.1rem;
 }
 
+.scenario-list-card {
+	background: var(--card-bg);
+	border: 1px solid var(--surface-border);
+	border-radius: 1.1rem;
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	box-shadow: 0 16px 30px rgba(18, 10, 24, 0.16);
+	transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.scenario-list-card:hover {
+	border-color: rgba(157, 129, 191, 0.44);
+	box-shadow: 0 20px 34px rgba(20, 12, 28, 0.22);
+}
+
 .scenario-card-head {
 	position: relative;
 	overflow: hidden;

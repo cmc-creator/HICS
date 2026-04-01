@@ -210,7 +210,7 @@ export default function RolesPage() {
                 <ul className="space-y-2">
                   {selectedRole.responsibilities.map((resp, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                      <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
+                      <span className="text-[10px] font-bold tracking-widest px-2 py-0.5 rounded border border-green-300 text-green-700 mt-0.5 flex-shrink-0">OK</span>
                       {resp}
                     </li>
                   ))}
@@ -241,7 +241,7 @@ export default function RolesPage() {
               </div>
             ) : (
               <div className="nyx-panel p-6 flex flex-col items-center justify-center h-64 text-center">
-                <span className="text-4xl mb-3">👆</span>
+                <span className="text-xs font-bold tracking-[0.2em] text-gray-500 mb-3">SELECT NODE</span>
                 <h3 className="text-lg font-semibold text-gray-700">Select a Role</h3>
                 <p className="text-gray-500 text-sm mt-1">
                   Click on any role in the org chart or list to view details

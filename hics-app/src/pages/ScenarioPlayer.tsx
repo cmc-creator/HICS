@@ -263,8 +263,8 @@ export default function ScenarioPlayer() {
 
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="nyx-panel p-8 text-center mb-6 animate-fade-in">
-            <div className="text-6xl mb-4">
-              {scorePercent >= 80 ? '🏆' : scorePercent >= 60 ? '👍' : '📚'}
+            <div className="text-sm font-bold tracking-[0.2em] text-gray-500 mb-4">
+              {scorePercent >= 80 ? 'TIER-A' : scorePercent >= 60 ? 'TIER-B' : 'TIER-C'}
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Scenario Complete</h2>
             <div className="text-4xl font-bold mb-1" style={{
@@ -297,7 +297,7 @@ export default function ScenarioPlayer() {
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <span className="text-xl">{option.isCorrect ? '✅' : '❌'}</span>
+                  <span className="text-[10px] font-bold tracking-widest px-2 py-1 rounded border border-gray-300 text-gray-600">{option.isCorrect ? 'OK' : 'ERR'}</span>
                   <div>
                     <div className="font-semibold text-gray-900 text-sm mb-1">
                       Step {i + 1}: {adaptText(step.title)}

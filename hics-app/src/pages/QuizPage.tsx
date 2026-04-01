@@ -85,7 +85,7 @@ export default function QuizPage() {
 
         <div className="max-w-3xl mx-auto px-4 py-8">
           <div className="nyx-panel p-8 text-center mb-6 animate-fade-in">
-            <div className="text-6xl mb-4">📝</div>
+            <div className="text-sm font-bold tracking-[0.2em] text-gray-500 mb-4">QUIZ CORE</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Ready to Test Your Knowledge?</h2>
             <p className="text-gray-600 mb-6">
               {filteredQuestions.length} questions covering HICS structure, triage, fire response, hazmat protocols, and more.
@@ -129,7 +129,7 @@ export default function QuizPage() {
               onClick={handleStart}
               className="touch-target nyx-button-metal px-8 py-3 rounded-lg font-bold text-lg transition-colors"
             >
-              Start Quiz →
+              Start Quiz ->
             </button>
           </div>
         </div>
@@ -149,8 +149,8 @@ export default function QuizPage() {
         <div className="max-w-3xl mx-auto px-4 py-8">
           {/* Score Card */}
           <div className="nyx-panel p-8 text-center mb-6 animate-fade-in">
-            <div className="text-6xl mb-4">
-              {scorePercent >= 80 ? '🏆' : scorePercent >= 60 ? '👍' : '📚'}
+            <div className="text-sm font-bold tracking-[0.2em] text-gray-500 mb-4">
+              {scorePercent >= 80 ? 'RATING: HIGH' : scorePercent >= 60 ? 'RATING: MID' : 'RATING: BASE'}
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Quiz Complete!</h2>
             <div className="text-5xl font-bold mb-1" style={{
@@ -164,7 +164,7 @@ export default function QuizPage() {
               scorePercent >= 60 ? 'bg-yellow-100 text-yellow-700' :
               'bg-red-100 text-red-700'
             }`}>
-              {scorePercent >= 80 ? '✓ PASS' : '✗ Did Not Pass'}
+              {scorePercent >= 80 ? 'PASS' : 'REVIEW REQUIRED'}
             </div>
             <p className="text-sm text-gray-600 mt-3 fun-callout p-3">
               {scorePercent >= 80
@@ -211,10 +211,10 @@ export default function QuizPage() {
                   <div key={i} className="border-l-4 border-red-400 pl-4">
                     <div className="text-sm font-semibold text-gray-900 mb-2">{question.question}</div>
                     <div className="text-sm text-red-600 mb-1">
-                      ❌ Your answer: {question.options[answer]}
+                      ERR Your answer: {question.options[answer]}
                     </div>
                     <div className="text-sm text-green-600 mb-2">
-                      ✅ Correct: {question.options[question.correctAnswer]}
+                      OK Correct: {question.options[question.correctAnswer]}
                     </div>
                     <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
                       {question.explanation}
@@ -230,7 +230,7 @@ export default function QuizPage() {
               onClick={handleRestart}
               className="touch-target nyx-button-metal px-5 py-2.5 rounded-lg font-semibold transition-colors"
             >
-              🔄 Retake Quiz
+              Retake Quiz
             </button>
           </div>
         </div>
@@ -248,7 +248,7 @@ export default function QuizPage() {
             onClick={handleRestart}
             className="touch-target text-blue-300 hover:text-white text-sm px-2"
           >
-            ✕ Exit
+            Exit
           </button>
         </div>
       </div>
@@ -311,8 +311,8 @@ export default function QuizPage() {
                             : 'border-gray-300 text-gray-400'
                         : 'border-gray-300'
                     }`}>
-                      {selectedAnswer !== null && index === currentQuestion.correctAnswer && '✓'}
-                      {selectedAnswer !== null && index === selectedAnswer && index !== currentQuestion.correctAnswer && '✗'}
+                      {selectedAnswer !== null && index === currentQuestion.correctAnswer && 'OK'}
+                      {selectedAnswer !== null && index === selectedAnswer && index !== currentQuestion.correctAnswer && 'ER'}
                       {selectedAnswer === null && String.fromCharCode(65 + index)}
                     </div>
                     <span className="text-sm text-gray-800">{option}</span>
@@ -331,7 +331,7 @@ export default function QuizPage() {
               <div className={`font-semibold text-sm mb-1 ${
                 selectedAnswer === currentQuestion.correctAnswer ? 'text-green-800' : 'text-red-800'
               }`}>
-                {selectedAnswer === currentQuestion.correctAnswer ? '✅ Correct!' : '❌ Incorrect'}
+                {selectedAnswer === currentQuestion.correctAnswer ? 'OK Correct' : 'ERR Incorrect'}
               </div>
               <p className={`text-sm ${
                 selectedAnswer === currentQuestion.correctAnswer ? 'text-green-700' : 'text-red-700'
@@ -353,7 +353,7 @@ export default function QuizPage() {
               onClick={handleNext}
               className="touch-target nyx-button-metal px-6 py-2.5 rounded-lg font-semibold transition-colors"
             >
-              {currentIndex === totalQuestions - 1 ? 'View Results →' : 'Next Question →'}
+              {currentIndex === totalQuestions - 1 ? 'View Results ->' : 'Next Question ->'}
             </button>
           </div>
         )}

@@ -17,20 +17,20 @@ const difficultyColors = {
 };
 
 const typeIcons: Record<string, string> = {
-  'Mass Casualty': '🚑',
-  'Fire/Evacuation': '🔥',
-  HazMat: '☢️',
-  Infrastructure: '💻',
-  Weather: '🌪️',
-  Utilities: '🔌',
-  'Pediatric Surge': '🧸',
-  'Public Health': '🧪',
-  Logistics: '📦',
-  Throughput: '🚪',
-  Security: '🚨',
-  'Behavioral Health': '🧠',
-  Safety: '🛡️',
-  'Medication Safety': '💊',
+  'Mass Casualty': 'MC',
+  'Fire/Evacuation': 'FIR',
+  HazMat: 'HAZ',
+  Infrastructure: 'INF',
+  Weather: 'WTH',
+  Utilities: 'UTL',
+  'Pediatric Surge': 'PED',
+  'Public Health': 'PHL',
+  Logistics: 'LOG',
+  Throughput: 'FLW',
+  Security: 'SEC',
+  'Behavioral Health': 'BHV',
+  Safety: 'SFT',
+  'Medication Safety': 'MED',
 };
 
 type DifficultyFilter = 'all' | 'beginner' | 'intermediate' | 'advanced';
@@ -250,7 +250,7 @@ export default function ScenariosPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">{typeIcons[scenario.type] || '⚠️'}</span>
+                        <span className="text-xs font-bold tracking-widest px-2 py-1 rounded border border-white/30">{typeIcons[scenario.type] || 'GEN'}</span>
                         <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
                           {scenario.type}
                         </span>
@@ -301,8 +301,8 @@ export default function ScenariosPage() {
 
                   <div className="flex items-center justify-between pt-4 border-t">
                     <div className="flex gap-4 text-xs text-gray-500">
-                      <span>⏱️ {scenario.duration}</span>
-                      <span>📋 {scenario.steps.length} steps</span>
+                      <span>TIME {scenario.duration}</span>
+                      <span>STEPS {scenario.steps.length}</span>
                     </div>
                     <Link
                       to={selectedFacility === 'all' ? `/scenarios/${scenario.id}` : `/scenarios/${scenario.id}?facility=${selectedFacility}`}
@@ -335,7 +335,7 @@ export default function ScenariosPage() {
 
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-5">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">💡</span>
+            <span className="text-xs font-bold tracking-[0.2em] text-blue-700">TIP</span>
             <div>
               <h3 className="font-bold text-blue-900">Facilitator Tip</h3>
               <p className="text-blue-700 text-sm mt-1">

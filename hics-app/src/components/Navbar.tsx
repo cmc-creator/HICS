@@ -1,13 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: '🏠' },
-  { path: '/roles', label: 'HICS Roles', icon: '👥' },
-  { path: '/scenarios', label: 'Scenarios', icon: '🎯' },
-  { path: '/quiz', label: 'Quiz', icon: '📝' },
-  { path: '/quick-start', label: 'Quick Start', icon: '⚡' },
-  { path: '/reports', label: 'Reports', icon: '📊' },
-  { path: '/chatbot', label: 'AI Assistant', icon: '🤖' },
+  { path: '/', label: 'Dashboard', icon: 'DSH' },
+  { path: '/roles', label: 'HICS Roles', icon: 'ORG' },
+  { path: '/scenarios', label: 'Scenarios', icon: 'SIM' },
+  { path: '/quiz', label: 'Quiz', icon: 'QZ' },
+  { path: '/quick-start', label: 'Quick Start', icon: 'QST' },
+  { path: '/reports', label: 'Reports', icon: 'RPT' },
+  { path: '/chatbot', label: 'AI Assistant', icon: 'AI' },
 ];
 
 interface NavbarProps {
@@ -23,7 +23,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between min-h-16 py-2 gap-3">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🏥</span>
+            <span className="text-xs font-bold tracking-widest px-2 py-1 rounded border border-blue-400 text-blue-100">NX</span>
             <div>
               <span className="text-lg font-bold tracking-wide">NyxHICSlab</span>
               <span className="hidden sm:block text-xs text-blue-300">NyxCollective LLC · Psychiatric Incident Command Training</span>
@@ -40,7 +40,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
                     : 'text-blue-200 hover:bg-blue-800 hover:text-white'
                 }`}
               >
-                <span className="text-base">{item.icon}</span>
+                <span className="text-[10px] font-bold tracking-widest opacity-85">{item.icon}</span>
                 <span className="hidden md:inline">{item.label}</span>
               </Link>
             ))}
@@ -51,7 +51,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
               aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
               title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
             >
-              <span className="mr-1">{theme === 'dark' ? '☀️' : '🌙'}</span>
+              <span className="mr-1 text-[10px] font-bold tracking-widest">{theme === 'dark' ? 'L' : 'D'}</span>
               <span className="hidden md:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
             </button>
           </div>

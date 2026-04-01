@@ -5,10 +5,10 @@ import { quizQuestions } from '../data/quiz';
 import { getScenarioAttempts, getTrainingSummary } from '../lib/trainingAnalytics';
 
 const stats = [
-  { label: 'HICS Roles', value: hicsRoles.length, icon: '👥', color: 'bg-blue-500' },
-  { label: 'Training Scenarios', value: scenarios.length, icon: '🎯', color: 'bg-green-500' },
-  { label: 'Quiz Questions', value: quizQuestions.length, icon: '📝', color: 'bg-purple-500' },
-  { label: 'HICS Sections', value: 5, icon: '🏛️', color: 'bg-red-500' },
+  { label: 'HICS Roles', value: hicsRoles.length, icon: 'ORG', color: 'bg-blue-500' },
+  { label: 'Training Scenarios', value: scenarios.length, icon: 'SIM', color: 'bg-green-500' },
+  { label: 'Quiz Questions', value: quizQuestions.length, icon: 'QZ', color: 'bg-purple-500' },
+  { label: 'HICS Sections', value: 5, icon: 'SEC', color: 'bg-red-500' },
 ];
 
 const quickLinks = [
@@ -16,7 +16,7 @@ const quickLinks = [
     path: '/roles',
     title: 'Explore HICS Roles',
     description: 'Learn about each position in the HICS organizational structure, including responsibilities and reporting relationships.',
-    icon: '👥',
+    icon: 'ORG',
     color: 'border-blue-500',
     badge: 'Interactive Chart',
   },
@@ -24,7 +24,7 @@ const quickLinks = [
     path: '/scenarios',
     title: 'Training Scenarios',
     description: 'Practice responding to real-world hospital emergencies including mass casualty incidents, fires, and hazmat events.',
-    icon: '🎯',
+    icon: 'SIM',
     color: 'border-green-500',
     badge: `${scenarios.length} Scenarios`,
   },
@@ -32,7 +32,7 @@ const quickLinks = [
     path: '/quiz',
     title: 'Knowledge Quiz',
     description: 'Test your HICS knowledge with scenario-based questions covering triage, protocols, and emergency management.',
-    icon: '📝',
+    icon: 'QZ',
     color: 'border-purple-500',
     badge: `${quizQuestions.length} Questions`,
   },
@@ -40,7 +40,7 @@ const quickLinks = [
     path: '/chatbot',
     title: 'AI Training Assistant',
     description: 'Ask questions and get instant answers about HICS protocols, procedures, and best practices from our AI assistant.',
-    icon: '🤖',
+    icon: 'AI',
     color: 'border-orange-500',
     badge: '24/7 Available',
   },
@@ -48,7 +48,7 @@ const quickLinks = [
     path: '/quick-start',
     title: 'Facilitator Quick Start',
     description: 'Launch guided setup, debrief prompts, and a practical 30-minute training flow for team leads.',
-    icon: '⚡',
+    icon: 'QST',
     color: 'border-amber-500',
     badge: 'Session Guide',
   },
@@ -56,7 +56,7 @@ const quickLinks = [
     path: '/reports',
     title: 'Training Reports',
     description: 'Review completion trends, score performance, and export facilitator-friendly training records.',
-    icon: '📊',
+    icon: 'RPT',
     color: 'border-slate-500',
     badge: 'CSV Export',
   },
@@ -71,7 +71,7 @@ export default function Dashboard() {
       <div className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-4 mb-4">
-            <span className="text-5xl">🏥</span>
+            <span className="text-sm font-bold tracking-[0.2em] px-3 py-2 rounded border border-blue-400">NX CORE</span>
             <div>
               <h1 className="text-3xl font-bold">NyxHICSlab</h1>
               <p className="text-blue-200 text-lg">Luxury psychiatric incident command training by NyxCollective LLC</p>
@@ -199,9 +199,9 @@ export default function Dashboard() {
                 className="flex items-center gap-4 p-4 rounded-lg border hover:border-blue-300 hover:bg-blue-50 transition-colors group card-lift"
               >
                 <div className="text-2xl">
-                  {scenario.type === 'Mass Casualty' ? '🚑' :
-                   scenario.type === 'Fire/Evacuation' ? '🔥' :
-                   scenario.type === 'HazMat' ? '☢️' : '💻'}
+                  {scenario.type === 'Mass Casualty' ? 'MC' :
+                   scenario.type === 'Fire/Evacuation' ? 'FIR' :
+                   scenario.type === 'HazMat' ? 'HAZ' : 'INF'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors text-sm">

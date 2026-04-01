@@ -103,10 +103,10 @@ Proper financial documentation during an incident can enable significant reimbur
 
 **Key MCI Concepts:**
 - **START Triage:** Simple Triage and Rapid Treatment
-  - 🔴 **RED** – Immediate (life-threatening, survivable)
-  - 🟡 **YELLOW** – Delayed (serious, not immediately life-threatening)
-  - 🟢 **GREEN** – Minor ("walking wounded")
-  - ⚫ **BLACK** – Expectant/Deceased
+  - **RED** - Immediate (life-threatening, survivable)
+  - **YELLOW** - Delayed (serious, not immediately life-threatening)
+  - **GREEN** - Minor ("walking wounded")
+  - **BLACK** - Expectant/Deceased
 
 **MCI Principles:**
 - Greatest good for greatest number
@@ -129,10 +129,10 @@ Assess patients in 30 seconds or less using three checks:
 **Color Categories:**
 | Color | Meaning | Criteria |
 |-------|---------|----------|
-| 🔴 RED | Immediate | Resp. 10-30/min OR poor perfusion OR altered mental status |
-| 🟡 YELLOW | Delayed | Breathing, adequate perfusion, follows commands but can't walk |
-| 🟢 GREEN | Minor | Walking wounded |
-| ⚫ BLACK | Expectant | No respirations after airway opening, or clearly fatal injuries |`,
+| RED | Immediate | Resp. 10-30/min OR poor perfusion OR altered mental status |
+| YELLOW | Delayed | Breathing, adequate perfusion, follows commands but can't walk |
+| GREEN | Minor | Walking wounded |
+| BLACK | Expectant | No respirations after airway opening, or clearly fatal injuries |`,
   },
   {
     patterns: [/fire/i, /race/i, /pass/i, /evacuation/i, /fire extinguisher/i],
@@ -164,9 +164,9 @@ Never use elevators during a fire evacuation!`,
 **Key Principle:** Prevent secondary contamination!
 
 **Zones:**
-- 🔴 **Hot Zone** – Area of contamination (HazMat team only)
-- 🟡 **Warm Zone** – Decontamination area (trained staff with PPE)
-- 🟢 **Cold Zone** – Clean area for medical treatment
+- **Hot Zone** - Area of contamination (HazMat team only)
+- **Warm Zone** - Decontamination area (trained staff with PPE)
+- **Cold Zone** - Clean area for medical treatment
 
 **Decontamination Process:**
 1. Stop patients BEFORE entering the facility
@@ -184,13 +184,13 @@ Never use elevators during a fire evacuation!`,
 
 HIPAA is **NOT** suspended during emergencies, but specific provisions allow:
 
-✅ **Allowed disclosures:**
+**Allowed disclosures:**
 - To public health authorities responding to the emergency
 - To first responders who need information to provide care
 - To family members directly involved in patient care (with patient permission or if patient is incapacitated)
 - To notify family of patient location/status (general condition only)
 
-❌ **Never allowed:**
+**Never allowed:**
 - Publishing patient lists publicly
 - Giving patient names to media
 - Posting information on social media
@@ -349,12 +349,12 @@ JAS are designed so that any qualified person can pick up a role, even if they'v
     response: `Hello! I'm your HICS Training Assistant. I'm here to help you learn about the Hospital Incident Command System.
 
 You can ask me about:
-- 🏥 **HICS Structure** – Roles, sections, and organizational chart
-- 🚑 **MCI Response** – Mass casualty incidents and START triage
-- 🔥 **Fire Response** – RACE protocol and evacuation procedures
-- ☢️ **HazMat** – Chemical/hazardous material response
-- 📋 **Documentation** – IAP, AAR, and HICS forms
-- 🔒 **HIPAA** – Patient privacy during emergencies
+- **HICS Structure** - Roles, sections, and organizational chart
+- **MCI Response** - Mass casualty incidents and START triage
+- **Fire Response** - RACE protocol and evacuation procedures
+- **HazMat** - Chemical/hazardous material response
+- **Documentation** - IAP, AAR, and HICS forms
+- **HIPAA** - Patient privacy during emergencies
 
 What would you like to learn about?`,
   },
@@ -418,9 +418,9 @@ export function getInitialMessage(): ChatMessage {
   return {
     id: 'welcome',
     role: 'assistant',
-    content: `Welcome to the HICS Training Assistant! 👋
+    content: `Welcome to the HICS Training Assistant.
 
-I'm here to help you learn about the **Hospital Incident Command System (HICS)** – the emergency management framework used by hospitals across the United States.
+I'm here to help you learn about the **Hospital Incident Command System (HICS)** - the emergency management framework used by hospitals across the United States.
 
 You can ask me about:
 - HICS roles and organizational structure

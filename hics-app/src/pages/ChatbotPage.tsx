@@ -25,7 +25,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${
         isUser ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
       }`}>
-        {isUser ? '👤' : '🤖'}
+        {isUser ? 'USR' : 'AI'}
       </div>
       <div className={`max-w-[80%] ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
         {isUser ? (
@@ -123,14 +123,14 @@ export default function ChatbotPage() {
       <div className="nyx-hero text-white py-4 px-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center text-xl">
-              🤖
+            <div className="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center text-xs font-bold tracking-widest">
+              AI
             </div>
             <div>
               <h1 className="text-lg font-bold">NyxHICSlab Assistant</h1>
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 bg-green-400 rounded-full" />
-                <span className="text-xs text-blue-200">Online – Ready to help</span>
+                <span className="text-xs text-blue-200">Online - Ready to help</span>
               </div>
             </div>
           </div>
@@ -168,8 +168,8 @@ export default function ChatbotPage() {
 
           {isTyping && (
             <div className="flex items-start gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm">
-                🤖
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold tracking-widest text-gray-700">
+                AI
               </div>
               <div className="nyx-panel rounded-2xl rounded-tl-sm px-4 py-3">
                 <div className="flex gap-1">

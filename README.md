@@ -4,32 +4,38 @@ A Hospital Incident Command System (HICS) training application with interactive 
 
 ## Features
 
-### 🏠 Dashboard
+### Dashboard
+
 Overview of HICS structure, training modules, and quick access to all sections.
 
-### 👥 HICS Roles & Interactive Org Chart
+### HICS Roles & Interactive Org Chart
+
 - Visual organizational chart with clickable role nodes
 - 24 HICS positions across all sections
 - Filter by section (Command, Operations, Planning, Logistics, Finance/Admin)
 - Detailed role descriptions, responsibilities, and reporting relationships
 
-### 🎯 Training Scenarios (17 scenarios)
-- **Mass Casualty Incident (MCI)** – Intermediate, 5 steps
-- **Hospital Fire Emergency** – Beginner, 3 steps (RACE protocol)
-- **Hazardous Materials Exposure** – Advanced, 2 steps (decontamination zones)
-- **Cyberattack / IT Outage** – Intermediate, 1 step (downtime procedures)
+### Training Scenarios (17 scenarios)
 
-### 🎮 Interactive Scenario Player
+- **Mass Casualty Incident (MCI)** - Intermediate, 5 steps
+- **Hospital Fire Emergency** - Beginner, 3 steps (RACE protocol)
+- **Hazardous Materials Exposure** - Advanced, 2 steps (decontamination zones)
+- **Cyberattack / IT Outage** - Intermediate, 1 step (downtime procedures)
+
+### Interactive Scenario Player
+
 - Step-by-step decision trees with situational descriptions
 - 4 answer choices with immediate feedback and explanations
 - Hint system, progress tracking, and score review
 
-### 📝 Knowledge Quiz (15 questions)
+### Knowledge Quiz (15 questions)
+
 - Category filtering (HICS Structure, MCI, Fire Safety, HazMat, HIPAA, and more)
 - Immediate answer feedback with detailed explanations
 - Category performance breakdown and pass/fail result (80% threshold)
 
-### 🤖 AI Training Assistant (Chatbot)
+### AI Training Assistant (Chatbot)
+
 - 18-topic HICS knowledge base
 - Covers: organizational structure, START triage, RACE protocol, hazmat zones, IAP, NIMS/ICS, HIPAA, span of control, and more
 - Suggested quick-questions, typing indicator, and markdown-formatted responses

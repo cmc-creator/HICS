@@ -23,18 +23,18 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   return (
     <div className={`flex items-start gap-3 mb-4 ${isUser ? 'flex-row-reverse' : ''}`}>
       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${
-        isUser ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+        isUser ? 'chat-avatar-user text-white' : 'chat-avatar-assistant text-slate-100'
       }`}>
         {isUser ? 'USR' : 'AI'}
       </div>
       <div className={`max-w-[80%] ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
         {isUser ? (
-          <div className="px-4 py-3 rounded-2xl text-sm leading-relaxed bg-blue-600 text-white rounded-tr-sm">
+          <div className="px-4 py-3 rounded-2xl text-sm leading-relaxed chat-user-bubble text-white rounded-tr-sm">
             {message.content}
           </div>
         ) : (
           <div
-            className="px-4 py-3 rounded-2xl text-sm leading-relaxed bg-white border border-gray-200 text-gray-800 rounded-tl-sm shadow-sm"
+            className="px-4 py-3 rounded-2xl text-sm leading-relaxed chat-assistant-bubble text-gray-800 rounded-tl-sm"
             dangerouslySetInnerHTML={{ __html: formatBotMessage(message.content) }}
           />
         )}
@@ -118,25 +118,26 @@ export default function ChatbotPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col lux-page">
       {/* Header */}
-      <div className="nyx-hero text-white py-4 px-4">
+      <div className="nyx-hero text-white py-4 px-4 relative overflow-hidden">
+        <div className="lux-grid-pattern" />
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center text-xs font-bold tracking-widest">
-              AI
+          <div className="flex items-center gap-3 lux-hero-shell py-2 px-3">
+            <div className="w-10 h-10 chat-avatar-user rounded-full flex items-center justify-center text-xs font-bold tracking-widest">
+              NX
             </div>
             <div>
               <h1 className="text-lg font-bold">NyxHICSlab Assistant</h1>
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 bg-green-400 rounded-full" />
-                <span className="text-xs text-blue-200">Online - Ready to help</span>
+                <span className="text-xs text-amber-100/90">Online - Ready to help</span>
               </div>
             </div>
           </div>
           <button
             onClick={handleClear}
-            className="text-blue-300 hover:text-white text-sm px-3 py-1 rounded border border-blue-700 hover:border-blue-400 transition-colors"
+            className="text-amber-100 hover:text-white text-sm px-3 py-1 rounded border border-amber-200/30 hover:border-amber-100/70 transition-colors"
           >
             Clear Chat
           </button>
@@ -152,7 +153,7 @@ export default function ChatbotPage() {
               <button
                 key={q}
                 onClick={() => sendMessage(q)}
-                className="text-xs nyx-chip px-3 py-1.5 rounded-full hover:bg-blue-100 transition-colors"
+                className="text-xs nyx-chip px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors"
               >
                 {q}
               </button>
@@ -168,10 +169,10 @@ export default function ChatbotPage() {
 
           {isTyping && (
             <div className="flex items-start gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold tracking-widest text-gray-700">
+              <div className="w-8 h-8 rounded-full chat-avatar-assistant flex items-center justify-center text-[10px] font-bold tracking-widest text-slate-100">
                 AI
               </div>
-              <div className="nyx-panel rounded-2xl rounded-tl-sm px-4 py-3">
+              <div className="chat-assistant-bubble rounded-2xl rounded-tl-sm px-4 py-3">
                 <div className="flex gap-1">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -193,7 +194,7 @@ export default function ChatbotPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about HICS protocols, triage, emergency procedures..."
-              className="nyx-input flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="nyx-input flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
               disabled={isTyping}
             />
             <button

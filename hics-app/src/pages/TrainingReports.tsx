@@ -61,29 +61,32 @@ export default function TrainingReports() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="nyx-hero text-white py-6 px-4">
+    <div className="min-h-screen bg-gray-50 lux-page">
+      <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
+        <div className="lux-grid-pattern" />
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold">Training Reports</h1>
-          <p className="text-blue-200 text-sm mt-1">Local performance, engagement, and export tools for facilitators</p>
+          <div className="lux-hero-shell">
+            <h1 className="text-2xl font-bold lux-title">Training Reports</h1>
+            <p className="text-blue-200 text-sm mt-1 lux-subtitle">Local performance, engagement, and export tools for facilitators</p>
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="nyx-panel p-4">
+          <div className="nyx-panel report-stat-card p-4">
             <div className="text-xs text-gray-500">Total Attempts</div>
             <div className="text-2xl font-bold text-gray-900">{summary.totalAttempts}</div>
           </div>
-          <div className="nyx-panel p-4">
+          <div className="nyx-panel report-stat-card p-4">
             <div className="text-xs text-gray-500">Unique Scenarios</div>
             <div className="text-2xl font-bold text-gray-900">{summary.uniqueScenarios}</div>
           </div>
-          <div className="nyx-panel p-4">
+          <div className="nyx-panel report-stat-card p-4">
             <div className="text-xs text-gray-500">Average Score</div>
             <div className="text-2xl font-bold text-gray-900">{summary.averageScore}%</div>
           </div>
-          <div className="nyx-panel p-4">
+          <div className="nyx-panel report-stat-card p-4">
             <div className="text-xs text-gray-500">Best Score</div>
             <div className="text-2xl font-bold text-gray-900">{summary.bestScore}%</div>
           </div>
@@ -119,7 +122,7 @@ export default function TrainingReports() {
           {scopedAttempts.length === 0 ? (
             <p className="text-sm text-gray-500">No completed scenario attempts yet.</p>
           ) : (
-            <div className="overflow-auto">
+            <div className="overflow-auto report-table-shell">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left border-b border-gray-200 text-gray-600">
@@ -134,7 +137,7 @@ export default function TrainingReports() {
                 </thead>
                 <tbody>
                   {scopedAttempts.slice(0, 50).map((attempt) => (
-                    <tr key={attempt.id} className="border-b border-gray-100 text-gray-800">
+                    <tr key={attempt.id} className="border-b border-gray-100 text-gray-800 hover:bg-white/40 transition-colors">
                       <td className="py-2 pr-4">{new Date(attempt.completedAt).toLocaleString()}</td>
                       <td className="py-2 pr-4">{attempt.scenarioTitle}</td>
                       <td className="py-2 pr-4">{attempt.facility}</td>
@@ -157,7 +160,7 @@ export default function TrainingReports() {
           ) : (
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
               {scopedEvents.slice(0, 9).map((event) => (
-                <div key={event.event} className="rounded-lg border border-gray-200 p-3">
+                <div key={event.event} className="rounded-lg border border-gray-200 p-3 report-event-card">
                   <div className="text-xs text-gray-500">Event</div>
                   <div className="font-semibold text-sm text-gray-900">{event.event}</div>
                   <div className="text-xs text-gray-600 mt-1">Count: {event.count}</div>

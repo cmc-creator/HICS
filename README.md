@@ -58,3 +58,33 @@ npm run build
 ```
 
 The production build is output to `hics-app/dist/`.
+
+## Deploy on Cloudflare Pages (Vercel Alternative)
+
+This app can be hosted on Cloudflare Pages with a much lower cost profile for static traffic.
+
+### Cloudflare Pages settings
+
+- Framework preset: `Vite`
+- Root directory: `hics-app`
+- Build command: `npm run build`
+- Build output directory: `dist`
+
+### SPA routing support
+
+The project includes `hics-app/public/_redirects` with:
+
+```txt
+/* /index.html 200
+```
+
+This ensures React Router routes work on hard refresh and direct URL access.
+
+### Optional: deploy under a subpath
+
+By default, Vite uses `/` as the base path (ideal for Cloudflare root domains).
+If you need subpath hosting, set environment variable `VITE_BASE_PATH` during build, for example:
+
+```bash
+VITE_BASE_PATH=/HICS/ npm run build
+```

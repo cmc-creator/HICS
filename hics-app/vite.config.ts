@@ -5,5 +5,6 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: process.env.VERCEL ? '/' : '/HICS/',
+  // Use root deployment by default; override for subpath hosting (e.g. GitHub Pages).
+  base: process.env.VITE_BASE_PATH || '/',
 })

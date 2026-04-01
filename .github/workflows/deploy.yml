@@ -34,6 +34,8 @@ jobs:
 
       - name: Build
         working-directory: hics-app
+        env:
+          VITE_BASE_PATH: /HICS/
         run: npm run build
 
       - name: Upload Pages artifact

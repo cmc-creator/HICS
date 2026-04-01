@@ -17,21 +17,21 @@ const difficultyColors = {
   advanced: 'bg-red-100 text-red-700',
 };
 
-const typeIcons: Record<string, string> = {
-  'Mass Casualty': 'MC',
-  'Fire/Evacuation': 'FIR',
-  HazMat: 'HAZ',
-  Infrastructure: 'INF',
-  Weather: 'WTH',
-  Utilities: 'UTL',
-  'Pediatric Surge': 'PED',
-  'Public Health': 'PHL',
-  Logistics: 'LOG',
-  Throughput: 'FLW',
-  Security: 'SEC',
-  'Behavioral Health': 'BHV',
-  Safety: 'SFT',
-  'Medication Safety': 'MED',
+const typeColors: Record<string, string> = {
+  'Mass Casualty': 'bg-red-100 border-red-300 text-red-700',
+  'Fire/Evacuation': 'bg-amber-100 border-amber-300 text-amber-700',
+  HazMat: 'bg-fuchsia-100 border-fuchsia-300 text-fuchsia-700',
+  Infrastructure: 'bg-slate-100 border-slate-300 text-slate-700',
+  Weather: 'bg-cyan-100 border-cyan-300 text-cyan-700',
+  Utilities: 'bg-indigo-100 border-indigo-300 text-indigo-700',
+  'Pediatric Surge': 'bg-emerald-100 border-emerald-300 text-emerald-700',
+  'Public Health': 'bg-lime-100 border-lime-300 text-lime-700',
+  Logistics: 'bg-blue-100 border-blue-300 text-blue-700',
+  Throughput: 'bg-violet-100 border-violet-300 text-violet-700',
+  Security: 'bg-orange-100 border-orange-300 text-orange-700',
+  'Behavioral Health': 'bg-teal-100 border-teal-300 text-teal-700',
+  Safety: 'bg-rose-100 border-rose-300 text-rose-700',
+  'Medication Safety': 'bg-sky-100 border-sky-300 text-sky-700',
 };
 
 type DifficultyFilter = 'all' | 'beginner' | 'intermediate' | 'advanced';
@@ -262,7 +262,9 @@ export default function ScenariosPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-bold tracking-widest px-2 py-1 rounded border border-white/30">{typeIcons[scenario.type] || 'GEN'}</span>
+                        <span className={`h-7 w-7 inline-flex items-center justify-center rounded-full border ${typeColors[scenario.type] || 'bg-slate-100 border-slate-300 text-slate-700'}`}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5"><path d="M4 12h16M12 4v16" /></svg>
+                        </span>
                         <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
                           {scenario.type}
                         </span>

@@ -82,18 +82,18 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
       <main className="max-w-7xl mx-auto px-4 py-10 space-y-8">
         <section className="grid lg:grid-cols-[1.15fr_1fr] gap-6 items-stretch">
           <div className="nyx-panel p-8 md:p-10">
-            <p className="text-xs tracking-[0.2em] text-gray-500 font-bold mb-3">SELL-READY PLATFORM</p>
-            <h1 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight max-w-4xl">
+            <p className="text-xs tracking-[0.2em] opacity-50 font-bold mb-3">SELL-READY PLATFORM</p>
+            <h1 className="text-3xl md:text-5xl font-bold leading-tight max-w-4xl">
               Enterprise-grade incident command training for behavioral health systems.
             </h1>
-            <p className="text-gray-600 text-base md:text-lg mt-4 max-w-3xl leading-relaxed">
+            <p className="opacity-60 text-base md:text-lg mt-4 max-w-3xl leading-relaxed">
               Deploy secure, role-aware HICS simulation across facilities with one platform for scenarios, assessment,
               facilitator operations, and compliance reporting.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/login" className="nyx-button-metal px-5 py-2.5 rounded-lg text-sm font-semibold">Launch Enterprise Workspace</Link>
-              <Link to="/request-demo" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Request Demo</Link>
-              <a href="#capabilities" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Explore Capabilities</a>
+              <Link to="/request-demo" className="border border-white/20 opacity-80 hover:opacity-100 px-5 py-2.5 rounded-lg text-sm font-semibold transition-opacity">Request Demo</Link>
+              <a href="#capabilities" className="border border-white/20 opacity-80 hover:opacity-100 px-5 py-2.5 rounded-lg text-sm font-semibold transition-opacity">Explore Capabilities</a>
             </div>
           </div>
           <div className="nyx-panel p-3 flex items-center">
@@ -109,25 +109,32 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
                 alt={pillar.alt}
                 className="w-full h-36 object-cover object-top rounded-lg mb-3 border border-white/5"
               />
-              <h2 className="text-lg font-bold text-gray-900 mb-2">{pillar.title}</h2>
-              <p className="text-sm text-gray-600 leading-relaxed">{pillar.detail}</p>
+              <h2 className="text-lg font-bold mb-2">{pillar.title}</h2>
+              <p className="text-sm opacity-60 leading-relaxed">{pillar.detail}</p>
             </article>
           ))}
         </section>
 
         <section className="nyx-panel p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Enterprise Pricing Paths</h2>
+          <h2 className="text-xl font-bold mb-6">Enterprise Pricing Paths</h2>
           <div className="grid md:grid-cols-3 gap-4">
-            {pricingTiers.map((tier) => (
-              <article key={tier.name} className="rounded-xl border border-gray-300 bg-white/60 p-4">
-                <h3 className="text-lg font-bold text-gray-900">{tier.name}</h3>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{tier.price}</p>
-                <p className="text-xs text-gray-500 mt-1">{tier.cadence}</p>
-                <ul className="mt-3 space-y-1.5 text-sm text-gray-700">
+            {pricingTiers.map((tier, i) => (
+              <article
+                key={tier.name}
+                className={`rounded-xl border p-5 flex flex-col gap-1 ${
+                  i === 1
+                    ? 'border-amber-400/40 bg-amber-950/20'
+                    : 'border-white/10 bg-white/5'
+                }`}
+              >
+                <h3 className="text-sm font-semibold tracking-widest uppercase opacity-60">{tier.name}</h3>
+                <p className="text-3xl font-extrabold mt-1">{tier.price}</p>
+                <p className="text-xs opacity-40 mb-2">{tier.cadence}</p>
+                <ul className="mt-1 space-y-2">
                   {tier.points.map((point) => (
-                    <li key={point} className="flex items-start gap-2">
-                      <span className="text-[10px] font-bold tracking-widest px-2 py-0.5 rounded border border-green-300 text-green-700 mt-0.5">OK</span>
-                      <span>{point}</span>
+                    <li key={point} className="flex items-start gap-2 text-sm">
+                      <span className="text-green-400 mt-0.5 shrink-0">✓</span>
+                      <span className="opacity-80">{point}</span>
                     </li>
                   ))}
                 </ul>
@@ -137,22 +144,22 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
         </section>
 
         <section className="nyx-panel p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-3">Enterprise Readiness Checklist</h2>
+          <h2 className="text-xl font-bold mb-3">Enterprise Readiness Checklist</h2>
           <div className="grid sm:grid-cols-2 gap-2">
             {trustItems.map((item) => (
-              <div key={item} className="flex items-center gap-2 text-sm text-gray-700">
-                <span className="text-[10px] font-bold tracking-widest px-2 py-0.5 rounded border border-green-300 text-green-700">OK</span>
+              <div key={item} className="flex items-center gap-2 text-sm opacity-80">
+                <span className="text-green-400 shrink-0">✓</span>
                 <span>{item}</span>
               </div>
             ))}
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link to="/request-demo" className="nyx-button-metal px-5 py-2.5 rounded-lg text-sm font-semibold">Talk to Sales</Link>
-            <Link to="/login" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Enterprise Sign In</Link>
+            <Link to="/login" className="border border-white/20 opacity-80 hover:opacity-100 px-5 py-2.5 rounded-lg text-sm font-semibold transition-opacity">Enterprise Sign In</Link>
           </div>
         </section>
 
-        <footer className="nyx-panel p-4 text-xs text-gray-500 leading-relaxed">
+        <footer className="nyx-panel p-4 text-xs opacity-50 leading-relaxed">
           <p>NyxHICSlab is a product of NyxCollective LLC.</p>
           <p className="mt-1">Copyright (c) 2026 NyxCollective LLC. All rights reserved.</p>
           <p className="mt-1">NyxHICSlab, NyxCollective, and related names, logos, product marks, and design marks are trademarks of NyxCollective LLC.</p>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 interface LandingPageProps {
@@ -70,6 +70,8 @@ const pricingTiers = [
 
 export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
   const [stickyVisible, setStickyVisible] = useState(false);
+  const [footerInView, setFooterInView] = useState(false);
+  const footerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const onScroll = () => setStickyVisible(window.scrollY > 320);
@@ -77,8 +79,28 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    const target = footerRef.current;
+    if (!target) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        setFooterInView(Boolean(entry?.isIntersecting));
+      },
+      {
+        threshold: 0.15,
+      },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50 lux-page pb-20 md:pb-0">
+    <div className="min-h-screen bg-gray-50 lux-page pb-24 md:pb-28">
       <header className="nyx-hero text-white px-4 py-5 relative overflow-hidden">
         <div className="lux-grid-pattern" />
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -201,7 +223,7 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
           </div>
         </section>
 
-        <footer className="nyx-panel p-4 text-xs opacity-50 leading-relaxed">
+        <footer ref={footerRef} className="nyx-panel p-4 text-xs opacity-50 leading-relaxed">
           <p>NyxHICSlab is a product of NyxCollective LLC.</p>
           <p className="mt-1">Copyright (c) 2026 NyxCollective LLC. All rights reserved.</p>
           <p className="mt-1">NyxHICSlab, NyxCollective, and related names, logos, product marks, and design marks are trademarks of NyxCollective LLC.</p>
@@ -211,7 +233,7 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
       {/* Sticky bottom CTA - appears after hero scrolls out of view */}
       <div
         className={`fixed bottom-0 inset-x-0 z-50 transition-transform duration-300 ${
-          stickyVisible ? 'translate-y-0' : 'translate-y-full'
+          stickyVisible && !footerInView ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
         <div className="nyx-hero border-t border-white/10 px-4 py-3">

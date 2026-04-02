@@ -8,6 +8,10 @@
 - Configure Entra and Okta client ids, authorize URLs, and scopes
 - Ensure `VITE_ALLOW_LOCAL_AUTH_FALLBACK=false` and `VITE_ALLOW_LOCAL_LEAD_FALLBACK=false` in production
 
+Recommended same-origin values for this repo:
+- `VITE_API_BASE_URL=/api`
+- `VITE_AUTH_EXCHANGE_ENDPOINT=/api/auth/exchange`
+
 ## 2. Identity Provider Setup
 
 - Register redirect URI: `https://<app-domain>/auth/callback`
@@ -22,12 +26,18 @@
 - Issue app access token and refresh token
 - Include tenant and role claims in token payload
 
+This repository now includes an implementation scaffold at:
+- `api/auth/exchange.js`
+
 ## 3b. Sales Lead Intake API
 
 - Implement `POST /sales/leads` on the same API base URL
 - Validate required fields: name, email, organization
 - Persist lead with timestamp and source context
 - Return `201` on successful lead creation
+
+This repository now includes an implementation scaffold at:
+- `api/sales/leads.js`
 
 ## 4. App Security Controls
 

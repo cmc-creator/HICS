@@ -94,6 +94,18 @@ Set values in your deployment platform for:
 - `VITE_OIDC_ENTRA_*`
 - `VITE_OIDC_OKTA_*`
 
+Recommended for this repository on Vercel:
+
+- `VITE_API_BASE_URL=/api`
+- `VITE_AUTH_EXCHANGE_ENDPOINT=/api/auth/exchange`
+- `VITE_ALLOW_LOCAL_AUTH_FALLBACK=false`
+- `VITE_ALLOW_LOCAL_LEAD_FALLBACK=false`
+
+### Included backend route scaffolds
+
+- `api/auth/exchange.js` (OIDC auth exchange contract scaffold)
+- `api/sales/leads.js` (request-demo lead intake scaffold)
+
 ### Backend contract and deployment checklist
 
 - `hics-app/docs/ENTERPRISE_AUTH_EXCHANGE_CONTRACT.md`

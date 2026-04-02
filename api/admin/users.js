@@ -1,7 +1,7 @@
-import { addAuditLog, createId, getStore, json } from '../_store.js';
+import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
 
 export default async function handler(req, res) {
-  const store = getStore();
+  const store = await getStore();
 
   if (req.method === 'GET') {
     return json(res, 200, { users: store.users });
@@ -24,7 +24,8 @@ export default async function handler(req, res) {
     };
 
     store.users.unshift(user);
-    addAuditLog('admin_user_created', { userId: user.id, role: user.role, facility: user.facility });
+    appendAuditLog(store, 'admin_user_created', { userId: user.id, role: user.role, facility: user.facility });
+    await saveStore(store);
     return json(res, 201, { user });
   }
 

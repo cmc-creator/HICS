@@ -1,7 +1,7 @@
-import { addAuditLog, getStore, json } from '../_store.js';
+import { appendAuditLog, getStore, json, saveStore } from '../_store.js';
 
 export default async function handler(req, res) {
-  const store = getStore();
+  const store = await getStore();
 
   if (req.method === 'GET') {
     const key = String(req.query?.key ?? '');
@@ -23,7 +23,8 @@ export default async function handler(req, res) {
       updatedAt: new Date().toISOString(),
     };
 
-    addAuditLog('scenario_progress_saved', { key });
+    appendAuditLog(store, 'scenario_progress_saved', { key });
+    await saveStore(store);
     return json(res, 200, { ok: true });
   }
 
@@ -34,7 +35,8 @@ export default async function handler(req, res) {
     }
 
     delete store.progress[key];
-    addAuditLog('scenario_progress_cleared', { key });
+    appendAuditLog(store, 'scenario_progress_cleared', { key });
+    await saveStore(store);
     return json(res, 204, {});
   }
 

@@ -1,4 +1,4 @@
-import { addAuditLog, createId, getStore, json } from '../_store.js';
+import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     return json(res, 400, { error: 'type is required' });
   }
 
-  const store = getStore();
+  const store = await getStore();
   const notification = {
     id: createId('notify'),
     type: body.type,
@@ -23,7 +23,8 @@ export default async function handler(req, res) {
 
   store.notifications.unshift(notification);
   store.notifications = store.notifications.slice(0, 1000);
-  addAuditLog('notification_sent', { type: notification.type, recipient: notification.recipient });
+  appendAuditLog(store, 'notification_sent', { type: notification.type, recipient: notification.recipient });
+  await saveStore(store);
 
   // Optional webhook integration for real notification relay
   const webhook = process.env.NOTIFICATION_WEBHOOK_URL;

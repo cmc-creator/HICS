@@ -1,6 +1,6 @@
 // api/auth/forgot-password.js - Vercel serverless function for password reset requests
 // TODO: wire to email provider (SendGrid, AWS SES, etc.)
-import { addAuditLog, createId, getStore } from '../_store.js';
+import { appendAuditLog, createId, getStore, saveStore } from '../_store.js';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   // TODO: store token hash with expiry (e.g., Redis or database)
   // TODO: send email via provider — include link: https://app.nyxhicslab.com/reset-password?token=<token>
 
-  const store = getStore();
+  const store = await getStore();
   store.notifications.unshift({
     id: createId('notify'),
     type: 'password_reset_requested',
@@ -31,7 +31,8 @@ export default async function handler(req, res) {
   });
   store.notifications = store.notifications.slice(0, 1000);
 
-  addAuditLog('forgot_password_requested', { email: email.toLowerCase() });
+  appendAuditLog(store, 'forgot_password_requested', { email: email.toLowerCase() });
+  await saveStore(store);
 
   console.log(`[forgot-password] Reset requested for: ${email}`);
 

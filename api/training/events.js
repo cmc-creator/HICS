@@ -1,7 +1,7 @@
-import { addAuditLog, createId, getStore, json } from '../_store.js';
+import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
 
 export default async function handler(req, res) {
-  const store = getStore();
+  const store = await getStore();
 
   if (req.method === 'GET') {
     const counts = {};
@@ -31,12 +31,14 @@ export default async function handler(req, res) {
 
     store.events.unshift(entry);
     store.events = store.events.slice(0, 5000);
+    await saveStore(store);
     return json(res, 201, { event: entry });
   }
 
   if (req.method === 'DELETE') {
     store.events = [];
-    addAuditLog('training_events_cleared');
+    appendAuditLog(store, 'training_events_cleared');
+    await saveStore(store);
     return json(res, 204, {});
   }
 

@@ -5,25 +5,41 @@ import EnterpriseFooter from '../components/EnterpriseFooter';
 interface EndpointStatus {
   label: string;
   path: string;
+  method: 'GET' | 'POST';
   status: 'pending' | 'ok' | 'error';
   latencyMs?: number;
   detail?: string;
 }
 
 const ENDPOINTS: Omit<EndpointStatus, 'status'>[] = [
-  { label: 'Auth Exchange', path: '/api/auth/exchange' },
-  { label: 'Sales Leads', path: '/api/sales/leads' },
+  { label: 'Auth Exchange', path: '/api/auth/exchange', method: 'POST' },
+  { label: 'Sales Leads', path: '/api/sales/leads', method: 'POST' },
+  { label: 'Store Health', path: '/api/health/store', method: 'GET' },
 ];
 
-async function probeEndpoint(path: string): Promise<{ ok: boolean; latencyMs: number; detail: string }> {
+interface StoreHealthSummary {
+  mode: string;
+  redisConfigured: boolean;
+  redisKey: string;
+  filePath: string;
+  fallbackTmpFilePath: string;
+  counts: {
+    attempts: number;
+    events: number;
+    progressKeys: number;
+    users: number;
+    auditLogs: number;
+    notifications: number;
+  };
+}
+
+async function probeEndpoint(path: string, method: 'GET' | 'POST'): Promise<{ ok: boolean; latencyMs: number; detail: string }> {
   const start = performance.now();
   try {
-    // POST with an empty body — the handlers check required fields and return 400,
-    // but a 400 still confirms the function is reachable and running.
     const res = await fetch(path, {
-      method: 'POST',
+      method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
+      body: method === 'POST' ? JSON.stringify({}) : undefined,
     });
     const latencyMs = Math.round(performance.now() - start);
     // 200, 201, 400, 422 all mean the function is alive
@@ -40,6 +56,7 @@ export default function HealthCheckPage() {
     ENDPOINTS.map(e => ({ ...e, status: 'pending' as const }))
   );
   const [ranAt, setRanAt] = useState<string | null>(null);
+  const [storeHealth, setStoreHealth] = useState<StoreHealthSummary | null>(null);
 
   async function runChecks() {
     setRanAt(null);
@@ -47,12 +64,25 @@ export default function HealthCheckPage() {
 
     const results = await Promise.all(
       ENDPOINTS.map(async (e) => {
-        const { ok, latencyMs, detail } = await probeEndpoint(e.path);
+        const { ok, latencyMs, detail } = await probeEndpoint(e.path, e.method);
         return { ...e, status: ok ? ('ok' as const) : ('error' as const), latencyMs, detail };
       })
     );
 
     setChecks(results);
+
+    try {
+      const response = await fetch('/api/health/store', { method: 'GET' });
+      if (response.ok) {
+        const payload = await response.json();
+        if (payload?.store) {
+          setStoreHealth(payload.store as StoreHealthSummary);
+        }
+      }
+    } catch {
+      setStoreHealth(null);
+    }
+
     setRanAt(new Date().toLocaleTimeString());
   }
 
@@ -92,7 +122,7 @@ export default function HealthCheckPage() {
                 <li key={check.path} className="flex items-center justify-between py-3">
                   <div>
                     <p className="font-medium text-sm">{check.label}</p>
-                    <p className="text-xs opacity-50 font-mono">{check.path}</p>
+                    <p className="text-xs opacity-50 font-mono">{check.method} {check.path}</p>
                   </div>
                   <div className="text-right">
                     {check.status === 'pending' && (
@@ -117,6 +147,36 @@ export default function HealthCheckPage() {
               ))}
             </ul>
           </div>
+
+          {storeHealth && (
+            <div className="nyx-panel p-5 mb-4">
+              <h2 className="text-sm font-semibold mb-3 opacity-70">Durable Store Health</h2>
+              <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-xs font-mono">
+                <dt className="opacity-50">Mode</dt>
+                <dd>{storeHealth.mode}</dd>
+                <dt className="opacity-50">Redis Configured</dt>
+                <dd>{storeHealth.redisConfigured ? 'yes' : 'no'}</dd>
+                <dt className="opacity-50">Redis Key</dt>
+                <dd>{storeHealth.redisKey}</dd>
+                <dt className="opacity-50">File Path</dt>
+                <dd>{storeHealth.filePath}</dd>
+                <dt className="opacity-50">Tmp Fallback</dt>
+                <dd>{storeHealth.fallbackTmpFilePath}</dd>
+                <dt className="opacity-50">Attempts</dt>
+                <dd>{storeHealth.counts.attempts}</dd>
+                <dt className="opacity-50">Events</dt>
+                <dd>{storeHealth.counts.events}</dd>
+                <dt className="opacity-50">Progress Keys</dt>
+                <dd>{storeHealth.counts.progressKeys}</dd>
+                <dt className="opacity-50">Users</dt>
+                <dd>{storeHealth.counts.users}</dd>
+                <dt className="opacity-50">Audit Logs</dt>
+                <dd>{storeHealth.counts.auditLogs}</dd>
+                <dt className="opacity-50">Notifications</dt>
+                <dd>{storeHealth.counts.notifications}</dd>
+              </dl>
+            </div>
+          )}
 
           <div className="flex items-center justify-between text-xs opacity-40 mb-8">
             {ranAt && <span>Last checked: {ranAt}</span>}

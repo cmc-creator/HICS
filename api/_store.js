@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 const STORE_KEY = '__nyx_hics_store__';
+const STORE_MODE_KEY = '__nyx_hics_store_mode__';
 const STORE_REDIS_KEY = process.env.HICS_STORE_REDIS_KEY || 'nyx:hics:store:v1';
 
 const STORE_FILE_PATH = process.env.HICS_STORE_FILE_PATH
@@ -117,6 +118,9 @@ async function writeStoreToFile(targetPath, store) {
 
 export async function loadStore() {
   if (globalThis[STORE_KEY]) {
+    if (!globalThis[STORE_MODE_KEY]) {
+      globalThis[STORE_MODE_KEY] = 'memory';
+    }
     return globalThis[STORE_KEY];
   }
 
@@ -124,20 +128,30 @@ export async function loadStore() {
 
   try {
     store = await readStoreFromRedis();
+    if (store) {
+      globalThis[STORE_MODE_KEY] = 'redis';
+    }
   } catch {
     store = null;
   }
 
   if (!store) {
     store = await readStoreFromFile(STORE_FILE_PATH);
+    if (store) {
+      globalThis[STORE_MODE_KEY] = 'file';
+    }
   }
 
   if (!store) {
     store = await readStoreFromFile(FALLBACK_TMP_FILE_PATH);
+    if (store) {
+      globalThis[STORE_MODE_KEY] = 'tmp-file';
+    }
   }
 
   if (!store) {
     store = createInitialStore();
+    globalThis[STORE_MODE_KEY] = 'memory';
   }
 
   globalThis[STORE_KEY] = store;
@@ -150,6 +164,7 @@ export async function saveStore(store) {
   try {
     const wroteRedis = await writeStoreToRedis(store);
     if (wroteRedis) {
+      globalThis[STORE_MODE_KEY] = 'redis';
       return;
     }
   } catch {
@@ -158,6 +173,7 @@ export async function saveStore(store) {
 
   try {
     await writeStoreToFile(STORE_FILE_PATH, store);
+    globalThis[STORE_MODE_KEY] = 'file';
     return;
   } catch {
     // Try temporary path on restricted filesystems (e.g., serverless runtime).
@@ -165,8 +181,10 @@ export async function saveStore(store) {
 
   try {
     await writeStoreToFile(FALLBACK_TMP_FILE_PATH, store);
+    globalThis[STORE_MODE_KEY] = 'tmp-file';
   } catch {
     // Final fallback is in-memory only for this runtime.
+    globalThis[STORE_MODE_KEY] = 'memory';
   }
 }
 
@@ -199,6 +217,16 @@ export async function addAuditLog(action, data = {}) {
 
 export function snapshotStore(store) {
   return clone(store);
+}
+
+export function getStoreHealth() {
+  return {
+    mode: globalThis[STORE_MODE_KEY] ?? 'unknown',
+    redisConfigured: Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN),
+    redisKey: STORE_REDIS_KEY,
+    filePath: STORE_FILE_PATH,
+    fallbackTmpFilePath: FALLBACK_TMP_FILE_PATH,
+  };
 }
 
 export function json(res, status, payload) {

@@ -30,8 +30,8 @@ export default function FacilitatorQuickStart() {
 
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         <div className="nyx-panel p-5">
-          <h2 className="text-lg font-bold text-gray-900 mb-3">Session Setup Checklist</h2>
-          <ol className="space-y-2 text-sm text-gray-700">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Session Setup Checklist</h2>
+          <ol className="space-y-2 text-sm text-gray-700 dark:text-white/70">
             {checklist.map((item, index) => (
               <li key={item} className="flex gap-2">
                 <span className="font-semibold text-blue-700 role-link-accent">{index + 1}.</span>
@@ -43,7 +43,7 @@ export default function FacilitatorQuickStart() {
             <Link to="/scenarios" className="nyx-button-metal px-4 py-2 rounded-lg text-sm font-semibold">
               Open Scenarios
             </Link>
-            <Link to="/reports" className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50">
+            <Link to="/reports" className="border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white/80 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 dark:hover:bg-white/5">
               Open Reports
             </Link>
           </div>
@@ -51,8 +51,8 @@ export default function FacilitatorQuickStart() {
 
         <div className="grid md:grid-cols-2 gap-4">
           <div className="nyx-panel p-5">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">Suggested 30-Minute Flow</h2>
-            <div className="space-y-3 text-sm text-gray-700">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Suggested 30-Minute Flow</h2>
+            <div className="space-y-3 text-sm text-gray-700 dark:text-white/70">
               <p><span className="font-semibold">0-5 min:</span> orient team, assign observer and scribe.</p>
               <p><span className="font-semibold">5-18 min:</span> run primary scenario with facilitator controls.</p>
               <p><span className="font-semibold">18-24 min:</span> debrief key decisions and communication points.</p>
@@ -61,8 +61,8 @@ export default function FacilitatorQuickStart() {
           </div>
 
           <div className="nyx-panel p-5">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">Debrief Prompt Bank</h2>
-            <ul className="space-y-2 text-sm text-gray-700">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Debrief Prompt Bank</h2>
+            <ul className="space-y-2 text-sm text-gray-700 dark:text-white/70">
               {debriefPrompts.map((prompt) => (
                 <li key={prompt} className="flex gap-2">
                   <span className="text-blue-600 role-link-accent">•</span>
@@ -74,8 +74,8 @@ export default function FacilitatorQuickStart() {
         </div>
 
         <div className="nyx-panel p-5">
-          <h2 className="text-lg font-bold text-gray-900 mb-3">Facilitator Notes</h2>
-          <p className="text-sm text-gray-700 leading-relaxed">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Facilitator Notes</h2>
+          <p className="text-sm text-gray-700 dark:text-white/70 leading-relaxed">
             Keep humor supportive, not distracting. Use timed mode after baseline confidence is established. If a group is mixed
             experience, run one beginner scenario first, then switch to intermediate with pause-and-discuss enabled.
           </p>

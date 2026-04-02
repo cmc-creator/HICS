@@ -1,6 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ChatMessage } from '../types';
-import { getBotResponse, getInitialMessage } from '../data/chatbot';
+
+function getInitialMessage(): ChatMessage {
+  return {
+    id: '0',
+    role: 'assistant',
+    content: "Hello! I'm the NyxHICSlab AI Assistant, trained on HICS protocols, ICS structure, triage methods, and hospital emergency management. How can I help you prepare today?",
+    timestamp: new Date(),
+  };
+}
 
 function escapeHtml(text: string): string {
   return text
@@ -34,11 +42,11 @@ function MessageBubble({ message }: { message: ChatMessage }) {
           </div>
         ) : (
           <div
-            className="px-4 py-3 rounded-2xl text-sm leading-relaxed chat-assistant-bubble text-gray-800 rounded-tl-sm"
+            className="px-4 py-3 rounded-2xl text-sm leading-relaxed chat-assistant-bubble text-gray-800 dark:text-white rounded-tl-sm"
             dangerouslySetInnerHTML={{ __html: formatBotMessage(message.content) }}
           />
         )}
-        <div className="text-xs text-gray-400 mt-1 px-1">
+        <div className="text-xs text-gray-400 dark:text-white/40 mt-1 px-1">
           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
@@ -93,18 +101,42 @@ export default function ChatbotPage() {
     setInput('');
     setIsTyping(true);
 
-    // Simulate AI response delay
-    setTimeout(() => {
-      const response = getBotResponse(text);
-      const botMessage: ChatMessage = {
-        id: getNextMessageId(),
-        role: 'assistant',
-        content: response,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, botMessage]);
-      setIsTyping(false);
-    }, 800);
+    // Build history for the API (exclude the initial greeting, send last 10 exchanges)
+    const historySnapshot = messages
+      .slice(1)
+      .slice(-10)
+      .map((m) => ({ role: m.role, content: m.content }));
+
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text.trim(), history: historySnapshot }),
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        const reply = response.ok
+          ? (data.reply ?? 'No response received.')
+          : (data.error ?? 'AI service is temporarily unavailable. Please try again.');
+        const botMessage: ChatMessage = {
+          id: getNextMessageId(),
+          role: 'assistant',
+          content: reply,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      })
+      .catch(() => {
+        const botMessage: ChatMessage = {
+          id: getNextMessageId(),
+          role: 'assistant',
+          content: 'Unable to reach the AI service. Check your connection and try again.',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      })
+      .finally(() => {
+        setIsTyping(false);
+      });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -147,7 +179,7 @@ export default function ChatbotPage() {
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
         {/* Suggested Questions */}
         <div className="nyx-panel border-b px-4 py-3 mt-3">
-          <div className="text-xs text-gray-500 mb-2 font-medium">Suggested questions:</div>
+          <div className="text-xs text-gray-500 dark:text-white/50 mb-2 font-medium">Suggested questions:</div>
           <div className="flex flex-wrap gap-2">
             {suggestedQuestions.map((q) => (
               <button
@@ -206,7 +238,7 @@ export default function ChatbotPage() {
               <span>→</span>
             </button>
           </form>
-          <p className="text-xs text-gray-400 mt-2 text-center">
+          <p className="text-xs text-gray-400 dark:text-white/40 mt-2 text-center">
             NyxHICSlab provides training guidance. Always consult your hospital's Emergency Operations Plan for official procedures.
           </p>
         </div>

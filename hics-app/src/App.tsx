@@ -16,6 +16,9 @@ import LoginPage from './pages/LoginPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import RequestDemoPage from './pages/RequestDemoPage';
 import HealthCheckPage from './pages/HealthCheckPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
 import { TenantProvider } from './lib/tenantContext';
 import { AuthProvider, useAuth } from './lib/authContext';
 
@@ -51,6 +54,9 @@ function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggle
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/request-demo" element={<RequestDemoPage />} />
       <Route path="/health" element={<HealthCheckPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/tos" element={<TermsPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
 
       <Route element={<ProtectedLayout theme={theme} onToggleTheme={onToggleTheme} />}>
         <Route path="/dashboard" element={<Dashboard />} />

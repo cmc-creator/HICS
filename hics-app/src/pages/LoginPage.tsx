@@ -98,10 +98,13 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
               <div>
                 <label className="text-xs font-semibold text-gray-600" htmlFor="password">Password</label>
                 <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <div>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-gray-600" htmlFor="password">Password</label>
+                  <Link to="/forgot-password" className="text-xs text-amber-700 hover:underline font-medium">Forgot password?</Link>
+                </div>
+                <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
               </div>
-              <label className="flex items-center gap-2 text-xs text-gray-600">
-                <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-                Keep me signed in on this device
               </label>
               {error && <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
               <button type="submit" className="nyx-button-metal w-full py-2.5 rounded-lg text-sm font-semibold">Sign In Securely</button>

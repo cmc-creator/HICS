@@ -3,7 +3,15 @@ import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { scenarios } from '../data/scenarios';
 import type { ScenarioStep, ScenarioOption } from '../types';
 import { adaptScenarioText, facilityLabels, normalizeFacility } from '../data/facilityProfiles';
-import { recordScenarioAttempt, trackEvent } from '../lib/trainingAnalytics';
+import {
+  clearScenarioProgress,
+  loadScenarioProgress,
+  recordScenarioAttempt,
+  saveScenarioProgress,
+  trackEvent,
+} from '../lib/trainingAnalytics';
+import { sendNotification } from '../lib/notifications';
+import { useAuth } from '../lib/authContext';
 
 const FACILITATOR_KEY = 'nyx-facilitator-mode';
 const TIMED_KEY = 'nyx-timed-mode';
@@ -26,13 +34,62 @@ const timeoutQuips = [
   'The clock sprinted, but you can still recover next step.',
 ];
 
+function downloadCertificate(userName: string, scenarioTitle: string, facility: string, scorePercent: number) {
+  const certificateHtml = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>NyxHICSlab Scenario Certificate</title>
+  <style>
+    body { font-family: Georgia, serif; background: #f5f1e8; margin: 0; padding: 32px; }
+    .sheet { max-width: 900px; margin: 0 auto; background: #fffdf7; border: 10px solid #baa06a; padding: 42px; }
+    .muted { color: #6f5b32; letter-spacing: 0.18em; font-size: 11px; text-transform: uppercase; }
+    h1 { margin: 8px 0; font-size: 44px; color: #2d2211; }
+    h2 { margin: 8px 0 20px; font-size: 22px; color: #4a3a1c; }
+    .name { font-size: 34px; margin: 28px 0 10px; color: #2c2111; font-weight: bold; }
+    .meta { margin-top: 20px; font-size: 15px; color: #3f341f; }
+    .score { display: inline-block; margin-top: 16px; padding: 10px 16px; border-radius: 999px; background: #ede3cb; color: #352a16; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="muted">NyxCollective LLC · NyxHICSlab</div>
+    <h1>Scenario Completion Certificate</h1>
+    <h2>Hospital Incident Command Training</h2>
+    <p>This certifies that</p>
+    <div class="name">${userName}</div>
+    <p>completed the scenario:</p>
+    <h2>${scenarioTitle}</h2>
+    <div class="score">Score: ${scorePercent}%</div>
+    <div class="meta">
+      Facility: ${facility}<br/>
+      Completed: ${new Date().toLocaleString()}
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const printWindow = window.open('', '_blank', 'width=1100,height=850');
+  if (!printWindow) {
+    return;
+  }
+
+  printWindow.document.open();
+  printWindow.document.write(certificateHtml);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+}
+
 export default function ScenarioPlayer() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const scenario = scenarios.find((s) => s.id === id);
   const selectedFacility = normalizeFacility(searchParams.get('facility'));
   const scenariosLink = selectedFacility === 'all' ? '/scenarios' : `/scenarios?facility=${selectedFacility}`;
   const facilityContextLabel = facilityLabels[selectedFacility];
+  const progressKey = `${id ?? 'unknown'}:${selectedFacility}`;
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<ScenarioOption | null>(null);
@@ -61,6 +118,37 @@ export default function ScenarioPlayer() {
       startedAtRef.current = Date.now();
     }
   }, []);
+
+  useEffect(() => {
+    if (!scenario) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const restoreProgress = async () => {
+      const saved = await loadScenarioProgress(progressKey);
+      if (!saved || cancelled || saved.scenarioId !== scenario.id) {
+        return;
+      }
+
+      setCurrentStepIndex(saved.currentStepIndex);
+      setScore(saved.score);
+      setAnswers(saved.answers as Array<{ step: ScenarioStep; option: ScenarioOption }>);
+      setSelectedOption(saved.selectedOption as ScenarioOption | null);
+      setFacilitatorMode(saved.facilitatorMode);
+      setTimedMode(saved.timedMode);
+      setStepSeconds(saved.stepSeconds);
+      setSecondsLeft(saved.secondsLeft);
+      startedAtRef.current = saved.startedAt;
+    };
+
+    void restoreProgress();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [scenario, progressKey]);
 
   useEffect(() => {
     localStorage.setItem(FACILITATOR_KEY, String(facilitatorMode));
@@ -140,35 +228,86 @@ export default function ScenarioPlayer() {
       return;
     }
 
-    const elapsedSeconds = Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000));
-    if (!scenario) {
+    const persistCompletion = async () => {
+      const elapsedSeconds = Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000));
+      if (!scenario) {
+        return;
+      }
+
+      const scorePercent = Math.round((score / scenario.steps.length) * 100);
+
+      await recordScenarioAttempt({
+        scenarioId: scenario.id,
+        scenarioTitle: scenario.title,
+        facility: selectedFacility,
+        correctAnswers: score,
+        totalSteps: scenario.steps.length,
+        scorePercent,
+        timedMode,
+        facilitatorMode,
+        durationSeconds: elapsedSeconds,
+        learnerEmail: user?.email,
+        learnerName: user?.fullName,
+      });
+
+      trackEvent('scenario_completed', {
+        scenarioId: scenario.id,
+        scorePercent,
+        facility: selectedFacility,
+        timedMode,
+        facilitatorMode,
+      });
+
+      await sendNotification({
+        type: 'training_completion',
+        recipient: user?.email,
+        subject: 'NyxHICSlab Scenario Complete',
+        message: `${user?.fullName ?? 'Learner'} completed ${scenario.title} with a score of ${scorePercent}%`,
+        metadata: {
+          scenarioId: scenario.id,
+          scorePercent,
+        },
+      });
+
+      await clearScenarioProgress(progressKey);
+      completionSavedRef.current = true;
+    };
+
+    void persistCompletion();
+  }, [completed, score, scenario, selectedFacility, timedMode, facilitatorMode, user, progressKey]);
+
+  useEffect(() => {
+    if (!scenario || completed) {
       return;
     }
 
-    const scorePercent = Math.round((score / scenario.steps.length) * 100);
-
-    recordScenarioAttempt({
+    void saveScenarioProgress(progressKey, {
       scenarioId: scenario.id,
-      scenarioTitle: scenario.title,
       facility: selectedFacility,
-      correctAnswers: score,
-      totalSteps: scenario.steps.length,
-      scorePercent,
-      timedMode,
+      currentStepIndex,
+      score,
+      answers,
+      selectedOption,
       facilitatorMode,
-      durationSeconds: elapsedSeconds,
-    });
-
-    trackEvent('scenario_completed', {
-      scenarioId: scenario.id,
-      scorePercent,
-      facility: selectedFacility,
       timedMode,
-      facilitatorMode,
+      stepSeconds,
+      secondsLeft,
+      startedAt: startedAtRef.current || Date.now(),
     });
-
-    completionSavedRef.current = true;
-  }, [completed, score, scenario, selectedFacility, timedMode, facilitatorMode]);
+  }, [
+    scenario,
+    completed,
+    progressKey,
+    selectedFacility,
+    currentStepIndex,
+    score,
+    answers,
+    selectedOption,
+    facilitatorMode,
+    timedMode,
+    stepSeconds,
+    secondsLeft,
+  ]);
 
   if (!scenario || !currentStep) {
     return (
@@ -236,6 +375,8 @@ export default function ScenarioPlayer() {
       scenarioId: scenario.id,
       facility: selectedFacility,
     });
+
+    void clearScenarioProgress(progressKey);
   };
 
   const scorePercent = Math.round((score / scenario.steps.length) * 100);
@@ -326,6 +467,12 @@ export default function ScenarioPlayer() {
               className="touch-target nyx-button-metal px-5 py-2.5 rounded-lg font-semibold transition-colors"
             >
               Restart Scenario
+            </button>
+            <button
+              onClick={() => downloadCertificate(user?.fullName ?? 'HICS Learner', adaptText(scenario.title), selectedFacility, scorePercent)}
+              className="touch-target border border-amber-300 text-amber-800 px-5 py-2.5 rounded-lg font-semibold hover:bg-amber-50 transition-colors"
+            >
+              Print Certificate
             </button>
             <Link
               to={scenariosLink}

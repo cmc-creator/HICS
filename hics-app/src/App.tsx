@@ -21,13 +21,38 @@ import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import { TenantProvider } from './lib/tenantContext';
 import { AuthProvider, useAuth } from './lib/authContext';
+import { sendNotification } from './lib/notifications';
 
 function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggleTheme: () => void }) {
-  const { isAuthenticated, touchActivity } = useAuth();
+  const { isAuthenticated, touchActivity, sessionRemainingMs, user } = useAuth();
+  const [sessionAlerted, setSessionAlerted] = useState(false);
+  const sessionMinutes = Math.ceil(sessionRemainingMs / 60000);
 
   useEffect(() => {
     touchActivity();
   }, [touchActivity]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setSessionAlerted(false);
+      return;
+    }
+
+    if (sessionRemainingMs > 5 * 60 * 1000) {
+      setSessionAlerted(false);
+      return;
+    }
+
+    if (sessionRemainingMs > 0 && !sessionAlerted) {
+      setSessionAlerted(true);
+      void sendNotification({
+        type: 'session_expiring',
+        recipient: user?.email,
+        subject: 'NyxHICSlab Session Expiring',
+        message: `Your training session expires in ${Math.max(1, Math.ceil(sessionRemainingMs / 60000))} minute(s).`,
+      });
+    }
+  }, [isAuthenticated, sessionRemainingMs, sessionAlerted, user]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -36,6 +61,11 @@ function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; on
   return (
     <div className="nyx-app flex flex-col min-h-screen">
       <Navbar theme={theme} onToggleTheme={onToggleTheme} />
+      {sessionRemainingMs > 0 && sessionRemainingMs <= 5 * 60 * 1000 && (
+        <div className="mx-4 mt-3 nyx-panel border border-amber-300 bg-amber-50/90 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-900 dark:text-amber-300">
+          Session expires in {Math.max(1, sessionMinutes)} minute(s). Continue activity to keep your secure session alive.
+        </div>
+      )}
       <main className="flex-1 animate-fade-in">
         <Outlet />
       </main>

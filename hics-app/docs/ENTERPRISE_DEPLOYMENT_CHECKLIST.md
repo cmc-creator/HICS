@@ -6,6 +6,7 @@
 - Set `VITE_API_BASE_URL` to production API gateway
 - Set `VITE_AUTH_EXCHANGE_ENDPOINT` to backend auth exchange endpoint
 - Configure Entra and Okta client ids, authorize URLs, and scopes
+- Ensure `VITE_ALLOW_LOCAL_AUTH_FALLBACK=false` and `VITE_ALLOW_LOCAL_LEAD_FALLBACK=false` in production
 
 ## 2. Identity Provider Setup
 
@@ -21,6 +22,13 @@
 - Issue app access token and refresh token
 - Include tenant and role claims in token payload
 
+## 3b. Sales Lead Intake API
+
+- Implement `POST /sales/leads` on the same API base URL
+- Validate required fields: name, email, organization
+- Persist lead with timestamp and source context
+- Return `201` on successful lead creation
+
 ## 4. App Security Controls
 
 - Enforce HTTPS only
@@ -34,7 +42,7 @@
 - Unauthorized API calls force logout and redirect
 - Session idle timeout logs out correctly
 - Role-based routes and actions behave as expected
-- Demo request funnel stores lead data and routes correctly
+- Demo request funnel posts to `/sales/leads` and routes correctly
 
 ## 6. Legal and Product Branding
 

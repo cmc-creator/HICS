@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import EnterpriseFooter from '../components/EnterpriseFooter';
+import { hasConfiguredApiBaseUrl, publicApiRequest } from '../lib/apiClient';
 
 const LEAD_KEY = 'nyx-sales-leads';
 
@@ -30,15 +31,16 @@ export default function RequestDemoPage() {
   const [goals, setGoals] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!name || !email.includes('@') || !organization) {
       setError('Please provide name, organization, and a valid work email.');
       return;
     }
 
-    saveLead({
+    const lead: Lead = {
       name,
       email,
       organization,
@@ -46,8 +48,31 @@ export default function RequestDemoPage() {
       timeline,
       goals,
       createdAt: new Date().toISOString(),
-    });
-    setSubmitted(true);
+    };
+
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const allowLocalFallback = (import.meta.env.VITE_ALLOW_LOCAL_LEAD_FALLBACK as string | undefined) === 'true';
+      if (!hasConfiguredApiBaseUrl()) {
+        if (!allowLocalFallback) {
+          throw new Error('Sales API is not configured. Set VITE_API_BASE_URL to submit leads.');
+        }
+        saveLead(lead);
+      } else {
+        await publicApiRequest('/sales/leads', {
+          method: 'POST',
+          body: JSON.stringify(lead),
+        });
+      }
+
+      setSubmitted(true);
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : 'Unable to submit demo request right now.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -102,7 +127,9 @@ export default function RequestDemoPage() {
               </div>
               {error && <p className="md:col-span-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
               <div className="md:col-span-2 flex gap-2">
-                <button type="submit" className="nyx-button-metal px-5 py-2.5 rounded-lg text-sm font-semibold">Submit Demo Request</button>
+                <button type="submit" disabled={submitting} className="nyx-button-metal px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed">
+                  {submitting ? 'Submitting...' : 'Submit Demo Request'}
+                </button>
                 <Link to="/" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Back to Home</Link>
               </div>
             </form>

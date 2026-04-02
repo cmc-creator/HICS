@@ -1,3 +1,5 @@
+import { publicApiRequest } from './apiClient';
+
 export type OidcProvider = 'entra' | 'okta';
 
 const STATE_KEY = 'nyx-oidc-state';
@@ -84,26 +86,25 @@ export async function exchangeOidcCode(provider: OidcProvider, code: string, red
   const verifier = sessionStorage.getItem(VERIFIER_KEY) ?? '';
   const config = getProviderConfig(provider);
 
-  if (config.tokenExchangeEndpoint) {
-    const response = await fetch(config.tokenExchangeEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ provider, code, codeVerifier: verifier, redirectUri }),
-    });
+  const allowLocalFallback = (import.meta.env.VITE_ALLOW_LOCAL_AUTH_FALLBACK as string | undefined) === 'true';
 
-    if (!response.ok) {
-      throw new Error(`OIDC token exchange failed (${response.status}).`);
+  if (!config.tokenExchangeEndpoint) {
+    if (!allowLocalFallback) {
+      throw new Error('OIDC token exchange endpoint is not configured. Set VITE_AUTH_EXCHANGE_ENDPOINT.');
     }
 
-    return response.json() as Promise<OidcExchangeResult>;
+    return {
+      accessToken: `oidc-${provider}-${randomString(24)}`,
+      refreshToken: randomString(32),
+      expiresIn: 3600,
+      email: provider === 'okta' ? 'admin@healthsystem.com' : 'it.admin@healthsystem.com',
+      fullName: provider === 'okta' ? 'Okta Administrator' : 'Entra Administrator',
+      organization: 'Enterprise Health System',
+    };
   }
 
-  return {
-    accessToken: `oidc-${provider}-${randomString(24)}`,
-    refreshToken: randomString(32),
-    expiresIn: 3600,
-    email: provider === 'okta' ? 'admin@healthsystem.com' : 'it.admin@healthsystem.com',
-    fullName: provider === 'okta' ? 'Okta Administrator' : 'Entra Administrator',
-    organization: 'Enterprise Health System',
-  };
+  return publicApiRequest<OidcExchangeResult>(config.tokenExchangeEndpoint, {
+    method: 'POST',
+    body: JSON.stringify({ provider, code, codeVerifier: verifier, redirectUri }),
+  });
 }

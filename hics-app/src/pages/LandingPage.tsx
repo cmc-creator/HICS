@@ -1,9 +1,28 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 interface LandingPageProps {
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
 }
+
+const testimonials = [
+  {
+    quote: 'We ran our first full-facility HICS drill in under 45 minutes. The scenario fidelity is unlike anything we had before.',
+    name: 'Director of Emergency Management',
+    org: 'Regional Behavioral Health System, Pacific Northwest',
+  },
+  {
+    quote: 'Our new staff complete HICS orientation in one session now. The AI assistant fills gaps instantly and the quiz scores have improved significantly.',
+    name: 'Nurse Educator',
+    org: 'Community Psychiatric Center, Southeast',
+  },
+  {
+    quote: "NyxHICSlab gave our compliance team the exportable reporting they'd been requesting for three years.",
+    name: 'Chief Compliance Officer',
+    org: 'Multi-Site Behavioral Health Network, Midwest',
+  },
+];
 
 const pillars = [
   {
@@ -50,8 +69,16 @@ const pricingTiers = [
 ];
 
 export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) {
+  const [stickyVisible, setStickyVisible] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setStickyVisible(window.scrollY > 320);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50 lux-page">
+    <div className="min-h-screen bg-gray-50 lux-page pb-20 md:pb-0">
       <header className="nyx-hero text-white px-4 py-5 relative overflow-hidden">
         <div className="lux-grid-pattern" />
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -144,6 +171,21 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
         </section>
 
         <section className="nyx-panel p-6">
+          <p className="text-xs tracking-[0.2em] opacity-50 font-bold mb-6">WHAT TEAMS ARE SAYING</p>
+          <div className="grid md:grid-cols-3 gap-4">
+            {testimonials.map((t) => (
+              <blockquote key={t.name} className="rounded-xl border border-white/10 bg-white/5 p-5 flex flex-col gap-3">
+                <p className="text-sm leading-relaxed opacity-80">"{t.quote}"</p>
+                <footer className="mt-auto pt-3 border-t border-white/10">
+                  <p className="text-xs font-semibold opacity-70">{t.name}</p>
+                  <p className="text-xs opacity-40 mt-0.5">{t.org}</p>
+                </footer>
+              </blockquote>
+            ))}
+          </div>
+        </section>
+
+        <section className="nyx-panel p-6">
           <h2 className="text-xl font-bold mb-3">Enterprise Readiness Checklist</h2>
           <div className="grid sm:grid-cols-2 gap-2">
             {trustItems.map((item) => (
@@ -165,6 +207,35 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
           <p className="mt-1">NyxHICSlab, NyxCollective, and related names, logos, product marks, and design marks are trademarks of NyxCollective LLC.</p>
         </footer>
       </main>
+
+      {/* Sticky bottom CTA - appears after hero scrolls out of view */}
+      <div
+        className={`fixed bottom-0 inset-x-0 z-50 transition-transform duration-300 ${
+          stickyVisible ? 'translate-y-0' : 'translate-y-full'
+        }`}
+      >
+        <div className="nyx-hero border-t border-white/10 px-4 py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 flex-wrap">
+            <p className="text-sm font-semibold text-white/90 hidden sm:block">
+              Ready to modernize your HICS training?
+            </p>
+            <div className="flex items-center gap-3 ml-auto">
+              <Link
+                to="/request-demo"
+                className="nyx-button-metal px-5 py-2 rounded-lg text-sm font-semibold"
+              >
+                Request Demo
+              </Link>
+              <Link
+                to="/login"
+                className="border border-white/25 text-white/80 hover:text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+              >
+                Sign In
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

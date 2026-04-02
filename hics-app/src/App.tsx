@@ -22,6 +22,7 @@ import PrivacyPage from './pages/PrivacyPage';
 import { TenantProvider } from './lib/tenantContext';
 import { AuthProvider, useAuth } from './lib/authContext';
 import { sendNotification } from './lib/notifications';
+import GlobalAssistant from './components/GlobalAssistant';
 
 function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggleTheme: () => void }) {
   const { isAuthenticated, touchActivity, sessionRemainingMs, user } = useAuth();
@@ -69,6 +70,7 @@ function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; on
       <main className="flex-1 animate-fade-in">
         <Outlet />
       </main>
+      <GlobalAssistant />
       <EnterpriseFooter />
     </div>
   );

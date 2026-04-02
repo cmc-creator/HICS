@@ -1,0 +1,145 @@
+<svg width="960" height="640" viewBox="0 0 960 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="960" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F0C14"/>
+      <stop offset="1" stop-color="#16121E"/>
+    </linearGradient>
+    <linearGradient id="hero-grad" x1="0" y1="0" x2="0" y2="140" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#110C16"/>
+      <stop offset="1" stop-color="#1A1421"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="420" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F9F1DB"/>
+      <stop offset="0.4" stop-color="#C7AB70"/>
+      <stop offset="0.7" stop-color="#7B688D"/>
+      <stop offset="1" stop-color="#5EA5A0"/>
+    </linearGradient>
+    <linearGradient id="progress-bar" x1="0" y1="0" x2="370" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C7AB70"/>
+      <stop offset="1" stop-color="#5EA5A0"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="white" stroke-width="0.3" stroke-opacity="0.06"/>
+    </pattern>
+  </defs>
+
+  <!-- outer shell -->
+  <rect width="960" height="640" rx="20" fill="url(#bg)"/>
+
+  <!-- navbar -->
+  <rect width="960" height="48" fill="#120F18"/>
+  <rect width="960" height="1" y="48" fill="#2A2237"/>
+  <rect x="16" y="10" width="28" height="28" rx="6" fill="white" fill-opacity="0.9"/>
+  <rect x="19" y="13" width="22" height="22" rx="4" fill="#1B4F72"/>
+  <text x="30" y="27" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="800" fill="white">H</text>
+  <text x="54" y="29" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#F9F1DB" letter-spacing="0.3">NyxHICSlab</text>
+  <text x="200" y="29" font-family="system-ui,sans-serif" font-size="11" fill="#C9BC9F" fill-opacity="0.5">Dashboard</text>
+  <text x="270" y="29" font-family="system-ui,sans-serif" font-size="11" fill="#C9BC9F" fill-opacity="0.5">Roles</text>
+  <text x="315" y="29" font-family="system-ui,sans-serif" font-size="11" fill="#C9BC9F" fill-opacity="0.9" font-weight="600">Scenarios</text>
+  <circle cx="311" cy="38" r="2" fill="#5EA5A0"/>
+  <text x="395" y="29" font-family="system-ui,sans-serif" font-size="11" fill="#C9BC9F" fill-opacity="0.5">Quiz</text>
+  <rect x="760" y="11" width="180" height="26" rx="6" fill="#1D182A" stroke="#3A2E4A" stroke-width="1"/>
+  <circle cx="776" cy="24" r="4" fill="#5EA5A0"/>
+  <text x="786" y="28" font-family="system-ui,sans-serif" font-size="9" fill="#C9BC9F" fill-opacity="0.8">North Campus · 27m session</text>
+
+  <!-- page hero -->
+  <rect x="0" y="48" width="960" height="110" fill="url(#hero-grad)"/>
+  <rect x="0" y="48" width="960" height="110" fill="url(#grid)"/>
+  <text x="40" y="84" font-family="system-ui,sans-serif" font-size="19" font-weight="700" fill="white">Active Scenario</text>
+  <rect x="40" y="90" width="420" height="4" rx="2" fill="url(#metal)"/>
+  <rect x="40" y="103" width="180" height="20" rx="5" fill="#22C55E" fill-opacity="0.15" stroke="#22C55E" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="130" y="117" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" fill="#22C55E">Mass Casualty Incident - Phase 2</text>
+  <rect x="234" y="103" width="140" height="20" rx="5" fill="#F59E0B" fill-opacity="0.12" stroke="#F59E0B" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="304" y="117" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" fill="#F59E0B">Timed Mode: 1:23 left</text>
+  <rect x="388" y="103" width="130" height="20" rx="5" fill="#A855F7" fill-opacity="0.12" stroke="#A855F7" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="453" y="117" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" fill="#A855F7">Facilitator Mode ON</text>
+
+  <!-- progress bar row -->
+  <text x="40" y="146" font-family="system-ui,sans-serif" font-size="10" fill="white" fill-opacity="0.45">Step 3 of 6</text>
+  <rect x="40" y="154" width="620" height="6" rx="3" fill="#2A2237"/>
+  <rect x="40" y="154" width="310" height="6" rx="3" fill="url(#progress-bar)"/>
+  <text x="672" y="162" font-family="system-ui,sans-serif" font-size="10" fill="#C7AB70">50%</text>
+
+  <!-- main two-column layout -->
+  <!-- Left panel: scenario step -->
+  <rect x="32" y="172" width="570" height="440" rx="14" fill="#1D182A" stroke="#2E2840" stroke-width="1"/>
+  <!-- step header -->
+  <text x="56" y="202" font-family="system-ui,sans-serif" font-size="11" fill="white" fill-opacity="0.4" font-weight="600" letter-spacing="0.12em">STEP 3</text>
+  <text x="56" y="228" font-family="system-ui,sans-serif" font-size="16" font-weight="700" fill="white">Triage Activation Decision</text>
+  <rect x="56" y="238" width="340" height="3" rx="1.5" fill="url(#metal)" fill-opacity="0.5"/>
+
+  <!-- step body text -->
+  <text x="56" y="264" font-family="system-ui,sans-serif" font-size="11" fill="white" fill-opacity="0.65">The ED charge nurse reports 47 patients incoming from a multi-vehicle</text>
+  <text x="56" y="280" font-family="system-ui,sans-serif" font-size="11" fill="white" fill-opacity="0.65">collision. Your current census is 94%. HICS Command has assembled.</text>
+  <text x="56" y="296" font-family="system-ui,sans-serif" font-size="11" fill="white" fill-opacity="0.65">You are the Hospital Incident Commander. What do you activate first?</text>
+
+  <!-- facilitator note box -->
+  <rect x="56" y="314" width="516" height="44" rx="8" fill="#2A1E3A" stroke="#7B688D" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="72" y="333" font-family="system-ui,sans-serif" font-size="9.5" fill="#C9BC9F" fill-opacity="0.6" font-weight="600">FACILITATOR NOTE</text>
+  <text x="72" y="349" font-family="system-ui,sans-serif" font-size="9.5" fill="#C9BC9F" fill-opacity="0.5">Probe the team on surge capacity protocols and downtime procedures in parallel.</text>
+
+  <!-- Answer options -->
+  <!-- Option A - correct (selected, green) -->
+  <rect x="56" y="372" width="516" height="50" rx="10" fill="#14532D" fill-opacity="0.35" stroke="#22C55E" stroke-opacity="0.6" stroke-width="1.5"/>
+  <rect x="72" y="390" width="18" height="18" rx="4" fill="#22C55E" fill-opacity="0.25" stroke="#22C55E" stroke-opacity="0.7" stroke-width="1"/>
+  <text x="81" y="403" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#22C55E">A</text>
+  <text x="100" y="401" font-family="system-ui,sans-serif" font-size="11" fill="white">Activate HICS and implement Hospital Command Center, notify all section chiefs</text>
+  <text x="542" y="396" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" fill="#22C55E">✓</text>
+
+  <!-- Option B -->
+  <rect x="56" y="432" width="516" height="46" rx="10" fill="#241C2D" stroke="#3A2E4A" stroke-width="1"/>
+  <rect x="72" y="449" width="18" height="18" rx="4" fill="#2A2237" stroke="#3A2E4A" stroke-width="1"/>
+  <text x="81" y="463" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="white" fill-opacity="0.5">B</text>
+  <text x="100" y="461" font-family="system-ui,sans-serif" font-size="11" fill="white" fill-opacity="0.6">Wait for the ED Director to formally declare a mass casualty event</text>
+
+  <!-- Option C -->
+  <rect x="56" y="488" width="516" height="46" rx="10" fill="#241C2D" stroke="#3A2E4A" stroke-width="1"/>
+  <rect x="72" y="505" width="18" height="18" rx="4" fill="#2A2237" stroke="#3A2E4A" stroke-width="1"/>
+  <text x="81" y="519" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="white" fill-opacity="0.5">C</text>
+  <text x="100" y="517" font-family="system-ui,sans-serif" font-size="11" fill="white" fill-opacity="0.6">Initiate a diversion order and hold incoming patients at the receiving facility</text>
+
+  <!-- Result quip -->
+  <rect x="56" y="548" width="516" height="34" rx="8" fill="#22C55E" fill-opacity="0.08" stroke="#22C55E" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="314" y="570" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" fill="#86EFAC">"Nice call, command center energy activated."</text>
+
+  <!-- Next Step button -->
+  <rect x="380" y="592" width="168" height="30" rx="8" fill="#C7AB70" fill-opacity="0.9"/>
+  <text x="464" y="612" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#120F18">Next Step →</text>
+
+  <!-- Right panel -->
+  <rect x="618" y="172" width="310" height="440" rx="14" fill="#1D182A" stroke="#2E2840" stroke-width="1"/>
+
+  <!-- Score widget -->
+  <rect x="634" y="190" width="278" height="80" rx="10" fill="#241C2D" stroke="#2E2840" stroke-width="1"/>
+  <text x="644" y="212" font-family="system-ui,sans-serif" font-size="10" fill="white" fill-opacity="0.4" font-weight="600" letter-spacing="0.1em">SESSION SCORE</text>
+  <text x="644" y="244" font-family="system-ui,sans-serif" font-size="32" font-weight="800" fill="white">2 <tspan font-size="14" fill="white" fill-opacity="0.4">/ 3</tspan></text>
+  <text x="780" y="226" font-family="system-ui,sans-serif" font-size="10" fill="#22C55E">+1 correct</text>
+  <rect x="644" y="254" width="240" height="6" rx="3" fill="#2A2237"/>
+  <rect x="644" y="254" width="160" height="6" rx="3" fill="#22C55E" fill-opacity="0.7"/>
+
+  <!-- Timer widget -->
+  <rect x="634" y="282" width="278" height="70" rx="10" fill="#241C2D" stroke="#2E2840" stroke-width="1"/>
+  <text x="644" y="304" font-family="system-ui,sans-serif" font-size="10" fill="white" fill-opacity="0.4" font-weight="600" letter-spacing="0.1em">STEP TIMER</text>
+  <text x="644" y="334" font-family="system-ui,sans-serif" font-size="26" font-weight="800" fill="#F59E0B">1:23</text>
+  <rect x="720" y="316" width="60" height="6" rx="3" fill="#2A2237"/>
+  <rect x="720" y="316" width="28" height="6" rx="3" fill="#F59E0B" fill-opacity="0.6"/>
+  <text x="786" y="322" font-family="system-ui,sans-serif" font-size="9" fill="#F59E0B" fill-opacity="0.6">remaining</text>
+
+  <!-- Hint panel -->
+  <rect x="634" y="364" width="278" height="80" rx="10" fill="#232038" stroke="#3D3460" stroke-width="1"/>
+  <text x="644" y="385" font-family="system-ui,sans-serif" font-size="10" fill="white" fill-opacity="0.4" font-weight="600" letter-spacing="0.1em">HINT</text>
+  <text x="644" y="403" font-family="system-ui,sans-serif" font-size="10" fill="white" fill-opacity="0.55">The Hospital Incident Commander is</text>
+  <text x="644" y="417" font-family="system-ui,sans-serif" font-size="10" fill="white" fill-opacity="0.55">responsible for early HICS activation</text>
+  <text x="644" y="431" font-family="system-ui,sans-serif" font-size="10" fill="white" fill-opacity="0.55">before delegating section responsibilities.</text>
+
+  <!-- Mode toggles -->
+  <rect x="634" y="456" width="278" height="70" rx="10" fill="#241C2D" stroke="#2E2840" stroke-width="1"/>
+  <text x="644" y="477" font-family="system-ui,sans-serif" font-size="10" fill="white" fill-opacity="0.4" font-weight="600" letter-spacing="0.1em">SESSION MODES</text>
+  <rect x="644" y="487" width="112" height="24" rx="6" fill="#A855F7" fill-opacity="0.2" stroke="#A855F7" stroke-opacity="0.5" stroke-width="1"/>
+  <text x="700" y="503" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" fill="#C084FC">Facilitator Mode</text>
+  <rect x="764" y="487" width="112" height="24" rx="6" fill="#F59E0B" fill-opacity="0.2" stroke="#F59E0B" stroke-opacity="0.5" stroke-width="1"/>
+  <text x="820" y="503" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" fill="#FCD34D">Timed Mode</text>
+
+  <!-- Quit link -->
+  <text x="634" y="546" font-family="system-ui,sans-serif" font-size="10" fill="white" fill-opacity="0.3">← Back to Scenarios</text>
+</svg>

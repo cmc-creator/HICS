@@ -149,7 +149,7 @@ export default function Dashboard() {
               </span>
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold lux-title">NyxHICSlab</h1>
-                <p className="text-blue-100/95 text-base md:text-lg lux-subtitle">Enterprise psychiatric incident command simulation platform</p>
+                <p className="text-blue-100/95 text-base md:text-lg lux-subtitle">Enterprise hospital incident command simulation platform</p>
               </div>
             </div>
             <p className="text-blue-100/95 max-w-3xl text-base leading-relaxed">

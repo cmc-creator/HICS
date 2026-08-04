@@ -10,17 +10,17 @@ const testimonials = [
   {
     quote: 'We ran our first full-facility HICS drill in under 45 minutes. The scenario fidelity is unlike anything we had before.',
     name: 'Director of Emergency Management',
-    org: 'Regional Behavioral Health System, Pacific Northwest',
+    org: 'Regional Health System, Pacific Northwest',
   },
   {
     quote: 'Our new staff complete HICS orientation in one session now. The AI assistant fills gaps instantly and the quiz scores have improved significantly.',
     name: 'Nurse Educator',
-    org: 'Community Psychiatric Center, Southeast',
+    org: 'Community Medical Center, Southeast',
   },
   {
     quote: "NyxHICSlab gave our compliance team the exportable reporting they'd been requesting for three years.",
     name: 'Chief Compliance Officer',
-    org: 'Multi-Site Behavioral Health Network, Midwest',
+    org: 'Multi-Site Health Network, Midwest',
   },
 ];
 
@@ -33,7 +33,7 @@ const pillars = [
   },
   {
     title: 'High-Fidelity Simulation',
-    detail: 'Behavioral health focused scenarios for command activation, throughput stress, safety incidents, and infrastructure failure.',
+    detail: 'Scenarios spanning acute care, long-term care, ambulatory, and specialty settings — covering command activation, surge, safety incidents, and infrastructure failure.',
     image: '/landing/scenario-mockup.svg',
     alt: 'NyxHICSlab scenario player with timed mode and facilitator notes',
   },
@@ -133,10 +133,10 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
           <div className="nyx-panel p-8 md:p-10">
             <p className="text-xs tracking-[0.2em] opacity-50 font-bold mb-3">SELL-READY PLATFORM</p>
             <h1 className="text-3xl md:text-5xl font-bold leading-tight max-w-4xl">
-              Enterprise-grade incident command training for behavioral health systems.
+              Enterprise-grade incident command training for healthcare systems.
             </h1>
             <p className="opacity-60 text-base md:text-lg mt-4 max-w-3xl leading-relaxed">
-              Deploy secure, role-aware HICS simulation across facilities with one platform for scenarios, assessment,
+              Deploy secure, role-aware HICS simulation across all facility types with one platform for scenarios, assessment,
               facilitator operations, and compliance reporting.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">

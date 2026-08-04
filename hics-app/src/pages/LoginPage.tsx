@@ -13,7 +13,7 @@ interface LoginPageProps {
 export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
   const navigate = useNavigate();
   const { loginSession } = useAuth();
-  const [organization, setOrganization] = useState('North Campus Behavioral Health');
+  const [organization, setOrganization] = useState('North Campus Medical Center');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);

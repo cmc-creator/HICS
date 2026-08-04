@@ -83,7 +83,7 @@ export default function QuizPage() {
           <div className="max-w-3xl mx-auto">
             <div className="lux-hero-shell">
               <h1 className="text-2xl font-bold lux-title">NyxHICSlab Knowledge Quiz</h1>
-              <p className="text-blue-200 text-sm mt-1 lux-subtitle">Test command decisions for psychiatric inpatient incidents</p>
+              <p className="text-blue-200 text-sm mt-1 lux-subtitle">Test command decisions across hospital incident scenarios</p>
             </div>
           </div>
         </div>

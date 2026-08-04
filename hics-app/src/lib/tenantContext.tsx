@@ -39,7 +39,7 @@ function readStoredRole(): AppUserRole {
 export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [role, setRoleState] = useState<AppUserRole>(() => readStoredRole());
   const [facility, setFacilityState] = useState<FacilityType>(() => normalizeFacility(localStorage.getItem(TENANT_FACILITY_KEY)));
-  const [displayName, setDisplayNameState] = useState<string>(() => localStorage.getItem(TENANT_NAME_KEY) ?? 'North Campus Behavioral Health');
+  const [displayName, setDisplayNameState] = useState<string>(() => localStorage.getItem(TENANT_NAME_KEY) ?? 'North Campus Medical Center');
 
   const setRole = (nextRole: AppUserRole) => {
     setRoleState(nextRole);

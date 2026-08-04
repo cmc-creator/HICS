@@ -45,7 +45,6 @@
   <!-- hero -->
   <rect x="0" y="48" width="960" height="110" fill="url(#hero-grad)"/>
   <rect x="0" y="48" width="960" height="110" fill="url(#grid)"/>
-  <ellipse cx="840" cy="90" rx="140" ry="90" fill="#A855F7" fill-opacity="0.08"/>
   <text x="40" y="84" font-family="system-ui,sans-serif" font-size="19" font-weight="700" fill="white">Knowledge Quiz</text>
   <rect x="40" y="90" width="360" height="4" rx="2" fill="url(#metal)"/>
   <rect x="40" y="104" width="160" height="20" rx="5" fill="#A855F7" fill-opacity="0.15" stroke="#A855F7" stroke-opacity="0.4" stroke-width="1"/>

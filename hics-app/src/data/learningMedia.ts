@@ -39,12 +39,12 @@ export const learningMediaModules: LearningMediaModule[] = [
   },
   {
     id: 'triage-surge-flow',
-    title: 'Triage and Surge Flow in Behavioral Health Units',
+    title: 'Triage and Surge Flow in High-Acuity Units',
     roleTrack: 'Operations Section',
     durationMinutes: 11,
     difficulty: 'intermediate',
     poster: '/landing/scenario-mockup.svg',
-    summary: 'Rapid triage sequencing with psychiatric safety overlays, bed surge, and transfer routing decisions.',
+    summary: 'Rapid triage sequencing with safety overlays, bed surge, and transfer routing decisions in high-acuity inpatient environments.',
     objectives: [
       'Prioritize triage in mixed acuity environments',
       'Coordinate safety and restraint resources responsibly',

@@ -22,7 +22,7 @@ function createInitialStore() {
         fullName: 'Alex Rivera',
         email: 'alex.rivera@northcampus.org',
         role: 'facility-admin',
-        facility: 'psychiatric-inpatient',
+        facility: 'general-acute-care',
         status: 'active',
         createdAt: new Date().toISOString(),
       },
@@ -90,12 +90,14 @@ async function writeStoreToRedis(store) {
     return false;
   }
 
-  const encodedStore = encodeURIComponent(JSON.stringify(store));
-  const response = await fetch(`${redis.url}/set/${encodeURIComponent(STORE_REDIS_KEY)}/${encodedStore}`, {
+  // Use POST body to avoid URL length limits on large stores.
+  const response = await fetch(`${redis.url}/set/${encodeURIComponent(STORE_REDIS_KEY)}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${redis.token}`,
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify([JSON.stringify(store)]),
   });
 
   if (!response.ok) {

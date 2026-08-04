@@ -41,7 +41,7 @@ export default function FacilityAdminPage() {
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserRole, setNewUserRole] = useState('facilitator');
-  const [newUserFacility, setNewUserFacility] = useState<FacilityType>('psychiatric-inpatient');
+  const [newUserFacility, setNewUserFacility] = useState<FacilityType>('general-acute-care');
   const [addUserError, setAddUserError] = useState<string | null>(null);
   const [addUserSuccess, setAddUserSuccess] = useState(false);
 

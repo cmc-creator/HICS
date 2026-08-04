@@ -64,6 +64,10 @@ export default async function handler(req, res) {
       return json(res, 400, { error: 'key and progress are required' });
     }
 
+    if (JSON.stringify(progress).length > 32768) {
+      return json(res, 400, { error: 'Progress payload exceeds maximum size' });
+    }
+
     if (!keyFacilityMatches(key, requesterFacility)) {
       return json(res, 403, { error: 'Progress key outside facility scope' });
     }

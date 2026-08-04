@@ -20,7 +20,7 @@ function inferRole(email) {
 }
 
 function inferFacility(role) {
-  return role === 'enterprise-admin' ? 'all' : (process.env.DEFAULT_USER_FACILITY || 'psychiatric-inpatient');
+  return role === 'enterprise-admin' ? 'all' : (process.env.DEFAULT_USER_FACILITY || 'general-acute-care');
 }
 
 export default async function handler(req, res) {

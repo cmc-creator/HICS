@@ -168,7 +168,7 @@ function inferFacility(role) {
   if (role === 'enterprise-admin') {
     return 'all';
   }
-  return process.env.DEFAULT_USER_FACILITY || 'psychiatric-inpatient';
+  return process.env.DEFAULT_USER_FACILITY || 'general-acute-care';
 }
 
 export default async function handler(req, res) {
@@ -269,8 +269,19 @@ export default async function handler(req, res) {
       userAgent: req.headers?.['user-agent'] || 'unknown',
     });
     refreshToken = refreshSession.refreshToken;
-  } catch {
-    refreshToken = crypto.randomBytes(32).toString('hex');
+  } catch (err) {
+    // Refresh session store unavailable — return access-token-only response; client will re-auth at expiry.
+    return json(res, 200, {
+      accessToken,
+      refreshToken: '',
+      expiresIn: 3600,
+      email,
+      fullName,
+      organization,
+      role,
+      facility,
+      warning: 'Persistent session unavailable. You will need to log in again after your session expires.',
+    });
   }
 
   return json(res, 200, {

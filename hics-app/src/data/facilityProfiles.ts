@@ -8,11 +8,11 @@ export type FacilityType =
 
 export const facilityOptions: Array<{ value: FacilityType; label: string }> = [
   { value: 'all', label: 'All Facilities' },
-  { value: 'psychiatric-inpatient', label: 'Psychiatric Inpatient' },
   { value: 'general-acute-care', label: 'General Acute Care Hospital' },
   { value: 'community-hospital', label: 'Community Hospital' },
   { value: 'long-term-care', label: 'Long-Term Care / SNF' },
   { value: 'ambulatory-care', label: 'Ambulatory / Outpatient Center' },
+  { value: 'psychiatric-inpatient', label: 'Psychiatric Inpatient' },
 ];
 
 export const facilityLabels: Record<FacilityType, string> = {

@@ -103,11 +103,11 @@ export default async function handler(req, res) {
 
     const entry = {
       id: createId('rapid'),
-      score: Math.max(0, Math.round(Number(body.score))),
-      peakStreak: Math.max(0, Math.round(Number(body.peakStreak))),
-      durationSeconds: Math.max(1, Math.round(Number(body.durationSeconds))),
-      totalQuestions: Math.max(1, Math.round(Number(body.totalQuestions))),
-      answered: Math.max(0, Math.round(Number(body.answered))),
+      score: Math.max(0, Math.min(100000, Math.round(Number(body.score)))),
+      peakStreak: Math.max(0, Math.min(1000, Math.round(Number(body.peakStreak)))),
+      durationSeconds: Math.max(1, Math.min(3600, Math.round(Number(body.durationSeconds)))),
+      totalQuestions: Math.max(1, Math.min(1000, Math.round(Number(body.totalQuestions)))),
+      answered: Math.max(0, Math.min(1000, Math.round(Number(body.answered)))),
       learnerName: String(body.learnerName || auth.claims.fullName || 'Anonymous Learner').slice(0, 120),
       learnerEmail: String(body.learnerEmail || auth.claims.email || '').slice(0, 256),
       facility,

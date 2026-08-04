@@ -110,23 +110,20 @@ function parseSignedToken(token) {
   return payload;
 }
 
-function parseDevFallbackToken(token, req) {
+function parseDevFallbackToken(token) {
   const allowFallback = process.env.ALLOW_LOCAL_AUTH_FALLBACK === 'true';
   if (!allowFallback || !token.startsWith('pwd-')) {
     return null;
   }
 
-  const roleHeader = typeof req.headers?.['x-tenant-role'] === 'string' ? req.headers['x-tenant-role'] : '';
-  const facilityHeader = typeof req.headers?.['x-tenant-facility'] === 'string' ? req.headers['x-tenant-facility'] : '';
-  const orgHeader = typeof req.headers?.['x-tenant-organization'] === 'string' ? req.headers['x-tenant-organization'] : '';
-
+  // Never trust client-supplied role/facility headers — always issue least-privilege claims.
   return {
     sub: 'local-auth-user',
     email: 'local-auth@nyxhicslab.local',
     fullName: 'Local Auth User',
-    organization: orgHeader || process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System',
-    role: roleHeader || 'facility-admin',
-    facility: facilityHeader || 'psychiatric-inpatient',
+    organization: process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System',
+    role: 'facility-admin',
+    facility: process.env.DEFAULT_USER_FACILITY || 'psychiatric-inpatient',
     authMethod: 'password-local-fallback',
     exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
   };
@@ -146,7 +143,7 @@ export function getAuthContext(req) {
     };
   }
 
-  const fallback = parseDevFallbackToken(token, req);
+  const fallback = parseDevFallbackToken(token);
   if (fallback) {
     return {
       token,

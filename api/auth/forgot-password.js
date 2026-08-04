@@ -1,18 +1,23 @@
-// api/auth/forgot-password.js - Vercel serverless function for password reset requests
 // TODO: wire to email provider (SendGrid, AWS SES, etc.)
-import { appendAuditLog, createId, getStore, saveStore } from '../_store.js';
+import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { enforceRateLimit, parseJsonBody } from '../_security.js';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return json(res, 405, { error: 'Method not allowed' });
   }
 
-  const { email } = req.body ?? {};
+  if (!enforceRateLimit(req, res, { scope: 'auth-forgot-password', maxRequests: 5, windowMs: 15 * 60 * 1000 })) {
+    return;
+  }
 
-  if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email)) {
-    return res.status(400).json({ error: 'A valid enterprise email is required.' });
+  const body = parseJsonBody(req);
+  const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
+
+  if (!email || !EMAIL_REGEX.test(email)) {
+    return json(res, 400, { error: 'A valid enterprise email is required.' });
   }
 
   // TODO: look up user by email in your tenant database
@@ -31,13 +36,11 @@ export default async function handler(req, res) {
   });
   store.notifications = store.notifications.slice(0, 1000);
 
-  appendAuditLog(store, 'forgot_password_requested', { email: email.toLowerCase() });
+  appendAuditLog(store, 'forgot_password_requested', {});
   await saveStore(store);
 
-  console.log(`[forgot-password] Reset requested for: ${email}`);
-
-  // Always return success to prevent email enumeration
-  return res.status(200).json({
+  // Always return success to prevent email enumeration.
+  return json(res, 200, {
     message: 'If that address is registered, you will receive a password reset email shortly.',
   });
 }

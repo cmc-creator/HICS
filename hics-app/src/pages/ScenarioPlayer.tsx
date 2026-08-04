@@ -1,21 +1,43 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { scenarios } from '../data/scenarios';
+import { hicsRoles } from '../data/roles';
 import type { ScenarioStep, ScenarioOption } from '../types';
 import { adaptScenarioText, facilityLabels, normalizeFacility } from '../data/facilityProfiles';
 import {
   clearScenarioProgress,
+  getScenarioAttempts,
   loadScenarioProgress,
   recordScenarioAttempt,
   saveScenarioProgress,
   trackEvent,
 } from '../lib/trainingAnalytics';
+import { getAdaptiveDifficultyProfile } from '../lib/gamification';
 import { sendNotification } from '../lib/notifications';
 import { useAuth } from '../lib/authContext';
 
 const FACILITATOR_KEY = 'nyx-facilitator-mode';
 const TIMED_KEY = 'nyx-timed-mode';
 const STEP_SECONDS_KEY = 'nyx-step-seconds';
+const TEAM_NAME_KEY = 'nyx-team-name';
+const TEAM_ASSIGNMENTS_KEY = 'nyx-team-assignments';
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getBranchOutcome(stability: number): 'critical' | 'recovering' | 'stable' | 'exemplary' {
+  if (stability <= 30) {
+    return 'critical';
+  }
+  if (stability <= 55) {
+    return 'recovering';
+  }
+  if (stability <= 80) {
+    return 'stable';
+  }
+  return 'exemplary';
+}
 
 const correctQuips = [
   'Nice call, command center energy activated.',
@@ -90,14 +112,36 @@ export default function ScenarioPlayer() {
   const scenariosLink = selectedFacility === 'all' ? '/scenarios' : `/scenarios?facility=${selectedFacility}`;
   const facilityContextLabel = facilityLabels[selectedFacility];
   const progressKey = `${id ?? 'unknown'}:${selectedFacility}`;
+  const [teamName, setTeamName] = useState(() => localStorage.getItem(TEAM_NAME_KEY) ?? 'Alpha Command Team');
+  const [assignedRole, setAssignedRole] = useState('incident-commander');
+  const [participantName, setParticipantName] = useState('');
+  const [participantRoleId, setParticipantRoleId] = useState('operations-chief');
+  const [teamAssignments, setTeamAssignments] = useState<Array<{ name: string; roleId: string }>>(() => {
+    try {
+      const raw = localStorage.getItem(TEAM_ASSIGNMENTS_KEY);
+      if (!raw) {
+        return [];
+      }
+      const parsed = JSON.parse(raw) as Array<{ name: string; roleId: string }>;
+      return Array.isArray(parsed) ? parsed.slice(0, 12) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<ScenarioOption | null>(null);
   const [score, setScore] = useState(0);
+  const [correctStreak, setCorrectStreak] = useState(0);
+  const [currentMultiplier, setCurrentMultiplier] = useState(1);
+  const [replayBoost, setReplayBoost] = useState(0);
+  const [branchStability, setBranchStability] = useState(55);
   const [answers, setAnswers] = useState<Array<{ step: ScenarioStep; option: ScenarioOption }>>([]);
   const [completed, setCompleted] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [showCorrectReveal, setShowCorrectReveal] = useState(false);
+  const [hintUsedCount, setHintUsedCount] = useState(0);
+  const [revealUsedCount, setRevealUsedCount] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [timeoutNotice, setTimeoutNotice] = useState<string | null>(null);
   const [momentQuip, setMomentQuip] = useState<string>('');
@@ -140,6 +184,15 @@ export default function ScenarioPlayer() {
       setTimedMode(saved.timedMode);
       setStepSeconds(saved.stepSeconds);
       setSecondsLeft(saved.secondsLeft);
+      setCurrentMultiplier(saved.currentMultiplier ?? 1);
+      setCorrectStreak(saved.correctStreak ?? 0);
+      setBranchStability(saved.branchStability ?? 55);
+      setReplayBoost(saved.replayBoost ?? 0);
+      setTeamName(saved.teamName ?? localStorage.getItem(TEAM_NAME_KEY) ?? 'Alpha Command Team');
+      setAssignedRole(saved.assignedRole ?? 'incident-commander');
+      setTeamAssignments(Array.isArray(saved.teamAssignments) ? saved.teamAssignments.slice(0, 12) : []);
+      setHintUsedCount(saved.hintUsedCount ?? 0);
+      setRevealUsedCount(saved.revealUsedCount ?? 0);
       startedAtRef.current = saved.startedAt;
     };
 
@@ -161,6 +214,41 @@ export default function ScenarioPlayer() {
   useEffect(() => {
     localStorage.setItem(STEP_SECONDS_KEY, String(stepSeconds));
   }, [stepSeconds]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const applyAdaptiveMode = async () => {
+      const attempts = await getScenarioAttempts();
+      if (cancelled) {
+        return;
+      }
+
+      const profile = getAdaptiveDifficultyProfile(attempts);
+      if (profile.recommended === 'advanced') {
+        setTimedMode(true);
+        setStepSeconds((prev) => (prev > 90 ? 90 : prev));
+      } else if (profile.recommended === 'beginner') {
+        setTimedMode(false);
+        setStepSeconds((prev) => (prev < 120 ? 120 : prev));
+      }
+    };
+
+    if (currentStepIndex === 0 && answers.length === 0 && !completed) {
+      void applyAdaptiveMode();
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentStepIndex, answers.length, completed]);
+
+  useEffect(() => {
+    localStorage.setItem(TEAM_NAME_KEY, teamName);
+  }, [teamName]);
+
+  useEffect(() => {
+    localStorage.setItem(TEAM_ASSIGNMENTS_KEY, JSON.stringify(teamAssignments));
+  }, [teamAssignments]);
 
   const adaptText = (text: string) => adaptScenarioText(text, selectedFacility);
 
@@ -208,6 +296,9 @@ export default function ScenarioPlayer() {
           setAnswers((existing) => [...existing, { step: currentStep, option: timeoutOption }]);
           setTimeoutNotice('Time expired on this step. Review rationale, then continue.');
           setMomentQuip(timeoutQuips[currentStepIndex % timeoutQuips.length]);
+          setCorrectStreak(0);
+          setCurrentMultiplier((prev) => clamp(prev - 0.2, 1, 2.6 + replayBoost));
+          setBranchStability((prev) => clamp(prev - 20, 0, 100));
           trackEvent('scenario_step_timeout', {
             scenarioId: scenario.id,
             stepId: currentStep.id,
@@ -246,6 +337,18 @@ export default function ScenarioPlayer() {
         timedMode,
         facilitatorMode,
         durationSeconds: elapsedSeconds,
+        teamName,
+        assignedRole: hicsRoles.find((role) => role.id === assignedRole)?.title ?? assignedRole,
+        multiplierApplied: Number(currentMultiplier.toFixed(2)),
+        branchOutcome: getBranchOutcome(branchStability),
+        earnedBadges: [
+          scorePercent === 100 ? 'Perfect Run' : null,
+          currentMultiplier >= 1.8 ? 'Multiplier Master' : null,
+          hintUsedCount === 0 ? 'No Hints Used' : null,
+          revealUsedCount === 0 ? 'No Reveal Used' : null,
+          teamAssignments.length >= 3 ? 'Team Drill Lead' : null,
+          getBranchOutcome(branchStability) === 'exemplary' ? 'Exemplary Outcome' : null,
+        ].filter((badge): badge is string => Boolean(badge)),
         learnerEmail: user?.email,
         learnerName: user?.fullName,
       });
@@ -253,6 +356,9 @@ export default function ScenarioPlayer() {
       trackEvent('scenario_completed', {
         scenarioId: scenario.id,
         scorePercent,
+        challengeScore: Math.round(scorePercent * currentMultiplier),
+        multiplier: Number(currentMultiplier.toFixed(2)),
+        branchOutcome: getBranchOutcome(branchStability),
         facility: selectedFacility,
         timedMode,
         facilitatorMode,
@@ -274,7 +380,7 @@ export default function ScenarioPlayer() {
     };
 
     void persistCompletion();
-  }, [completed, score, scenario, selectedFacility, timedMode, facilitatorMode, user, progressKey]);
+  }, [completed, score, scenario, selectedFacility, timedMode, facilitatorMode, user, progressKey, teamName, assignedRole, currentMultiplier, branchStability, hintUsedCount, revealUsedCount, teamAssignments]);
 
   useEffect(() => {
     if (!scenario || completed) {
@@ -292,6 +398,15 @@ export default function ScenarioPlayer() {
       timedMode,
       stepSeconds,
       secondsLeft,
+      currentMultiplier,
+      correctStreak,
+      branchStability,
+      replayBoost,
+      teamName,
+      assignedRole,
+      teamAssignments,
+      hintUsedCount,
+      revealUsedCount,
       startedAt: startedAtRef.current || Date.now(),
     });
   }, [
@@ -307,6 +422,15 @@ export default function ScenarioPlayer() {
     timedMode,
     stepSeconds,
     secondsLeft,
+    currentMultiplier,
+    correctStreak,
+    branchStability,
+    replayBoost,
+    teamName,
+    assignedRole,
+    teamAssignments,
+    hintUsedCount,
+    revealUsedCount,
   ]);
 
   if (!scenario || !currentStep) {
@@ -326,8 +450,17 @@ export default function ScenarioPlayer() {
     setTimeoutNotice(null);
     if (option.isCorrect) {
       setScore((s) => s + 1);
+      setCorrectStreak((prev) => {
+        const nextStreak = prev + 1;
+        setCurrentMultiplier((existing) => clamp(existing + (nextStreak >= 2 ? 0.15 : 0.1), 1, 2.6 + replayBoost));
+        return nextStreak;
+      });
+      setBranchStability((prev) => clamp(prev + 10, 0, 100));
       setMomentQuip(correctQuips[currentStepIndex % correctQuips.length]);
     } else {
+      setCorrectStreak(0);
+      setCurrentMultiplier((prev) => clamp(prev - 0.2, 1, 2.6 + replayBoost));
+      setBranchStability((prev) => clamp(prev - 15, 0, 100));
       setMomentQuip(wrongQuips[currentStepIndex % wrongQuips.length]);
     }
     setAnswers((prev) => [...prev, { step: currentStep, option }]);
@@ -339,6 +472,19 @@ export default function ScenarioPlayer() {
       isCorrect: option.isCorrect,
       facility: selectedFacility,
     });
+  };
+
+  const addTeamParticipant = () => {
+    const trimmed = participantName.trim();
+    if (!trimmed) {
+      return;
+    }
+    setTeamAssignments((prev) => [...prev, { name: trimmed, roleId: participantRoleId }].slice(0, 12));
+    setParticipantName('');
+  };
+
+  const removeTeamParticipant = (index: number) => {
+    setTeamAssignments((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   const handleNext = () => {
@@ -360,6 +506,9 @@ export default function ScenarioPlayer() {
     setCurrentStepIndex(0);
     setSelectedOption(null);
     setScore(0);
+    setCorrectStreak(0);
+    setCurrentMultiplier(1 + replayBoost);
+    setBranchStability(55);
     setAnswers([]);
     setCompleted(false);
     setShowHint(false);
@@ -368,6 +517,8 @@ export default function ScenarioPlayer() {
     setIsPaused(false);
     setSecondsLeft(stepSeconds);
     setMomentQuip('');
+    setHintUsedCount(0);
+    setRevealUsedCount(0);
     startedAtRef.current = Date.now();
     completionSavedRef.current = false;
 
@@ -379,7 +530,26 @@ export default function ScenarioPlayer() {
     void clearScenarioProgress(progressKey);
   };
 
+  const handleReplayChallenge = () => {
+    setReplayBoost((prev) => {
+      const nextBoost = clamp(prev + 0.2, 0, 0.8);
+      setCurrentMultiplier(1 + nextBoost);
+      return nextBoost;
+    });
+    handleRestart();
+  };
+
   const scorePercent = Math.round((score / scenario.steps.length) * 100);
+  const challengeScore = Math.round(scorePercent * currentMultiplier);
+  const branchOutcome = getBranchOutcome(branchStability);
+  const runBadges = [
+    scorePercent === 100 ? 'Perfect Run' : null,
+    currentMultiplier >= 1.8 ? 'Multiplier Master' : null,
+    hintUsedCount === 0 ? 'No Hints Used' : null,
+    revealUsedCount === 0 ? 'No Reveal Used' : null,
+    teamAssignments.length >= 3 ? 'Team Drill Lead' : null,
+    branchOutcome === 'exemplary' ? 'Exemplary Outcome' : null,
+  ].filter((badge): badge is string => Boolean(badge));
   const completionNote =
     scorePercent >= 80
       ? 'Calm, clear, and command-ready. Your incident clipboard would be legendary.'
@@ -417,9 +587,9 @@ export default function ScenarioPlayer() {
             }}>
               {scorePercent}%
             </div>
-            <div className="text-gray-500 text-sm mb-4">
-              {score} of {scenario.steps.length} decisions correct
-            </div>
+            <div className="text-gray-500 text-sm mb-1">{score} of {scenario.steps.length} decisions correct</div>
+            <div className="text-gray-500 text-sm mb-1">Challenge Score: {challengeScore} (x{currentMultiplier.toFixed(2)})</div>
+            <div className="text-gray-500 text-sm mb-4">Branch Outcome: {branchOutcome.toUpperCase()}</div>
             <p className="text-sm text-gray-600 mb-4">{completionNote}</p>
             <div className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${
               scorePercent >= 80 ? 'bg-green-100 text-green-700' :
@@ -430,6 +600,15 @@ export default function ScenarioPlayer() {
                 scorePercent >= 60 ? 'Good, Review Missed Questions' :
                   'Needs Improvement, Study HICS Protocols'}
             </div>
+            {runBadges.length > 0 && (
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                {runBadges.map((badge) => (
+                  <span key={badge} className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+                    {badge}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="space-y-4 mb-6">
@@ -467,6 +646,12 @@ export default function ScenarioPlayer() {
               className="touch-target nyx-button-metal px-5 py-2.5 rounded-lg font-semibold transition-colors"
             >
               Restart Scenario
+            </button>
+            <button
+              onClick={handleReplayChallenge}
+              className="touch-target border border-purple-300 text-purple-800 px-5 py-2.5 rounded-lg font-semibold hover:bg-purple-50 transition-colors"
+            >
+              Replay Branch Challenge (+0.2x cap)
             </button>
             <button
               onClick={() => downloadCertificate(user?.fullName ?? 'HICS Learner', adaptText(scenario.title), selectedFacility, scorePercent)}
@@ -513,6 +698,8 @@ export default function ScenarioPlayer() {
             </span>
             <div className="flex items-center gap-3 text-sm text-gray-500">
               <span>Score: {score}/{currentStepIndex + (selectedOption ? 1 : 0)}</span>
+              <span>Multiplier: x{currentMultiplier.toFixed(2)}</span>
+              <span>Branch: {getBranchOutcome(branchStability)}</span>
               {timedMode && <span className="font-semibold text-gray-700">Timer: {secondsLeft}s</span>}
             </div>
           </div>
@@ -526,6 +713,78 @@ export default function ScenarioPlayer() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="nyx-panel p-4 mb-4">
+          <div className="flex flex-wrap items-center gap-3 mb-3">
+            <div className="flex-1 min-w-[220px]">
+              <label className="text-xs font-semibold text-gray-600" htmlFor="team-name">Team Drill Name</label>
+              <input
+                id="team-name"
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="min-w-[220px]">
+              <label className="text-xs font-semibold text-gray-600" htmlFor="assigned-role">Your Assigned Role</label>
+              <select
+                id="assigned-role"
+                value={assignedRole}
+                onChange={(e) => setAssignedRole(e.target.value)}
+                className="select-comfort mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800"
+              >
+                {hicsRoles.map((role) => (
+                  <option key={role.id} value={role.id}>{role.title}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-gray-200 p-3 bg-white/60">
+            <p className="text-xs font-semibold text-gray-600 mb-2">Live Team Assignments</p>
+            <div className="grid md:grid-cols-[1fr_1fr_auto] gap-2 mb-2">
+              <input
+                value={participantName}
+                onChange={(e) => setParticipantName(e.target.value)}
+                placeholder="Participant name"
+                className="nyx-input border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
+              <select
+                value={participantRoleId}
+                onChange={(e) => setParticipantRoleId(e.target.value)}
+                className="select-comfort border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800"
+              >
+                {hicsRoles.map((role) => (
+                  <option key={role.id} value={role.id}>{role.title}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={addTeamParticipant}
+                className="touch-target rounded-lg bg-blue-600 text-slate-900 px-3 py-2 text-sm font-semibold"
+              >
+                Add
+              </button>
+            </div>
+            {teamAssignments.length === 0 ? (
+              <p className="text-xs text-gray-500">Add team members to run this as a live role-assigned drill.</p>
+            ) : (
+              <div className="space-y-2">
+                {teamAssignments.map((member, idx) => (
+                  <div key={`${member.name}-${idx}`} className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    <span className="font-medium text-gray-800">{member.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">
+                        {hicsRoles.find((role) => role.id === member.roleId)?.abbreviation ?? member.roleId}
+                      </span>
+                      <button type="button" onClick={() => removeTeamParticipant(idx)} className="text-xs text-red-600 hover:text-red-700">Remove</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="nyx-panel p-4 mb-4">
           <div className="flex flex-wrap items-center gap-3">
             <button
@@ -569,7 +828,10 @@ export default function ScenarioPlayer() {
             {facilitatorMode && !selectedOption && correctOption && (
               <button
                 type="button"
-                onClick={() => setShowCorrectReveal((prev) => !prev)}
+                onClick={() => {
+                  setRevealUsedCount((prev) => prev + 1);
+                  setShowCorrectReveal((prev) => !prev);
+                }}
                 className="touch-target px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700"
               >
                 {showCorrectReveal ? 'Hide Correct Answer' : 'Reveal Correct Answer'}
@@ -667,7 +929,12 @@ export default function ScenarioPlayer() {
           {adaptedStep.hint && !selectedOption && (
             <div className="mt-4">
               <button
-                onClick={() => setShowHint((prev) => !prev)}
+                onClick={() => {
+                  if (!showHint) {
+                    setHintUsedCount((prev) => prev + 1);
+                  }
+                  setShowHint((prev) => !prev);
+                }}
                 className="touch-target text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 px-2"
               >
                 Hint: {showHint ? 'Hide' : 'Show'}

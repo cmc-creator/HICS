@@ -1,6 +1,8 @@
 // api/chat.js - Vercel serverless function for HICS AI chatbot
 // Provider order: Anthropic first, Gemini fallback
 
+import { enforceRateLimit, parseJsonBody, validateBodyFields } from './_security.js';
+
 const SYSTEM_PROMPT = `You are NyxHICSlab Assistant, an expert HICS (Hospital Incident Command System) training AI embedded in NyxHICSlab by NyxCollective LLC.
 
 You help healthcare staff learn HICS protocols, ICS structure, emergency procedures, triage methods, and disaster response best practices.
@@ -130,7 +132,31 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { message, history } = req.body ?? {};
+  if (!enforceRateLimit(req, res, {
+    scope: 'chat',
+    maxRequests: 40,
+    windowMs: 5 * 60 * 1000,
+  })) {
+    return;
+  }
+
+  const body = parseJsonBody(req);
+  if (!body || typeof body !== 'object') {
+    return res.status(400).json({ error: 'Invalid JSON payload.' });
+  }
+
+  const validationError = validateBodyFields(body, [
+    { name: 'message', required: true, type: 'string', minLength: 1, maxLength: 2000 },
+  ]);
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
+  }
+
+  const { message, history } = body;
+
+  if (history !== undefined && !Array.isArray(history)) {
+    return res.status(400).json({ error: 'history must be an array when provided.' });
+  }
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return res.status(400).json({ error: 'Message is required.' });

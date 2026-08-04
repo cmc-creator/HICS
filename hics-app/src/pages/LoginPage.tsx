@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/authContext';
 import { beginOidcLogin } from '../lib/oidc';
+import { publicApiRequest } from '../lib/apiClient';
 import EnterpriseFooter from '../components/EnterpriseFooter';
 
 interface LoginPageProps {
@@ -18,29 +19,49 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState('');
 
-  const handleCredentialLogin = (event: React.FormEvent) => {
+  const handleCredentialLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!email.includes('@') || password.length < 8) {
       setError('Use a valid enterprise email and a password with at least 8 characters.');
       return;
     }
 
-    loginSession(
-      {
-        user: {
-          fullName: email.split('@')[0].replace('.', ' '),
+    try {
+      const result = await publicApiRequest<{
+        accessToken: string;
+        refreshToken?: string;
+        expiresIn: number;
+        email: string;
+        fullName: string;
+        organization: string;
+      }>('/auth/local-login', {
+        method: 'POST',
+        body: JSON.stringify({
           email,
+          password,
           organization,
+        }),
+      });
+
+      loginSession({
+        user: {
+          fullName: result.fullName,
+          email: result.email,
+          organization: result.organization,
           mfaEnabled: true,
           plan: 'enterprise',
         },
-        accessToken: `pwd-${Math.random().toString(36).slice(2)}`,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
         authMethod: 'password',
-        expiresInSeconds: 3600,
+        expiresInSeconds: result.expiresIn,
         remember,
-      },
-    );
-    navigate('/dashboard');
+      });
+
+      navigate('/dashboard');
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : 'Credential sign in failed.');
+    }
   };
 
   const handleSsoLogin = async (provider: 'entra' | 'okta') => {

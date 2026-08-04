@@ -1,7 +1,19 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 const AUTH_SESSION_KEY = 'nyx-auth-session';
 const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
+const REFRESH_LEEWAY_MS = 60 * 1000;
+
+function authApiPath(path: string): string {
+  const base = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
+  if (!base) {
+    return path;
+  }
+
+  const left = base.endsWith('/') ? base.slice(0, -1) : base;
+  const right = path.startsWith('/') ? path : `/${path}`;
+  return `${left}${right}`;
+}
 
 export interface AuthUser {
   fullName: string;
@@ -27,6 +39,12 @@ interface LoginSessionInput {
   authMethod: AuthSession['authMethod'];
   expiresInSeconds: number;
   remember: boolean;
+}
+
+interface RefreshSessionResponse {
+  accessToken: string;
+  refreshToken?: string;
+  expiresIn: number;
 }
 
 interface AuthContextValue {
@@ -65,8 +83,14 @@ function readStoredSession(): AuthSession | null {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(() => readStoredSession());
   const [now, setNow] = useState(() => Date.now());
+  const sessionRef = useRef<AuthSession | null>(session);
+  const refreshInFlightRef = useRef<Promise<boolean> | null>(null);
 
-  const loginSession = (payload: LoginSessionInput) => {
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
+  const loginSession = useCallback((payload: LoginSessionInput) => {
     const nextSession: AuthSession = {
       user: payload.user,
       accessToken: payload.accessToken,
@@ -84,9 +108,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       localStorage.removeItem(AUTH_SESSION_KEY);
     }
-  };
+  }, []);
 
-  const touchActivity = () => {
+  const touchActivity = useCallback(() => {
     setSession((prev) => {
       if (!prev) {
         return prev;
@@ -98,12 +122,88 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return next;
     });
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    const refreshToken = sessionRef.current?.refreshToken;
+    if (refreshToken) {
+      void fetch(authApiPath('/auth/logout'), {
+        // Revoke refresh token server-side to terminate session chain.
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      }).catch(() => {
+        // Best-effort logout revocation.
+      });
+    }
+
     setSession(null);
     localStorage.removeItem(AUTH_SESSION_KEY);
-  };
+  }, []);
+
+  const refreshSession = useCallback(async (): Promise<boolean> => {
+    const current = sessionRef.current;
+    if (!current?.refreshToken) {
+      return false;
+    }
+
+    if (refreshInFlightRef.current) {
+      return refreshInFlightRef.current;
+    }
+
+    const refreshPromise = (async () => {
+      try {
+        const response = await fetch(authApiPath('/auth/refresh'), {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refreshToken: current.refreshToken }),
+        });
+
+        if (!response.ok) {
+          return false;
+        }
+
+        const payload = (await response.json()) as RefreshSessionResponse;
+        if (!payload?.accessToken || !payload?.expiresIn) {
+          return false;
+        }
+
+        setSession((prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          const nextSession: AuthSession = {
+            ...prev,
+            accessToken: payload.accessToken,
+            refreshToken: payload.refreshToken || prev.refreshToken,
+            expiresAt: Date.now() + payload.expiresIn * 1000,
+            lastActivityAt: Date.now(),
+          };
+
+          if (localStorage.getItem(AUTH_SESSION_KEY)) {
+            localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(nextSession));
+          }
+
+          return nextSession;
+        });
+
+        setNow(Date.now());
+        return true;
+      } catch {
+        return false;
+      } finally {
+        refreshInFlightRef.current = null;
+      }
+    })();
+
+    refreshInFlightRef.current = refreshPromise;
+    return refreshPromise;
+  }, []);
 
   useEffect(() => {
     if (!session) {
@@ -137,11 +237,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const inactiveTooLong = now - session.lastActivityAt > INACTIVITY_LIMIT_MS;
+    if (inactiveTooLong) {
+      logout();
+      return;
+    }
+
     const tokenExpired = now >= session.expiresAt;
-    if (inactiveTooLong || tokenExpired) {
+    const tokenNearExpiry = session.expiresAt - now <= REFRESH_LEEWAY_MS;
+
+    if ((tokenExpired || tokenNearExpiry) && session.refreshToken) {
+      void refreshSession().then((ok) => {
+        if (!ok && tokenExpired) {
+          logout();
+        }
+      });
+      return;
+    }
+
+    if (tokenExpired) {
       logout();
     }
-  }, [session, now]);
+  }, [session, now, refreshSession]);
 
   const sessionRemainingMs = session ? Math.max(0, Math.min(session.expiresAt, session.lastActivityAt + INACTIVITY_LIMIT_MS) - now) : 0;
 

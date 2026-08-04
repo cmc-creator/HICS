@@ -38,6 +38,10 @@ function createInitialStore() {
     ],
     auditLogs: [],
     notifications: [],
+    refreshTokens: [],
+    mediaAssets: [],
+    liveDrills: [],
+    rapidChallengeScores: [],
   };
 }
 

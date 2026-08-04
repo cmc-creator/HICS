@@ -1,23 +1,56 @@
 import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { canManageData, isEnterpriseAdmin, requireAuth, scopeByFacility } from '../_auth.js';
+import { authorizeEndpoint } from '../_policy.js';
+import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 
 export default async function handler(req, res) {
+  if (!enforceRateLimit(req, res, {
+    scope: 'training-attempts',
+    maxRequests: 150,
+    windowMs: 5 * 60 * 1000,
+  })) {
+    return;
+  }
+
+  const auth = requireAuth(req, res);
+  if (!auth) {
+    return;
+  }
+
+  if (!authorizeEndpoint(res, 'TRAINING_ATTEMPTS', req.method, auth.claims)) {
+    return;
+  }
+
   const store = await getStore();
+  const requesterFacility = String(auth.claims.facility || 'all');
 
   if (req.method === 'GET') {
-    return json(res, 200, { attempts: store.attempts.slice(0, 500) });
+    const scopedAttempts = scopeByFacility(store.attempts, auth.claims).slice(0, 500);
+    return json(res, 200, { attempts: scopedAttempts });
   }
 
   if (req.method === 'POST') {
-    const body = req.body ?? {};
-    if (!body.scenarioId || !body.scenarioTitle) {
-      return json(res, 400, { error: 'scenarioId and scenarioTitle are required' });
+    const body = parseJsonBody(req);
+    if (!body || typeof body !== 'object') {
+      return json(res, 400, { error: 'Invalid JSON payload' });
+    }
+
+    const validationError = validateBodyFields(body, [
+      { name: 'scenarioId', required: true, type: 'string', minLength: 2, maxLength: 120 },
+      { name: 'scenarioTitle', required: true, type: 'string', minLength: 2, maxLength: 200 },
+      { name: 'facility', required: false, type: 'string', maxLength: 80 },
+      { name: 'learnerEmail', required: false, type: 'string', maxLength: 256 },
+      { name: 'learnerName', required: false, type: 'string', maxLength: 120 },
+    ]);
+    if (validationError) {
+      return json(res, 400, { error: validationError });
     }
 
     const entry = {
       id: createId('attempt'),
       scenarioId: String(body.scenarioId),
       scenarioTitle: String(body.scenarioTitle),
-      facility: String(body.facility ?? 'all'),
+      facility: String(body.facility ?? requesterFacility === 'all' ? 'psychiatric-inpatient' : requesterFacility),
       correctAnswers: Number(body.correctAnswers ?? 0),
       totalSteps: Number(body.totalSteps ?? 0),
       scorePercent: Number(body.scorePercent ?? 0),
@@ -27,7 +60,24 @@ export default async function handler(req, res) {
       completedAt: new Date().toISOString(),
       learnerEmail: typeof body.learnerEmail === 'string' ? body.learnerEmail : undefined,
       learnerName: typeof body.learnerName === 'string' ? body.learnerName : undefined,
+      teamName: typeof body.teamName === 'string' ? body.teamName : undefined,
+      assignedRole: typeof body.assignedRole === 'string' ? body.assignedRole : undefined,
+      multiplierApplied: typeof body.multiplierApplied === 'number' ? body.multiplierApplied : undefined,
+      branchOutcome: typeof body.branchOutcome === 'string' ? body.branchOutcome : undefined,
+      earnedBadges: Array.isArray(body.earnedBadges)
+        ? body.earnedBadges.filter((badge) => typeof badge === 'string').slice(0, 10)
+        : [],
+      organization: String(auth.claims.organization || 'Enterprise Health System'),
     };
+
+    if (!isEnterpriseAdmin(auth.claims) && requesterFacility !== 'all' && entry.facility !== requesterFacility) {
+      return json(res, 403, { error: 'Attempt facility outside requester scope' });
+    }
+
+    if (!canManageData(auth.claims)) {
+      entry.learnerEmail = String(auth.claims.email || entry.learnerEmail || '');
+      entry.learnerName = String(auth.claims.fullName || entry.learnerName || '');
+    }
 
     store.attempts.unshift(entry);
     store.attempts = store.attempts.slice(0, 5000);
@@ -43,7 +93,15 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'DELETE') {
-    store.attempts = [];
+    if (!canManageData(auth.claims)) {
+      return json(res, 403, { error: 'Forbidden' });
+    }
+
+    if (isEnterpriseAdmin(auth.claims) || requesterFacility === 'all') {
+      store.attempts = [];
+    } else {
+      store.attempts = store.attempts.filter((attempt) => String(attempt.facility || '') !== requesterFacility);
+    }
     appendAuditLog(store, 'training_attempts_cleared');
     await saveStore(store);
     return json(res, 204, {});

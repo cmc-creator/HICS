@@ -13,6 +13,11 @@ export interface ScenarioAttempt {
   facilitatorMode: boolean;
   durationSeconds: number;
   completedAt: string;
+  teamName?: string;
+  assignedRole?: string;
+  multiplierApplied?: number;
+  branchOutcome?: 'critical' | 'recovering' | 'stable' | 'exemplary';
+  earnedBadges?: string[];
 }
 
 interface TelemetryEvent {
@@ -43,8 +48,68 @@ export interface ScenarioProgressState {
   timedMode: boolean;
   stepSeconds: number;
   secondsLeft: number;
+  currentMultiplier?: number;
+  correctStreak?: number;
+  branchStability?: number;
+  replayBoost?: number;
+  teamName?: string;
+  assignedRole?: string;
+  teamAssignments?: Array<{ name: string; roleId: string }>;
+  hintUsedCount?: number;
+  revealUsedCount?: number;
   startedAt: number;
   savedAt: string;
+}
+
+export interface LearningMediaAsset {
+  id: string;
+  moduleId: string;
+  title: string;
+  sourceType: 'stream' | 'upload';
+  videoUrl: string;
+  posterUrl?: string;
+  description?: string;
+  durationSeconds?: number;
+  mimeType?: string;
+  bytes?: number;
+  storageKey?: string;
+  storageProvider?: string;
+  facility: string;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+export interface LiveDrillParticipant {
+  name: string;
+  roleId: string;
+}
+
+export interface LiveDrillEvent {
+  at: string;
+  message: string;
+}
+
+export interface LiveDrillSession {
+  id: string;
+  sessionCode: string;
+  phaseIndex: number;
+  running: boolean;
+  elapsedSeconds: number;
+  participants: LiveDrillParticipant[];
+  events: LiveDrillEvent[];
+  facility: string;
+  updatedAt: string;
+}
+
+export interface RapidChallengeLeaderboardEntry {
+  learnerName: string;
+  learnerEmail: string;
+  facility: string;
+  bestScore: number;
+  bestStreak: number;
+  totalRounds: number;
+  bestDurationSeconds: number;
+  updatedAt: string;
 }
 
 const ATTEMPTS_KEY = 'nyx-training-attempts';
@@ -277,4 +342,117 @@ export function getTrainingSummary(attempts: ScenarioAttempt[]) {
     averageScore,
     bestScore,
   };
+}
+
+export async function getLearningMediaAssets(moduleId?: string): Promise<LearningMediaAsset[]> {
+  try {
+    const query = moduleId ? `?moduleId=${encodeURIComponent(moduleId)}` : '';
+    const response = await publicApiRequest<{ mediaAssets: LearningMediaAsset[] }>(`/training/media${query}`, { method: 'GET' });
+    return Array.isArray(response?.mediaAssets) ? response.mediaAssets : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function uploadLearningMediaAsset(payload: {
+  moduleId: string;
+  title: string;
+  sourceType: 'stream' | 'upload';
+  videoUrl: string;
+  posterUrl?: string;
+  description?: string;
+  durationSeconds?: number;
+  mimeType?: string;
+  bytes?: number;
+  storageKey?: string;
+  storageProvider?: string;
+}): Promise<LearningMediaAsset | null> {
+  try {
+    const response = await publicApiRequest<{ mediaAsset: LearningMediaAsset }>('/training/media', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return response?.mediaAsset ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteLearningMediaAsset(id: string): Promise<boolean> {
+  try {
+    await publicApiRequest(`/training/media?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getLiveDrillSession(sessionCode: string): Promise<LiveDrillSession | null> {
+  try {
+    const response = await publicApiRequest<{ session: LiveDrillSession | null }>(`/training/live-drills?sessionCode=${encodeURIComponent(sessionCode)}`, {
+      method: 'GET',
+    });
+    return response?.session ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveLiveDrillSession(payload: {
+  sessionCode: string;
+  phaseIndex: number;
+  running: boolean;
+  elapsedSeconds: number;
+  participants: LiveDrillParticipant[];
+  events: LiveDrillEvent[];
+}): Promise<LiveDrillSession | null> {
+  try {
+    const response = await publicApiRequest<{ session: LiveDrillSession }>('/training/live-drills', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+    return response?.session ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteLiveDrillSession(sessionCode: string): Promise<boolean> {
+  try {
+    await publicApiRequest(`/training/live-drills?sessionCode=${encodeURIComponent(sessionCode)}`, { method: 'DELETE' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getRapidChallengeLeaderboard(): Promise<RapidChallengeLeaderboardEntry[]> {
+  try {
+    const response = await publicApiRequest<{ leaderboard: RapidChallengeLeaderboardEntry[] }>('/training/rapid-challenge', {
+      method: 'GET',
+    });
+    return Array.isArray(response?.leaderboard) ? response.leaderboard : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function recordRapidChallengeScore(payload: {
+  score: number;
+  peakStreak: number;
+  durationSeconds: number;
+  totalQuestions: number;
+  answered: number;
+  learnerName?: string;
+  learnerEmail?: string;
+}): Promise<RapidChallengeLeaderboardEntry[]> {
+  try {
+    const response = await publicApiRequest<{ leaderboard: RapidChallengeLeaderboardEntry[] }>('/training/rapid-challenge', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return Array.isArray(response?.leaderboard) ? response.leaderboard : [];
+  } catch {
+    return [];
+  }
 }

@@ -9,6 +9,8 @@ import {
   type FacilityType,
 } from '../data/facilityProfiles';
 import { trackEvent } from '../lib/trainingAnalytics';
+import { getScenarioAttempts } from '../lib/trainingAnalytics';
+import { getAdaptiveDifficultyProfile, type AdaptiveDifficultyProfile } from '../lib/gamification';
 import { useTenant } from '../lib/tenantContext';
 
 const difficultyColors = {
@@ -104,9 +106,11 @@ export default function ScenariosPage() {
       : normalizeFacility(searchParams.get('facility')),
   );
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyFilter>('all');
+  const [difficultyTouched, setDifficultyTouched] = useState(false);
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedDuration, setSelectedDuration] = useState<DurationFilter>('all');
   const [selectedPlaylist, setSelectedPlaylist] = useState<PlaylistFilter>('all');
+  const [adaptiveProfile, setAdaptiveProfile] = useState<AdaptiveDifficultyProfile | null>(null);
 
   const typeOptions = useMemo(() => {
     const allTypes = Array.from(new Set(scenarios.map((scenario) => scenario.type)));
@@ -131,6 +135,28 @@ export default function ScenariosPage() {
       setSelectedFacility(tenantFacility);
     }
   }, [tenantFacility, searchParams, selectedFacility]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadAdaptiveProfile = async () => {
+      const attempts = await getScenarioAttempts();
+      if (cancelled) {
+        return;
+      }
+
+      const profile = getAdaptiveDifficultyProfile(attempts);
+      setAdaptiveProfile(profile);
+
+      if (!difficultyTouched && selectedDifficulty === 'all') {
+        setSelectedDifficulty(profile.recommended);
+      }
+    };
+
+    void loadAdaptiveProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [difficultyTouched, selectedDifficulty]);
 
   const visibleScenarios = useMemo(() => {
     const playlistIds = new Set(getPlaylistScenarioIds(selectedPlaylist));
@@ -220,7 +246,10 @@ export default function ScenariosPage() {
               <select
                 id="difficulty-filter"
                 value={selectedDifficulty}
-                onChange={(e) => setSelectedDifficulty(e.target.value as DifficultyFilter)}
+                onChange={(e) => {
+                  setDifficultyTouched(true);
+                  setSelectedDifficulty(e.target.value as DifficultyFilter);
+                }}
                 className="select-comfort mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800"
               >
                 <option value="all">All Levels</option>
@@ -259,6 +288,27 @@ export default function ScenariosPage() {
               </select>
             </div>
           </div>
+
+          {adaptiveProfile && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50/80 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-blue-900">
+                  Adaptive recommendation: <span className="uppercase">{adaptiveProfile.recommended}</span> ({Math.round(adaptiveProfile.confidence * 100)}% confidence)
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDifficultyTouched(true);
+                    setSelectedDifficulty(adaptiveProfile.recommended);
+                  }}
+                  className="touch-target rounded-full bg-blue-600 text-slate-900 px-3 py-1 text-xs font-semibold"
+                >
+                  Apply Recommendation
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-blue-800">{adaptiveProfile.rationale}</p>
+            </div>
+          )}
 
           <p className="text-xs text-gray-500">
             Showing {visibleScenarios.length} scenario{visibleScenarios.length === 1 ? '' : 's'} for this filter set.

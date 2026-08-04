@@ -12,6 +12,7 @@ import { facilityLabels, type FacilityType } from '../data/facilityProfiles';
 import { useTenant } from '../lib/tenantContext';
 import { useAuth } from '../lib/authContext';
 import { publicApiRequest } from '../lib/apiClient';
+import { getAchievementSummary, getFacilityLeaderboard } from '../lib/gamification';
 import { writeAuditLog } from '../lib/notifications';
 
 interface AuditLogEntry {
@@ -118,6 +119,8 @@ export default function TrainingReports() {
   }, [eventCounts, facility]);
 
   const summary = useMemo(() => getTrainingSummary(scopedAttempts), [scopedAttempts]);
+  const achievements = useMemo(() => getAchievementSummary(scopedAttempts), [scopedAttempts]);
+  const leaderboard = useMemo(() => getFacilityLeaderboard(attempts), [attempts]);
 
   const handleExportCsv = async () => {
     const csv = exportAttemptsCsv(scopedAttempts);
@@ -268,6 +271,52 @@ export default function TrainingReports() {
               ))}
             </div>
           )}
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="nyx-panel p-4">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Achievement Snapshot</h2>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="rounded-lg border border-gray-200 dark:border-white/10 p-3">
+                <div className="text-xs text-gray-500 dark:text-white/50">Streak</div>
+                <div className="text-xl font-bold text-gray-900 dark:text-white">{achievements.streakDays} day{achievements.streakDays === 1 ? '' : 's'}</div>
+              </div>
+              <div className="rounded-lg border border-gray-200 dark:border-white/10 p-3">
+                <div className="text-xs text-gray-500 dark:text-white/50">Badges</div>
+                <div className="text-xl font-bold text-gray-900 dark:text-white">{achievements.totalBadges}</div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {achievements.badges.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-white/50">Complete scenarios to unlock badges.</p>
+              ) : (
+                achievements.badges.map((badge) => (
+                  <span key={badge} className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+                    {badge}
+                  </span>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="nyx-panel p-4">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Facility Leaderboard</h2>
+            {leaderboard.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-white/50">Not enough attempts to rank facilities yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {leaderboard.map((entry, idx) => (
+                  <div key={`${entry.facility}-${idx}`} className="rounded-lg border border-gray-200 dark:border-white/10 p-3 flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white">#{idx + 1} {entry.facility}</div>
+                      <div className="text-xs text-gray-500 dark:text-white/50">{entry.attempts} attempt{entry.attempts === 1 ? '' : 's'}</div>
+                    </div>
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">{entry.avgScore}%</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="nyx-panel p-4">

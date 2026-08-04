@@ -1,13 +1,39 @@
 import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { requireAuth } from '../_auth.js';
+import { authorizeEndpoint } from '../_policy.js';
+import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return json(res, 405, { error: 'Method not allowed' });
+  if (!enforceRateLimit(req, res, {
+    scope: 'notifications-send',
+    maxRequests: 60,
+    windowMs: 5 * 60 * 1000,
+  })) {
+    return;
   }
 
-  const body = req.body ?? {};
-  if (!body.type || typeof body.type !== 'string') {
-    return json(res, 400, { error: 'type is required' });
+  const auth = requireAuth(req, res);
+  if (!auth) {
+    return;
+  }
+
+  if (!authorizeEndpoint(res, 'NOTIFICATIONS_SEND', req.method, auth.claims)) {
+    return;
+  }
+
+  const body = parseJsonBody(req);
+  if (!body || typeof body !== 'object') {
+    return json(res, 400, { error: 'Invalid JSON payload' });
+  }
+
+  const validationError = validateBodyFields(body, [
+    { name: 'type', required: true, type: 'string', minLength: 2, maxLength: 80 },
+    { name: 'recipient', required: false, type: 'string', maxLength: 256 },
+    { name: 'subject', required: false, type: 'string', maxLength: 200 },
+    { name: 'message', required: false, type: 'string', maxLength: 2000 },
+  ]);
+  if (validationError) {
+    return json(res, 400, { error: validationError });
   }
 
   const store = await getStore();
@@ -18,12 +44,20 @@ export default async function handler(req, res) {
     subject: typeof body.subject === 'string' ? body.subject : '',
     message: typeof body.message === 'string' ? body.message : '',
     metadata: typeof body.metadata === 'object' && body.metadata ? body.metadata : {},
+    facility: String(auth.claims.facility || 'all'),
+    organization: String(auth.claims.organization || 'Enterprise Health System'),
     sentAt: new Date().toISOString(),
   };
 
   store.notifications.unshift(notification);
   store.notifications = store.notifications.slice(0, 1000);
-  appendAuditLog(store, 'notification_sent', { type: notification.type, recipient: notification.recipient });
+  appendAuditLog(store, 'notification_sent', {
+    type: notification.type,
+    recipient: notification.recipient,
+    actorEmail: String(auth.claims.email || ''),
+    actorRole: String(auth.claims.role || ''),
+    facility: notification.facility,
+  });
   await saveStore(store);
 
   // Optional webhook integration for real notification relay

@@ -71,3 +71,9 @@ export default defineConfig([
   },
 ])
 ```
+
+## Project Test Commands
+
+- `npm run test:auth` runs the backend auth lifecycle smoke test (refresh rotation, replay detection, family revocation) using a UNC-safe PowerShell runner.
+- `npm run test:smoke` runs the Playwright UI smoke suite.
+- On UNC-hosted workspaces, run `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-smoke-tests.ps1` for stable smoke execution.

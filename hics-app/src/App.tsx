@@ -11,6 +11,9 @@ import ChatbotPage from './pages/ChatbotPage';
 import TrainingReports from './pages/TrainingReports';
 import FacilitatorQuickStart from './pages/FacilitatorQuickStart';
 import FacilityAdminPage from './pages/FacilityAdminPage';
+import LearningCenterPage from './pages/LearningCenterPage';
+import RapidChallengePage from './pages/RapidChallengePage';
+import LiveDrillControlPage from './pages/LiveDrillControlPage';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
@@ -30,8 +33,10 @@ function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; on
   const sessionMinutes = Math.ceil(sessionRemainingMs / 60000);
 
   useEffect(() => {
+    // Record activity on initial mount; ongoing tracking uses window event listeners in AuthProvider.
     touchActivity();
-  }, [touchActivity]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -99,6 +104,9 @@ function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggle
         <Route path="/chatbot" element={<ChatbotPage />} />
         <Route path="/reports" element={<TrainingReports />} />
         <Route path="/quick-start" element={<FacilitatorQuickStart />} />
+        <Route path="/learning-center" element={<LearningCenterPage />} />
+        <Route path="/rapid-challenge" element={<RapidChallengePage />} />
+        <Route path="/live-drill" element={<LiveDrillControlPage />} />
         <Route path="/admin" element={<FacilityAdminPage />} />
       </Route>
 

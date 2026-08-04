@@ -4,15 +4,16 @@ import { hicsRoles, hicsCategories } from '../data/roles';
 import { scenarios } from '../data/scenarios';
 import { quizQuestions } from '../data/quiz';
 import { getScenarioAttempts, getTrainingSummary, type ScenarioAttempt } from '../lib/trainingAnalytics';
+import { getAchievementSummary, getFacilityLeaderboard } from '../lib/gamification';
 import { writeAuditLog } from '../lib/notifications';
 
 const ONBOARDING_KEY = 'nyx-first-run-complete';
 
 const stats = [
-  { label: 'HICS Roles', value: hicsRoles.length, icon: '/lux-icons/roles.svg', color: 'bg-blue-500' },
-  { label: 'Training Scenarios', value: scenarios.length, icon: '/lux-icons/scenarios.svg', color: 'bg-green-500' },
-  { label: 'Quiz Questions', value: quizQuestions.length, icon: '/lux-icons/quiz.svg', color: 'bg-purple-500' },
-  { label: 'HICS Sections', value: 5, icon: '/lux-icons/admin.svg', color: 'bg-red-500' },
+  { label: 'HICS Roles', value: hicsRoles.length, icon: '/lux-icons/roles.svg', color: 'bg-blue-500', path: '/roles' },
+  { label: 'Training Scenarios', value: scenarios.length, icon: '/lux-icons/scenarios.svg', color: 'bg-green-500', path: '/scenarios' },
+  { label: 'Quiz Questions', value: quizQuestions.length, icon: '/lux-icons/quiz.svg', color: 'bg-purple-500', path: '/quiz' },
+  { label: 'HICS Sections', value: 5, icon: '/lux-icons/admin.svg', color: 'bg-red-500', path: '/roles' },
 ];
 
 const quickLinks = [
@@ -64,6 +65,30 @@ const quickLinks = [
     color: 'border-slate-500',
     badge: 'CSV Export',
   },
+  {
+    path: '/learning-center',
+    title: 'Learning Center',
+    description: 'Walk through storyboard-style training modules with guided frames and role-based objectives.',
+    icon: '/lux-icons/scenarios.svg',
+    color: 'border-cyan-500',
+    badge: 'Storyboard Modules',
+  },
+  {
+    path: '/rapid-challenge',
+    title: 'Rapid Challenge',
+    description: 'Play a timed mini-game with streak multipliers to sharpen high-pressure command decisions.',
+    icon: '/lux-icons/quiz.svg',
+    color: 'border-indigo-500',
+    badge: 'Timed Mode',
+  },
+  {
+    path: '/live-drill',
+    title: 'Live Drill Control',
+    description: 'Run facilitator-led sessions with phase control, role assignments, and live announcements.',
+    icon: '/lux-icons/guide.svg',
+    color: 'border-rose-500',
+    badge: 'Facilitator Mode',
+  },
 ];
 
 export default function Dashboard() {
@@ -87,6 +112,8 @@ export default function Dashboard() {
   };
 
   const progressSummary = getTrainingSummary(attempts);
+  const achievementSummary = getAchievementSummary(attempts);
+  const leaderboard = getFacilityLeaderboard(attempts);
 
   return (
     <div className="min-h-screen bg-gray-50 lux-page">
@@ -140,7 +167,7 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 motion-stagger">
           {stats.map((stat) => (
-            <div key={stat.label} className="lux-stat-card p-5 flex items-center gap-4 card-lift">
+            <Link key={stat.label} to={stat.path} className="lux-stat-card p-5 flex items-center gap-4 card-lift hover:shadow-md transition-shadow">
               <div className={`${stat.color} text-white rounded-xl p-2.5 flex items-center justify-center w-12 h-12 shadow-lg`}>
                 <img src={stat.icon} alt="" className="h-7 w-7 object-contain" />
               </div>
@@ -148,7 +175,7 @@ export default function Dashboard() {
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
                 <div className="text-sm text-gray-500 dark:text-white/60">{stat.label}</div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
@@ -190,6 +217,52 @@ export default function Dashboard() {
           </div>
           <div className="mt-4">
             <Link to="/reports" className="text-blue-600 hover:text-blue-800 text-sm font-medium">Open full training reports →</Link>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4 mb-8">
+          <div className="bg-white dark:bg-white/5 rounded-xl shadow-sm p-6">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-3">Achievement Hub</h2>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="rounded-lg border border-gray-200 dark:border-white/10 p-3">
+                <div className="text-xs text-gray-500 dark:text-white/50">Current Streak</div>
+                <div className="text-xl font-bold text-gray-900 dark:text-white">{achievementSummary.streakDays} day{achievementSummary.streakDays === 1 ? '' : 's'}</div>
+              </div>
+              <div className="rounded-lg border border-gray-200 dark:border-white/10 p-3">
+                <div className="text-xs text-gray-500 dark:text-white/50">Badges Unlocked</div>
+                <div className="text-xl font-bold text-gray-900 dark:text-white">{achievementSummary.totalBadges}</div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {achievementSummary.badges.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-white/50">Complete scenarios to unlock badges.</p>
+              ) : (
+                achievementSummary.badges.map((badge) => (
+                  <span key={badge} className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+                    {badge}
+                  </span>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-white/5 rounded-xl shadow-sm p-6">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-3">Facility Leaderboard</h2>
+            {leaderboard.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-white/50">No attempts logged yet. Start a scenario to rank facilities.</p>
+            ) : (
+              <div className="space-y-2">
+                {leaderboard.map((entry, idx) => (
+                  <div key={`${entry.facility}-${idx}`} className="rounded-lg border border-gray-200 dark:border-white/10 p-3 flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white">#{idx + 1} {entry.facility}</div>
+                      <div className="text-xs text-gray-500 dark:text-white/50">{entry.attempts} attempt{entry.attempts === 1 ? '' : 's'}</div>
+                    </div>
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">{entry.avgScore}%</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

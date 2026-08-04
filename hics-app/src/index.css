@@ -717,6 +717,15 @@ html.dark .nyx-chip {
 	background-image: var(--accent-gradient) !important;
 }
 
+.nyx-button-metal:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+html.dark .nyx-button-metal {
+	color: #faf5e8 !important;
+}
+
 .nyx-input {
 	background: rgba(255, 255, 255, 0.62);
 	border: 1px solid rgba(148, 163, 184, 0.38);

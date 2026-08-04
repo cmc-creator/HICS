@@ -42,6 +42,8 @@ export default function FacilityAdminPage() {
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserRole, setNewUserRole] = useState('facilitator');
   const [newUserFacility, setNewUserFacility] = useState<FacilityType>('psychiatric-inpatient');
+  const [addUserError, setAddUserError] = useState<string | null>(null);
+  const [addUserSuccess, setAddUserSuccess] = useState(false);
 
   const loadAdminData = async () => {
     const nextAttempts = await getScenarioAttempts();
@@ -76,7 +78,11 @@ export default function FacilityAdminPage() {
 
   const handleCreateUser = async (event: React.FormEvent) => {
     event.preventDefault();
+    setAddUserError(null);
+    setAddUserSuccess(false);
+
     if (!newUserName.trim() || !newUserEmail.includes('@')) {
+      setAddUserError('Enter a valid full name and work email address.');
       return;
     }
 
@@ -100,9 +106,10 @@ export default function FacilityAdminPage() {
       setNewUserEmail('');
       setNewUserRole('facilitator');
       setNewUserFacility('psychiatric-inpatient');
+      setAddUserSuccess(true);
       await loadAdminData();
-    } catch {
-      // Keep form populated so admin can retry.
+    } catch (err) {
+      setAddUserError(err instanceof Error ? err.message : 'Failed to create user. Please try again.');
     }
   };
 
@@ -212,6 +219,12 @@ export default function FacilityAdminPage() {
               <button type="submit" className="nyx-button-metal px-4 py-2 rounded-lg text-sm font-semibold" disabled={!canManageUsers}>
                 Add User
               </button>
+              {addUserError && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{addUserError}</p>
+              )}
+              {addUserSuccess && (
+                <p className="text-xs text-green-700 dark:text-green-400 mt-1">User added successfully.</p>
+              )}
             </form>
 
             <div className="mt-4 space-y-2">
@@ -230,17 +243,17 @@ export default function FacilityAdminPage() {
           <div className="nyx-panel p-5">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Permission Matrix</h2>
             <div className="grid gap-3 text-sm mb-4">
-              <div className={`rounded-lg border p-3 ${canManageUsers ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+              <div className={`rounded-lg border p-3 ${canManageUsers ? 'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30' : 'border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/5'}`}>
                 <div className="font-semibold">User Management</div>
                 <div className="text-xs mt-1 text-gray-600 dark:text-white/60">Create users, assign roles, and maintain access</div>
                 <div className="text-xs font-bold mt-2">{canManageUsers ? 'ENABLED' : 'READ-ONLY'}</div>
               </div>
-              <div className={`rounded-lg border p-3 ${canManageData ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+              <div className={`rounded-lg border p-3 ${canManageData ? 'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30' : 'border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/5'}`}>
                 <div className="font-semibold">Data Governance</div>
                 <div className="text-xs mt-1 text-gray-600 dark:text-white/60">Clear telemetry/attempt data and manage retention actions</div>
                 <div className="text-xs font-bold mt-2">{canManageData ? 'ENABLED' : 'RESTRICTED'}</div>
               </div>
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 role-selected-row">
+              <div className="rounded-lg border border-blue-200 dark:border-blue-700/50 bg-blue-50 dark:bg-blue-900/20 p-3 role-selected-row">
                 <div className="font-semibold">Report Export</div>
                 <div className="text-xs mt-1 text-gray-600 dark:text-white/60">CSV export for audit and training compliance records</div>
                 <div className="text-xs font-bold mt-2">{role === 'observer' ? 'DISABLED' : 'ENABLED'}</div>

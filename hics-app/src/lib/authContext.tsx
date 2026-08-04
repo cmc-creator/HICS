@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 
 const AUTH_SESSION_KEY = 'nyx-auth-session';
 const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
-const REFRESH_LEEWAY_MS = 60 * 1000;
+const REFRESH_LEEWAY_MS = 4 * 60 * 1000;
 
 function authApiPath(path: string): string {
   const base = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
@@ -217,8 +217,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => window.clearInterval(interval);
   }, [session]);
 
+  // Derive a stable boolean so this effect only fires on login/logout, not on every activity event.
+  const isAuthenticated = !!session;
+
   useEffect(() => {
-    if (!session) {
+    if (!isAuthenticated) {
       return;
     }
 
@@ -229,7 +232,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       events.forEach((eventName) => window.removeEventListener(eventName, handler));
     };
-  }, [session]);
+  }, [isAuthenticated, touchActivity]);
 
   useEffect(() => {
     if (!session) {
@@ -257,20 +260,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (tokenExpired) {
       logout();
     }
-  }, [session, now, refreshSession]);
+  }, [session, now, refreshSession, logout]);
 
   const sessionRemainingMs = session ? Math.max(0, Math.min(session.expiresAt, session.lastActivityAt + INACTIVITY_LIMIT_MS) - now) : 0;
 
   const value = useMemo<AuthContextValue>(() => ({
     user: session?.user ?? null,
-    isAuthenticated: !!session,
+    isAuthenticated,
     accessToken: session?.accessToken ?? null,
     expiresAt: session?.expiresAt ?? null,
     sessionRemainingMs,
     loginSession,
     touchActivity,
     logout,
-  }), [session, sessionRemainingMs]);
+  }), [session, isAuthenticated, sessionRemainingMs, loginSession, touchActivity, logout]);
+
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

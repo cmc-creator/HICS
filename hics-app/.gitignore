@@ -17,8 +17,17 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
+*.DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright
+test-results/
+playwright-report/
+
+# Local store / test auth snapshots
+.nyx-hics-store*.json

@@ -156,7 +156,7 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
               <img
                 src={pillar.image}
                 alt={pillar.alt}
-                className="w-full h-36 object-cover object-top rounded-lg mb-3 border border-white/5"
+                className="w-full h-36 object-contain rounded-lg mb-3 border border-white/5 bg-[#0f0c14]"
               />
               <h2 className="text-lg font-bold mb-2">{pillar.title}</h2>
               <p className="text-sm opacity-60 leading-relaxed">{pillar.detail}</p>

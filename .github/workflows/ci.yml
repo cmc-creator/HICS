@@ -1,0 +1,62 @@
+name: CI
+
+# Deploys happen through Vercel's Git integration; this workflow only gates changes.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - run: npm ci
+
+      - name: Auth, session, and store smoke test
+        run: npm run test:api
+
+  app:
+    name: Lint, typecheck, build, smoke
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: hics-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: hics-app/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - name: Typecheck and build
+        run: npm run build
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright smoke suite
+        run: npm run test:smoke
+        env:
+          CI: 'true'

@@ -17,7 +17,7 @@ const authSession = {
 async function seedAuthenticatedSession(page: import('@playwright/test').Page, role = 'facility-admin') {
   await page.addInitScript(
     ({ session, tenantRole }) => {
-      window.localStorage.setItem('nyx-auth-session', JSON.stringify(session));
+      window.sessionStorage.setItem('nyx-auth-session', JSON.stringify(session));
       window.localStorage.setItem('nyx-tenant-role', tenantRole);
       window.localStorage.setItem('nyx-tenant-facility', 'psychiatric-inpatient');
       window.localStorage.setItem('nyx-tenant-display-name', 'North Campus Behavioral Health');

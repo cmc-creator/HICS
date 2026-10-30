@@ -1,145 +1,84 @@
-# HICS Training App
+# NyxHICSlab
 
-A Hospital Incident Command System (HICS) training application with interactive scenarios, role-based learning, and an AI-powered chatbot assistant.
+A Hospital Incident Command System (HICS) training platform with interactive scenarios, role-based learning, live drill tools, and an AI training assistant.
 
 ## Features
 
-### Dashboard
-
-Overview of HICS structure, training modules, and quick access to all sections.
-
-### HICS Roles & Interactive Org Chart
-
-- Visual organizational chart with clickable role nodes
-- 24 HICS positions across all sections
-- Filter by section (Command, Operations, Planning, Logistics, Finance/Admin)
-- Detailed role descriptions, responsibilities, and reporting relationships
-
-### Training Scenarios (20 scenarios)
-
-Expanding clinical and security decision-making across diverse emergency types:
-
-- **Mass Casualty Incident (MCI)** - Intermediate, 5 steps
-- **Hospital Fire Emergency** - Beginner, 3 steps (RACE protocol)
-- **Hazardous Materials Exposure** - Advanced, 2 steps (decontamination zones)
-- **Cyberattack / IT Outage** - Intermediate, 1 step (downtime procedures)
-- **Psychiatric Emergency Transport During Lockdown** - Advanced, 3 steps
-- **Mass Fatality Event Activation** - Advanced, 3 steps
-- **Critical Resource Rationing During Surge** - Advanced, 3 steps
-- Plus 6 additional scenarios covering power failure, pediatric surge, water contamination, supply disruption, bomb threats, and workplace violence
-
-### Interactive Scenario Player
-
-- Step-by-step decision trees with situational descriptions
-- 4 answer choices with immediate feedback and explanations
-- Hint system, progress tracking, and score review
-
-### Knowledge Quiz (25 questions)
-
-- Category filtering (HICS Structure, MCI, Fire Safety, HazMat, HIPAA, Planning, Safety, Triage, and more)
-- Immediate answer feedback with detailed explanations
-- Category performance breakdown and pass/fail result (80% threshold)
-- Expanded coverage including organizational strategies, incident recovery, resource management, and psychological support
-
-### AI Training Assistant (Chatbot)
-
-- 26-topic HICS knowledge base (expanded)
-- Covers: organizational structure, START triage, RACE protocol, hazmat zones, IAP, NIMS/ICS, HIPAA, span of control, psychiatric considerations, workforce resilience, family assistance centers, incident documentation, exercises & training, and more
-- Suggested quick-questions, typing indicator, and markdown-formatted responses
+- **Dashboard**: HICS overview, learner progress snapshot, and quick access to every module.
+- **HICS Roles & Org Chart**: 24 positions across Command, Operations, Planning, Logistics, and Finance/Admin, with responsibilities and reporting lines.
+- **Training Scenarios (20)**: branching decision scenarios across beginner, intermediate, and advanced levels, including mass casualty, fire, hazmat, cyberattack/EHR downtime, severe weather, power failure, pediatric surge, water advisory, supply disruption, ED boarding, elopement, behavioral escalation, active threat, bomb threat, and workplace violence. Scenario text adapts to the facility type.
+- **Scenario Player**: step-by-step decisions with feedback, hints, timed mode, and facilitator controls (pause, reveal).
+- **Knowledge Quiz (25 questions)**: category filtering, explanations, and an 80% pass threshold.
+- **Learning Center**: storyboard modules with uploaded or streamed video (Vercel Blob).
+- **Rapid Challenge**: 75-second triage mini-game with a facility leaderboard.
+- **Live Drill Control**: facilitator-run drills with phases, timer, roster, and announcements.
+- **Reports**: attempt history, CSV export, and completion certificates.
+- **AI Training Assistant**: Claude-powered HICS assistant (Gemini fallback), available to signed-in users only.
+- **Facility Administration**: user provisioning, facility scoping, and audit log.
 
 ## Tech Stack
 
-- **React** + **TypeScript** + **Vite**
-- **Tailwind CSS v4** (via `@tailwindcss/vite`)
-- **React Router v7**
+- React 19 + TypeScript + Vite, Tailwind CSS v4, React Router v7
+- Vercel serverless functions (`api/`) with Upstash Redis for storage and rate limiting
+- Vercel Blob for training video
 
-## Getting Started
+## Local Development
 
 ```bash
+npm install            # API dependencies (repo root)
 cd hics-app
 npm install
+cp .env.example .env.local   # fill in what you need
 npm run dev
 ```
 
-Then open [http://localhost:5173](http://localhost:5173) in your browser.
+Open <http://localhost:5173>. Without Redis configured, the API stores data in `.nyx-hics-store.json` (local development only; Vercel deployments refuse to run without Redis).
 
-## Build
+To exercise the API locally, run `vercel dev` from the repo root.
+
+## Deploying (Vercel)
+
+The app is deployed as one Vercel project: the Vite build is served statically and `api/` runs as serverless functions on the same origin. `vercel.json` sets the build, routing, and security headers.
+
+1. Create an Upstash Redis database and a Vercel Blob store, and connect both to the project.
+2. Set the environment variables listed in [`hics-app/.env.example`](hics-app/.env.example). `TOKEN_SIGNING_SECRET` and the Upstash variables are required.
+3. Set `BOOTSTRAP_ADMIN_EMAILS` to your own address, sign in through SSO, and add users from **Admin → Add User**. Then clear the bootstrap variable.
+
+The full go-live list is in [`hics-app/docs/ENTERPRISE_DEPLOYMENT_CHECKLIST.md`](hics-app/docs/ENTERPRISE_DEPLOYMENT_CHECKLIST.md).
+
+### Provisioning users from the command line
 
 ```bash
+# With production UPSTASH_* variables exported, or none for the local store
+npm run create-user -- --email jordan.lee@hospital.org --name "Jordan Lee" \
+  --role facility-admin --facility general-acute-care
+```
+
+Add `--password` to set a password for password sign-in (only used when `ALLOW_LOCAL_AUTH_FALLBACK=true`).
+
+## Security Model
+
+- **Sign-in**: Microsoft Entra ID or Okta through OIDC with PKCE. The server verifies the id_token signature, issuer, audience, and expiry. Optional password sign-in uses scrypt hashes.
+- **Authorization**: roles and facilities come only from provisioned accounts; unknown users are refused. Every API route checks the signed token and a per-endpoint role policy in `api/_policy.js`.
+- **Sessions**: 1-hour access tokens kept in `sessionStorage`; rotating refresh tokens kept in an httpOnly, Secure, SameSite=Strict cookie, with replay detection that revokes the whole session. The account is re-checked on every refresh.
+- **Data integrity**: writes use Redis compare-and-set with retry, so concurrent requests can't overwrite each other.
+- **Abuse limits**: rate limits are shared across all serverless instances through Redis; the AI assistant is limited per user.
+- **Headers**: HSTS, a CSP with no inline scripts, `frame-ancestors 'none'`, and related headers.
+
+Auth contract details are in [`hics-app/docs/ENTERPRISE_AUTH_EXCHANGE_CONTRACT.md`](hics-app/docs/ENTERPRISE_AUTH_EXCHANGE_CONTRACT.md).
+
+## Testing
+
+```bash
+npm run test:api                 # repo root: auth, session, authorization, and store tests
 cd hics-app
-npm run build
+npm run lint
+npm run build                    # includes TypeScript checks
+npm run test:smoke:install       # first time only
+npm run test:smoke               # Playwright smoke suite
 ```
 
-The production build is output to `hics-app/dist/`.
-
-## Enterprise Setup
-
-The app now includes a sell-ready enterprise flow with:
-
-- Public landing page and request-demo funnel
-- Enterprise login and OIDC-ready callback route
-- Protected app routes for authenticated sessions
-- Session inactivity timeout and token-aware API client scaffolding
-
-### Environment variables
-
-Copy settings from:
-
-- `hics-app/.env.example`
-
-Set values in your deployment platform for:
-
-- `VITE_API_BASE_URL`
-- `VITE_AUTH_EXCHANGE_ENDPOINT`
-- `VITE_OIDC_ENTRA_*`
-- `VITE_OIDC_OKTA_*`
-
-Recommended for this repository on Vercel:
-
-- `VITE_API_BASE_URL=/api`
-- `VITE_AUTH_EXCHANGE_ENDPOINT=/api/auth/exchange`
-- `VITE_ALLOW_LOCAL_AUTH_FALLBACK=false`
-- `VITE_ALLOW_LOCAL_LEAD_FALLBACK=false`
-
-### Included backend route scaffolds
-
-- `api/auth/exchange.js` (OIDC auth exchange contract scaffold)
-- `api/sales/leads.js` (request-demo lead intake scaffold)
-
-### Backend contract and deployment checklist
-
-- `hics-app/docs/ENTERPRISE_AUTH_EXCHANGE_CONTRACT.md`
-- `hics-app/docs/ENTERPRISE_DEPLOYMENT_CHECKLIST.md`
-
-## Deploy on Cloudflare Pages (Vercel Alternative)
-
-This app can be hosted on Cloudflare Pages with a much lower cost profile for static traffic.
-
-### Cloudflare Pages settings
-
-- Framework preset: `Vite`
-- Root directory: `hics-app`
-- Build command: `npm run build`
-- Build output directory: `dist`
-
-### SPA routing support
-
-The project includes `hics-app/public/_redirects` with:
-
-```txt
-/* /index.html 200
-```
-
-This ensures React Router routes work on hard refresh and direct URL access.
-
-### Optional: deploy under a subpath
-
-By default, Vite uses `/` as the base path (ideal for Cloudflare root domains).
-If you need subpath hosting, set environment variable `VITE_BASE_PATH` during build, for example:
-
-```bash
-VITE_BASE_PATH=/HICS/ npm run build
-```
+GitHub Actions runs all of these on every pull request and push to `main` (`.github/workflows/ci.yml`).
 
 ## Ownership and Marks
 

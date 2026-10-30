@@ -199,8 +199,6 @@ export default function HealthCheckPage() {
               <dd>{import.meta.env.VITE_OIDC_ENTRA_CLIENT_ID ? '••••' + String(import.meta.env.VITE_OIDC_ENTRA_CLIENT_ID).slice(-4) : <span className="opacity-40 italic">not set</span>}</dd>
               <dt className="opacity-50">Okta Domain</dt>
               <dd>{import.meta.env.VITE_OIDC_OKTA_DOMAIN || <span className="opacity-40 italic">not set</span>}</dd>
-              <dt className="opacity-50">Local Auth Fallback</dt>
-              <dd>{import.meta.env.VITE_ALLOW_LOCAL_AUTH_FALLBACK || 'false'}</dd>
               <dt className="opacity-50">Local Lead Fallback</dt>
               <dd>{import.meta.env.VITE_ALLOW_LOCAL_LEAD_FALLBACK || 'false'}</dd>
             </dl>

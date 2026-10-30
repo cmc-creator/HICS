@@ -1,0 +1,14 @@
+node_modules/
+.vercel/
+.env
+.env.*
+!.env.example
+
+# Local API store (contains users, password hashes, and session records)
+.nyx-hics-store*.json
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.idea/
+*.log

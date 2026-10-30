@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-10-30 — Security and reliability hardening
+
+### Security
+- **SSO no longer issues admin tokens when unconfigured.** `api/auth/exchange.js` previously fell back to a built-in `it.admin@` identity whenever OIDC env vars were missing, granting enterprise-admin to any caller. It now fails closed (`503`), and the `ALLOW_OIDC_MOCK_FALLBACK` path is gone.
+- **Roles come from provisioned accounts, not email addresses.** Sign-in resolves role and facility from the users table (or `BOOTSTRAP_ADMIN_EMAILS`); unprovisioned users get `403`. Previously any email containing "admin" became enterprise-admin.
+- **Password sign-in verifies passwords.** `api/auth/local-login.js` accepted any password. It now checks scrypt hashes, with per-IP and per-account rate limits and constant-time handling of unknown accounts.
+- Removed the `pwd-` development bearer token, which granted facility-admin when `ALLOW_LOCAL_AUTH_FALLBACK` was on.
+- **AI assistant requires sign-in** and is rate-limited per user (it was publicly callable).
+- Facility admins can no longer create enterprise-admin users; duplicate emails are rejected; password hashes are stripped from user listings.
+- Refresh tokens moved to an httpOnly, Secure, SameSite=Strict cookie scoped to `/api/auth`; access tokens moved from `localStorage` to `sessionStorage`. Refresh re-checks the account, so deactivations and role changes apply within an hour.
+- PKCE verifier and OIDC state now use `crypto.getRandomValues` (were `Math.random`), and the client-side mock OIDC tokens are removed.
+- CSP no longer allows inline scripts (the GitHub Pages redirect script was the only one).
+- Internal error details (provider responses, token errors) are logged server-side instead of returned to clients. Gemini API key is sent in a header instead of the URL.
+- Client-submitted audit entries are prefixed `client:` so they can't impersonate server-recorded actions.
+
+### Fixed
+- **Lost writes under concurrency.** The store cached one JSON blob per serverless instance and never re-read Redis, so instances overwrote each other. `api/_store.js` now reads fresh per request and writes with a Redis compare-and-set and retry (`updateStore`). On Vercel it refuses to fall back to `/tmp` or memory.
+- Rate limiting is shared across instances through Redis (was per-instance memory).
+- Operator-precedence bug in `api/admin/users.js` and `api/training/attempts.js` that assigned records to `psychiatric-inpatient` whenever a facility was supplied.
+- Audit log scoping no longer shows system-wide entries to single-facility admins.
+- Chat model updated from the retired `claude-3-5-haiku-latest` to `claude-haiku-5-5` via the official Anthropic SDK (unsupported `temperature` removed); Gemini default updated to `gemini-2.5-flash`.
+- Media assets accept only https URLs (no multi-MB `data:` URLs inside the store).
+
+### Added
+- `npm run create-user` (root) to provision accounts, optionally with a password.
+- GitHub Actions CI: API tests, lint, typecheck/build, and Playwright smoke suite on every PR.
+- API smoke test now covers authentication, refresh rotation and replay, deactivation, SSO fail-closed, chat auth, role escalation, and concurrent writes.
+
+### Removed
+- GitHub Pages deploy workflow, `404.html` redirect shim, and Cloudflare `_redirects` (those static hosts can't run the API). Unused Vite template assets.
+- Login page organization field (organization now comes from the account).
+
+### Changed
+- `hicslogo.png` resized from 667×798 (848 KB) to 267×320 (175 KB).
+
 ## 2026-04-17
 
 ### Removed

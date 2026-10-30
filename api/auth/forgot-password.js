@@ -1,5 +1,5 @@
 // TODO: wire to email provider (SendGrid, AWS SES, etc.)
-import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, createId, json, updateStore } from '../_store.js';
 import { enforceRateLimit, parseJsonBody } from '../_security.js';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     return json(res, 405, { error: 'Method not allowed' });
   }
 
-  if (!enforceRateLimit(req, res, { scope: 'auth-forgot-password', maxRequests: 5, windowMs: 15 * 60 * 1000 })) {
+  if (!await enforceRateLimit(req, res, { scope: 'auth-forgot-password', maxRequests: 5, windowMs: 15 * 60 * 1000 })) {
     return;
   }
 
@@ -25,19 +25,18 @@ export default async function handler(req, res) {
   // TODO: store token hash with expiry (e.g., Redis or database)
   // TODO: send email via provider — include link: https://app.nyxhicslab.com/reset-password?token=<token>
 
-  const store = await getStore();
-  store.notifications.unshift({
-    id: createId('notify'),
-    type: 'password_reset_requested',
-    recipient: email.toLowerCase(),
-    subject: 'NyxHICSlab Password Reset Request',
-    message: 'A password reset was requested for this account.',
-    sentAt: new Date().toISOString(),
+  await updateStore((store) => {
+    store.notifications.unshift({
+      id: createId('notify'),
+      type: 'password_reset_requested',
+      recipient: email,
+      subject: 'NyxHICSlab Password Reset Request',
+      message: 'A password reset was requested for this account.',
+      sentAt: new Date().toISOString(),
+    });
+    store.notifications = store.notifications.slice(0, 1000);
+    appendAuditLog(store, 'forgot_password_requested', {});
   });
-  store.notifications = store.notifications.slice(0, 1000);
-
-  appendAuditLog(store, 'forgot_password_requested', {});
-  await saveStore(store);
 
   // Always return success to prevent email enumeration.
   return json(res, 200, {

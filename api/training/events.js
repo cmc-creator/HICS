@@ -1,10 +1,10 @@
-import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, createId, json, readStore, updateStore } from '../_store.js';
 import { canManageData, isEnterpriseAdmin, requireAuth, scopeByFacility } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 
 export default async function handler(req, res) {
-  if (!enforceRateLimit(req, res, {
+  if (!await enforceRateLimit(req, res, {
     scope: 'training-events',
     maxRequests: 150,
     windowMs: 5 * 60 * 1000,
@@ -21,7 +21,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  const store = await getStore();
   const requesterFacility = String(auth.claims.facility || 'all');
 
   if (req.method === 'GET') {
@@ -29,6 +28,7 @@ export default async function handler(req, res) {
       return json(res, 403, { error: 'Forbidden' });
     }
 
+    const store = await readStore();
     const scopedEvents = scopeByFacility(
       store.events,
       auth.claims,
@@ -61,11 +61,16 @@ export default async function handler(req, res) {
       return json(res, 400, { error: validationError });
     }
 
+    const data = typeof body.data === 'object' && body.data ? body.data : {};
+    if (JSON.stringify(data).length > 4096) {
+      return json(res, 400, { error: 'Event data exceeds maximum size' });
+    }
+
     const entry = {
       id: createId('event'),
       event: body.event,
       at: new Date().toISOString(),
-      data: typeof body.data === 'object' && body.data ? body.data : {},
+      data,
       facility: requesterFacility,
       organization: String(auth.claims.organization || 'Enterprise Health System'),
     };
@@ -74,9 +79,10 @@ export default async function handler(req, res) {
       entry.facility = body.facility;
     }
 
-    store.events.unshift(entry);
-    store.events = store.events.slice(0, 5000);
-    await saveStore(store);
+    await updateStore((store) => {
+      store.events.unshift(entry);
+      store.events = store.events.slice(0, 5000);
+    });
     return json(res, 201, { event: entry });
   }
 
@@ -85,13 +91,14 @@ export default async function handler(req, res) {
       return json(res, 403, { error: 'Forbidden' });
     }
 
-    if (isEnterpriseAdmin(auth.claims) || requesterFacility === 'all') {
-      store.events = [];
-    } else {
-      store.events = store.events.filter((event) => String(event.facility || '') !== requesterFacility);
-    }
-    appendAuditLog(store, 'training_events_cleared');
-    await saveStore(store);
+    await updateStore((store) => {
+      if (isEnterpriseAdmin(auth.claims) || requesterFacility === 'all') {
+        store.events = [];
+      } else {
+        store.events = store.events.filter((event) => String(event.facility || '') !== requesterFacility);
+      }
+      appendAuditLog(store, 'training_events_cleared', { facility: requesterFacility });
+    });
     return json(res, 204, {});
   }
 

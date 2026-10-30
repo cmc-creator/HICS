@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../lib/authContext';
 
 interface WidgetMessage {
   id: string;
@@ -14,6 +15,7 @@ const SUGGESTED_PROMPTS = [
 ];
 
 export default function GlobalAssistant() {
+  const { accessToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState('');
@@ -47,7 +49,10 @@ export default function GlobalAssistant() {
       const history = messages.slice(-8).map((m) => ({ role: m.role, content: m.content }));
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
         body: JSON.stringify({
           message: trimmed,
           history,

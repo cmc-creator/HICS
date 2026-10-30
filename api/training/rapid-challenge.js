@@ -1,4 +1,4 @@
-import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, createId, json, readStore, updateStore } from '../_store.js';
 import { canManageData, isEnterpriseAdmin, requireAuth, scopeByFacility } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
@@ -45,7 +45,7 @@ function computeLeaderboard(scores) {
 }
 
 export default async function handler(req, res) {
-  if (!enforceRateLimit(req, res, {
+  if (!await enforceRateLimit(req, res, {
     scope: 'rapid-challenge',
     maxRequests: 160,
     windowMs: 5 * 60 * 1000,
@@ -62,14 +62,10 @@ export default async function handler(req, res) {
     return;
   }
 
-  const store = await getStore();
   const requesterFacility = String(auth.claims.facility || 'all');
 
-  if (!Array.isArray(store.rapidChallengeScores)) {
-    store.rapidChallengeScores = [];
-  }
-
   if (req.method === 'GET') {
+    const store = await readStore();
     const scoped = scopeByFacility(store.rapidChallengeScores, auth.claims, 'facility');
     return json(res, 200, {
       leaderboard: computeLeaderboard(scoped),
@@ -115,18 +111,20 @@ export default async function handler(req, res) {
       completedAt: new Date().toISOString(),
     };
 
-    store.rapidChallengeScores.unshift(entry);
-    store.rapidChallengeScores = store.rapidChallengeScores.slice(0, 5000);
-    appendAuditLog(store, 'rapid_challenge_score_recorded', {
-      facility: entry.facility,
-      score: entry.score,
-      learnerEmail: entry.learnerEmail,
+    const leaderboard = await updateStore((store) => {
+      store.rapidChallengeScores.unshift(entry);
+      store.rapidChallengeScores = store.rapidChallengeScores.slice(0, 5000);
+      appendAuditLog(store, 'rapid_challenge_score_recorded', {
+        facility: entry.facility,
+        score: entry.score,
+        learnerEmail: entry.learnerEmail,
+      });
+      return computeLeaderboard(scopeByFacility(store.rapidChallengeScores, auth.claims, 'facility'));
     });
 
-    await saveStore(store);
     return json(res, 201, {
       score: entry,
-      leaderboard: computeLeaderboard(scopeByFacility(store.rapidChallengeScores, auth.claims, 'facility')),
+      leaderboard,
     });
   }
 
@@ -135,14 +133,14 @@ export default async function handler(req, res) {
       return json(res, 403, { error: 'Forbidden' });
     }
 
-    if (isEnterpriseAdmin(auth.claims) || requesterFacility === 'all') {
-      store.rapidChallengeScores = [];
-    } else {
-      store.rapidChallengeScores = store.rapidChallengeScores.filter((entry) => String(entry.facility || '') !== requesterFacility);
-    }
-
-    appendAuditLog(store, 'rapid_challenge_scores_cleared', { facility: requesterFacility });
-    await saveStore(store);
+    await updateStore((store) => {
+      if (isEnterpriseAdmin(auth.claims) || requesterFacility === 'all') {
+        store.rapidChallengeScores = [];
+      } else {
+        store.rapidChallengeScores = store.rapidChallengeScores.filter((entry) => String(entry.facility || '') !== requesterFacility);
+      }
+      appendAuditLog(store, 'rapid_challenge_scores_cleared', { facility: requesterFacility });
+    });
     return json(res, 204, {});
   }
 

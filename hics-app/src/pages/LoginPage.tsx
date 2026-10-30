@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../lib/authContext';
+import { useAuth, type SessionResponse } from '../lib/authContext';
 import { beginOidcLogin } from '../lib/oidc';
 import { publicApiRequest } from '../lib/apiClient';
 import EnterpriseFooter from '../components/EnterpriseFooter';
@@ -13,7 +13,6 @@ interface LoginPageProps {
 export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
   const navigate = useNavigate();
   const { loginSession } = useAuth();
-  const [organization, setOrganization] = useState('North Campus Medical Center');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
@@ -27,36 +26,16 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
     }
 
     try {
-      const result = await publicApiRequest<{
-        accessToken: string;
-        refreshToken?: string;
-        expiresIn: number;
-        email: string;
-        fullName: string;
-        organization: string;
-      }>('/auth/local-login', {
+      const result = await publicApiRequest<SessionResponse>('/auth/local-login', {
         method: 'POST',
         body: JSON.stringify({
           email,
           password,
-          organization,
+          remember,
         }),
       });
 
-      loginSession({
-        user: {
-          fullName: result.fullName,
-          email: result.email,
-          organization: result.organization,
-          mfaEnabled: true,
-          plan: 'enterprise',
-        },
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        authMethod: 'password',
-        expiresInSeconds: result.expiresIn,
-        remember,
-      });
+      loginSession(result, 'password');
 
       navigate('/dashboard');
     } catch (caughtError) {
@@ -109,19 +88,15 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
 
             <form onSubmit={handleCredentialLogin} className="space-y-3">
               <div>
-                <label className="text-xs font-semibold text-gray-600" htmlFor="org">Organization</label>
-                <input id="org" value={organization} onChange={(e) => setOrganization(e.target.value)} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-              </div>
-              <div>
                 <label className="text-xs font-semibold text-gray-600" htmlFor="email">Work Email</label>
-                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                <input id="email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
               </div>
               <div>
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-gray-600" htmlFor="password">Password</label>
                   <Link to="/forgot-password" className="text-xs text-amber-700 hover:underline font-medium">Forgot password?</Link>
                 </div>
-                <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                <input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
               </div>
               <label className="flex items-center gap-2 text-xs text-gray-600">
                 <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />

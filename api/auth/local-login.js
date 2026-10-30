@@ -1,6 +1,7 @@
-import { issueSignedAccessToken } from '../_auth.js';
+import { readStore } from '../_store.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
-import { issueRefreshSession } from '../_sessions.js';
+import { completeLogin } from '../_sessions.js';
+import { burnPasswordCheck, normalizeEmail, resolveAccount, verifyPassword } from '../_users.js';
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -8,27 +9,14 @@ function json(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-function inferRole(email) {
-  const normalized = String(email || '').toLowerCase();
-  if (normalized.includes('it.admin') || normalized.includes('enterprise-admin')) {
-    return 'enterprise-admin';
-  }
-  if (normalized.includes('training')) {
-    return 'training-manager';
-  }
-  return 'facility-admin';
-}
-
-function inferFacility(role) {
-  return role === 'enterprise-admin' ? 'all' : (process.env.DEFAULT_USER_FACILITY || 'general-acute-care');
-}
+const INVALID_CREDENTIALS = { error: 'Invalid email or password.' };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return json(res, 405, { error: 'Method not allowed' });
   }
 
-  if (!enforceRateLimit(req, res, {
+  if (!await enforceRateLimit(req, res, {
     scope: 'auth-local-login',
     maxRequests: 15,
     windowMs: 5 * 60 * 1000,
@@ -37,7 +25,7 @@ export default async function handler(req, res) {
   }
 
   if (process.env.ALLOW_LOCAL_AUTH_FALLBACK !== 'true') {
-    return json(res, 403, { error: 'Local credential login is disabled in this environment.' });
+    return json(res, 403, { error: 'Password sign-in is disabled. Use your organization\'s single sign-on.' });
   }
 
   const body = parseJsonBody(req);
@@ -48,61 +36,42 @@ export default async function handler(req, res) {
   const validationError = validateBodyFields(body, [
     { name: 'email', required: true, type: 'string', minLength: 5, maxLength: 256 },
     { name: 'password', required: true, type: 'string', minLength: 8, maxLength: 256 },
-    { name: 'organization', required: false, type: 'string', maxLength: 128 },
+    { name: 'remember', required: false, type: 'boolean' },
   ]);
   if (validationError) {
     return json(res, 400, { error: validationError });
   }
 
-  const email = String(body.email || '').trim().toLowerCase();
-  const password = String(body.password || '');
-  const organization = String(body.organization || process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System');
+  const email = normalizeEmail(body.email);
+  const password = String(body.password);
 
-  if (!email.includes('@') || password.length < 8) {
-    return json(res, 400, { error: 'Invalid credential format.' });
+  // Per-account limit stops password spraying from many IPs against one user.
+  if (!await enforceRateLimit(req, res, {
+    scope: 'auth-local-login-account',
+    maxRequests: 10,
+    windowMs: 15 * 60 * 1000,
+    identity: email,
+  })) {
+    return;
   }
 
-  const role = inferRole(email);
-  const facility = inferFacility(role);
-
-  let accessToken = '';
-  let refreshToken = '';
   try {
-    accessToken = issueSignedAccessToken({
-      email,
-      fullName: email.split('@')[0].replace('.', ' '),
-      organization,
-      role,
-      facility,
-      authMethod: 'password',
-    });
+    const store = await readStore();
+    const account = resolveAccount(store, email);
+    const passwordHash = account?.user?.passwordHash;
 
-    const refreshSession = await issueRefreshSession({
-      email,
-      fullName: email.split('@')[0].replace('.', ' '),
-      organization,
-      role,
-      facility,
+    const valid = passwordHash ? verifyPassword(password, passwordHash) : burnPasswordCheck(password);
+    if (!valid || !account) {
+      return json(res, 401, INVALID_CREDENTIALS);
+    }
+
+    const session = await completeLogin(req, res, account, {
       authMethod: 'password',
-    }, {
-      ip: req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown',
-      userAgent: req.headers?.['user-agent'] || 'unknown',
+      persistent: body.remember !== false,
     });
-    refreshToken = refreshSession.refreshToken;
+    return json(res, 200, session);
   } catch (error) {
-    return json(res, 500, {
-      error: error instanceof Error ? error.message : 'Unable to issue access token',
-    });
+    console.error('local-login failed', error);
+    return json(res, 500, { error: 'Unable to sign in right now. Please try again.' });
   }
-
-  return json(res, 200, {
-    accessToken,
-    refreshToken,
-    expiresIn: 3600,
-    email,
-    fullName: email.split('@')[0].replace('.', ' '),
-    organization,
-    role,
-    facility,
-  });
 }

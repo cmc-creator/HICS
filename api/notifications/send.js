@@ -1,10 +1,10 @@
-import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, createId, json, updateStore } from '../_store.js';
 import { requireAuth } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 
 export default async function handler(req, res) {
-  if (!enforceRateLimit(req, res, {
+  if (!await enforceRateLimit(req, res, {
     scope: 'notifications-send',
     maxRequests: 60,
     windowMs: 5 * 60 * 1000,
@@ -36,29 +36,34 @@ export default async function handler(req, res) {
     return json(res, 400, { error: validationError });
   }
 
-  const store = await getStore();
+  const metadata = typeof body.metadata === 'object' && body.metadata ? body.metadata : {};
+  if (JSON.stringify(metadata).length > 4096) {
+    return json(res, 400, { error: 'Notification metadata exceeds maximum size' });
+  }
+
   const notification = {
     id: createId('notify'),
     type: body.type,
     recipient: typeof body.recipient === 'string' ? body.recipient : 'system',
     subject: typeof body.subject === 'string' ? body.subject : '',
     message: typeof body.message === 'string' ? body.message : '',
-    metadata: typeof body.metadata === 'object' && body.metadata ? body.metadata : {},
+    metadata,
     facility: String(auth.claims.facility || 'all'),
     organization: String(auth.claims.organization || 'Enterprise Health System'),
     sentAt: new Date().toISOString(),
   };
 
-  store.notifications.unshift(notification);
-  store.notifications = store.notifications.slice(0, 1000);
-  appendAuditLog(store, 'notification_sent', {
-    type: notification.type,
-    recipient: notification.recipient,
-    actorEmail: String(auth.claims.email || ''),
-    actorRole: String(auth.claims.role || ''),
-    facility: notification.facility,
+  await updateStore((store) => {
+    store.notifications.unshift(notification);
+    store.notifications = store.notifications.slice(0, 1000);
+    appendAuditLog(store, 'notification_sent', {
+      type: notification.type,
+      recipient: notification.recipient,
+      actorEmail: String(auth.claims.email || ''),
+      actorRole: String(auth.claims.role || ''),
+      facility: notification.facility,
+    });
   });
-  await saveStore(store);
 
   // Optional webhook integration for real notification relay
   const webhook = process.env.NOTIFICATION_WEBHOOK_URL;

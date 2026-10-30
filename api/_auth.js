@@ -33,26 +33,33 @@ function signPayload(payloadText, secret) {
   return base64UrlEncode(crypto.createHmac('sha256', secret).update(payloadText).digest());
 }
 
+export const ACCESS_TOKEN_TTL_SECONDS = TOKEN_TTL_SECONDS;
+
 export function issueSignedAccessToken({
   email,
   fullName,
   organization,
-  role = 'facility-admin',
-  facility = 'psychiatric-inpatient',
-  authMethod = 'oidc',
+  role,
+  facility,
+  authMethod,
 }) {
   const secret = getSigningSecret();
   if (!secret) {
     throw new Error('TOKEN_SIGNING_SECRET is required to issue signed access tokens');
   }
 
+  // Claims must come from a resolved account; never default to a privileged role.
+  if (!email || !role || !facility) {
+    throw new Error('Access tokens require email, role, and facility claims');
+  }
+
   const payload = {
-    sub: String(email || '').toLowerCase(),
-    email: String(email || '').toLowerCase(),
+    sub: String(email).toLowerCase(),
+    email: String(email).toLowerCase(),
     fullName: String(fullName || 'Enterprise User'),
     organization: String(organization || process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System'),
-    role: String(role || 'facility-admin'),
-    facility: String(facility || 'psychiatric-inpatient'),
+    role: String(role),
+    facility: String(facility),
     authMethod: String(authMethod || 'oidc'),
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
@@ -110,25 +117,6 @@ function parseSignedToken(token) {
   return payload;
 }
 
-function parseDevFallbackToken(token) {
-  const allowFallback = process.env.ALLOW_LOCAL_AUTH_FALLBACK === 'true';
-  if (!allowFallback || !token.startsWith('pwd-')) {
-    return null;
-  }
-
-  // Never trust client-supplied role/facility headers — always issue least-privilege claims.
-  return {
-    sub: 'local-auth-user',
-    email: 'local-auth@nyxhicslab.local',
-    fullName: 'Local Auth User',
-    organization: process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System',
-    role: 'facility-admin',
-    facility: process.env.DEFAULT_USER_FACILITY || 'psychiatric-inpatient',
-    authMethod: 'password-local-fallback',
-    exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
-  };
-}
-
 export function getAuthContext(req) {
   const token = parseAuthHeader(req);
   if (!token) {
@@ -136,22 +124,14 @@ export function getAuthContext(req) {
   }
 
   const signed = parseSignedToken(token);
-  if (signed) {
-    return {
-      token,
-      claims: signed,
-    };
+  if (!signed) {
+    return null;
   }
 
-  const fallback = parseDevFallbackToken(token);
-  if (fallback) {
-    return {
-      token,
-      claims: fallback,
-    };
-  }
-
-  return null;
+  return {
+    token,
+    claims: signed,
+  };
 }
 
 export function requireAuth(req, res) {

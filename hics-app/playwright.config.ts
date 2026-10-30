@@ -4,6 +4,10 @@ import { fileURLToPath } from 'node:url';
 const port = Number(process.env.PLAYWRIGHT_PORT ?? '4173');
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://127.0.0.1:${port}`;
 const startScriptPath = fileURLToPath(new URL('./scripts/start-vite-playwright.ps1', import.meta.url));
+// The PowerShell wrapper maps UNC paths to a drive on Windows; elsewhere start Vite directly.
+const startCommand = process.platform === 'win32'
+  ? `powershell -NoProfile -ExecutionPolicy Bypass -File "${startScriptPath}" -Port ${port}`
+  : `node ./node_modules/vite/bin/vite.js --host 127.0.0.1 --port ${port} --strictPort --configLoader runner`;
 
 export default defineConfig({
   testDir: './tests',
@@ -17,7 +21,8 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
-        command: `powershell -NoProfile -ExecutionPolicy Bypass -File "${startScriptPath}" -Port ${port}`,
+        command: startCommand,
+        env: { PLAYWRIGHT_SMOKE_MODE: '1' },
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         stdout: 'pipe',

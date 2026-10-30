@@ -1,4 +1,7 @@
+import { getRedisConfig, redisPipeline } from './_redis.js';
+
 const RATE_LIMIT_KEY = '__nyx_rate_limit_state__';
+const REDIS_RATE_PREFIX = 'nyx:hics:rate:';
 
 function getRateState() {
   if (!globalThis[RATE_LIMIT_KEY]) {
@@ -7,7 +10,13 @@ function getRateState() {
   return globalThis[RATE_LIMIT_KEY];
 }
 
-function getClientIp(req) {
+export function getClientIp(req) {
+  // Vercel sets x-real-ip / x-forwarded-for itself, overwriting anything the client sent.
+  const realIp = req.headers?.['x-real-ip'];
+  if (typeof realIp === 'string' && realIp.length > 0) {
+    return realIp.trim();
+  }
+
   const forwarded = req.headers?.['x-forwarded-for'];
   if (typeof forwarded === 'string' && forwarded.length > 0) {
     return forwarded.split(',')[0].trim();
@@ -23,29 +32,58 @@ function cleanupExpiredEntries(state, now) {
   }
 }
 
-export function enforceRateLimit(req, res, {
-  scope,
-  maxRequests,
-  windowMs,
-}) {
+function countInMemory(key, windowMs) {
   const state = getRateState();
   const now = Date.now();
   cleanupExpiredEntries(state, now);
 
-  const ip = getClientIp(req);
-  const key = `${scope}:${ip}`;
   const current = state.get(key);
-
   if (!current || current.resetAt <= now) {
-    state.set(key, {
-      count: 1,
-      resetAt: now + windowMs,
-    });
-    return true;
+    state.set(key, { count: 1, resetAt: now + windowMs });
+    return { count: 1, resetInMs: windowMs };
   }
 
-  if (current.count >= maxRequests) {
-    const retryAfterSeconds = Math.max(1, Math.ceil((current.resetAt - now) / 1000));
+  current.count += 1;
+  return { count: current.count, resetInMs: current.resetAt - now };
+}
+
+// Fixed window shared by every serverless instance. SET NX starts the window; INCR counts.
+async function countInRedis(key, windowMs) {
+  const redisKey = `${REDIS_RATE_PREFIX}${key}`;
+  const [, count, ttl] = await redisPipeline([
+    ['SET', redisKey, '0', 'PX', String(windowMs), 'NX'],
+    ['INCR', redisKey],
+    ['PTTL', redisKey],
+  ]);
+  return { count: Number(count), resetInMs: Number(ttl) > 0 ? Number(ttl) : windowMs };
+}
+
+/**
+ * Returns true when the request may proceed; otherwise sends 429 and returns false.
+ * `identity` defaults to the client IP; pass a user id or email to limit per account.
+ */
+export async function enforceRateLimit(req, res, {
+  scope,
+  maxRequests,
+  windowMs,
+  identity,
+}) {
+  const key = `${scope}:${identity ?? getClientIp(req)}`;
+
+  let result;
+  if (getRedisConfig()) {
+    try {
+      result = await countInRedis(key, windowMs);
+    } catch (error) {
+      console.error('rate limiter: Redis unavailable, using per-instance limits', error);
+      result = countInMemory(key, windowMs);
+    }
+  } else {
+    result = countInMemory(key, windowMs);
+  }
+
+  if (result.count > maxRequests) {
+    const retryAfterSeconds = Math.max(1, Math.ceil(result.resetInMs / 1000));
     res.setHeader('Retry-After', String(retryAfterSeconds));
     res.status(429).json({
       error: 'Too many requests',
@@ -54,8 +92,6 @@ export function enforceRateLimit(req, res, {
     return false;
   }
 
-  current.count += 1;
-  state.set(key, current);
   return true;
 }
 

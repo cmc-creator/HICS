@@ -1,10 +1,10 @@
-import { appendAuditLog, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, json, readStore, updateStore } from '../_store.js';
 import { canManageData, requireAuth } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 
 export default async function handler(req, res) {
-  if (!enforceRateLimit(req, res, {
+  if (!await enforceRateLimit(req, res, {
     scope: 'audit-logs',
     maxRequests: 100,
     windowMs: 5 * 60 * 1000,
@@ -21,7 +21,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  const store = await getStore();
   const requesterFacility = String(auth.claims.facility || 'all');
 
   if (req.method === 'GET') {
@@ -29,12 +28,11 @@ export default async function handler(req, res) {
       return json(res, 403, { error: 'Forbidden' });
     }
 
+    // Entries without a facility are system-wide (e.g. sign-ins), so only all-facility admins see them.
+    const store = await readStore();
     const scoped = requesterFacility === 'all'
       ? store.auditLogs
-      : store.auditLogs.filter((log) => {
-          const facility = typeof log?.data?.facility === 'string' ? log.data.facility : null;
-          return !facility || facility === requesterFacility;
-        });
+      : store.auditLogs.filter((log) => log?.data?.facility === requesterFacility);
 
     return json(res, 200, { logs: scoped.slice(0, 200) });
   }
@@ -52,16 +50,21 @@ export default async function handler(req, res) {
       return json(res, 400, { error: validationError });
     }
 
-    const action = String(body.action).slice(0, 120);
+    const data = typeof body.data === 'object' && body.data ? body.data : {};
+    if (JSON.stringify(data).length > 4096) {
+      return json(res, 400, { error: 'Audit data exceeds maximum size' });
+    }
 
-    const entry = appendAuditLog(store, action, {
-      ...(typeof body.data === 'object' && body.data ? body.data : {}),
+    // Client-reported entries are namespaced so they can't impersonate server-recorded actions.
+    const action = `client:${String(body.action).slice(0, 120)}`;
+
+    const entry = await updateStore((store) => appendAuditLog(store, action, {
+      ...data,
       actorEmail: String(auth.claims.email || ''),
       actorRole: String(auth.claims.role || ''),
       facility: requesterFacility,
       organization: String(auth.claims.organization || 'Enterprise Health System'),
-    });
-    await saveStore(store);
+    }));
     return json(res, 201, { log: entry });
   }
 

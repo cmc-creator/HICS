@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   const isUploadCallback = body?.type === 'blob.upload-completed';
 
   if (!isUploadCallback) {
-    if (!enforceRateLimit(req, res, {
+    if (!await enforceRateLimit(req, res, {
       scope: 'training-media-upload-url',
       maxRequests: 80,
       windowMs: 5 * 60 * 1000,
@@ -49,6 +49,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json(jsonResponse);
   } catch (error) {
-    return res.status(400).json({ error: String(error?.message ?? 'Upload token generation failed') });
+    console.error('blob upload handshake failed', error);
+    return res.status(400).json({ error: 'Upload could not be authorized. Check the file type and size and try again.' });
   }
 }

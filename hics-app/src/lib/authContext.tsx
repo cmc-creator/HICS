@@ -1,6 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import type { AppUserRole } from '../types';
 
+// The access token lives in sessionStorage (per tab, cleared when the tab closes).
+// The refresh token never reaches JavaScript: the API keeps it in an httpOnly cookie.
 const AUTH_SESSION_KEY = 'nyx-auth-session';
+// Non-secret hint that a refresh cookie may exist, so anonymous visitors skip the restore call.
+const SESSION_HINT_KEY = 'nyx-has-session';
 const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
 const REFRESH_LEEWAY_MS = 4 * 60 * 1000;
 
@@ -23,45 +28,56 @@ export interface AuthUser {
   plan: 'enterprise' | 'trial';
 }
 
+type AuthMethod = 'password' | 'entra-oidc' | 'okta-oidc';
+
 interface AuthSession {
   user: AuthUser;
   accessToken: string;
-  refreshToken?: string;
-  authMethod: 'password' | 'entra-oidc' | 'okta-oidc';
+  authMethod: AuthMethod;
+  role?: AppUserRole;
+  facility?: string;
   expiresAt: number;
   lastActivityAt: number;
 }
 
-interface LoginSessionInput {
-  user: AuthUser;
+/** Shape returned by /auth/local-login, /auth/exchange, and /auth/refresh. */
+export interface SessionResponse {
   accessToken: string;
-  refreshToken?: string;
-  authMethod: AuthSession['authMethod'];
-  expiresInSeconds: number;
-  remember: boolean;
-}
-
-interface RefreshSessionResponse {
-  accessToken: string;
-  refreshToken?: string;
   expiresIn: number;
+  email: string;
+  fullName: string;
+  organization: string;
+  role: AppUserRole;
+  facility: string;
+  authMethod?: AuthMethod;
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  isRestoring: boolean;
   accessToken: string | null;
+  role: AppUserRole | null;
+  facility: string | null;
   expiresAt: number | null;
   sessionRemainingMs: number;
-  loginSession: (payload: LoginSessionInput) => void;
+  loginSession: (payload: SessionResponse, authMethod: AuthMethod) => void;
   touchActivity: () => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function safeStorage<T>(fn: () => T, fallback: T): T {
+  try {
+    return fn();
+  } catch {
+    return fallback;
+  }
+}
+
 function readStoredSession(): AuthSession | null {
-  const raw = localStorage.getItem(AUTH_SESSION_KEY);
+  const raw = safeStorage(() => sessionStorage.getItem(AUTH_SESSION_KEY), null);
   if (!raw) {
     return null;
   }
@@ -80,34 +96,86 @@ function readStoredSession(): AuthSession | null {
   }
 }
 
+function persistSession(session: AuthSession | null) {
+  safeStorage(() => {
+    if (session) {
+      sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
+      localStorage.setItem(SESSION_HINT_KEY, '1');
+    } else {
+      sessionStorage.removeItem(AUTH_SESSION_KEY);
+      localStorage.removeItem(SESSION_HINT_KEY);
+    }
+  }, undefined);
+}
+
+function sessionFromResponse(payload: SessionResponse, authMethod: AuthMethod): AuthSession {
+  return {
+    user: {
+      fullName: payload.fullName,
+      email: payload.email,
+      organization: payload.organization,
+      mfaEnabled: true,
+      plan: 'enterprise',
+    },
+    accessToken: payload.accessToken,
+    authMethod: payload.authMethod ?? authMethod,
+    role: payload.role,
+    facility: payload.facility,
+    expiresAt: Date.now() + payload.expiresIn * 1000,
+    lastActivityAt: Date.now(),
+  };
+}
+
+type RefreshResult = { ok: true; payload: SessionResponse } | { ok: false; retryable: boolean };
+
+async function requestRefresh(): Promise<RefreshResult> {
+  const send = () => fetch(authApiPath('/auth/refresh'), {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  try {
+    let response = await send();
+    if (response.status === 409) {
+      // Another tab rotated the cookie a moment ago; the browser now holds the new one.
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      response = await send();
+    }
+
+    if (!response.ok) {
+      return { ok: false, retryable: response.status >= 500 || response.status === 409 || response.status === 429 };
+    }
+
+    const payload = (await response.json()) as SessionResponse;
+    if (!payload?.accessToken || !payload?.expiresIn) {
+      return { ok: false, retryable: false };
+    }
+    return { ok: true, payload };
+  } catch {
+    return { ok: false, retryable: true };
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(() => readStoredSession());
+  const [isRestoring, setIsRestoring] = useState(
+    () => !readStoredSession() && safeStorage(() => localStorage.getItem(SESSION_HINT_KEY) === '1', false),
+  );
   const [now, setNow] = useState(() => Date.now());
   const sessionRef = useRef<AuthSession | null>(session);
-  const refreshInFlightRef = useRef<Promise<boolean> | null>(null);
+  const refreshInFlightRef = useRef<Promise<RefreshResult> | null>(null);
+  const lastRefreshAttemptRef = useRef(0);
 
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
 
-  const loginSession = useCallback((payload: LoginSessionInput) => {
-    const nextSession: AuthSession = {
-      user: payload.user,
-      accessToken: payload.accessToken,
-      refreshToken: payload.refreshToken,
-      authMethod: payload.authMethod,
-      expiresAt: Date.now() + payload.expiresInSeconds * 1000,
-      lastActivityAt: Date.now(),
-    };
-
+  const loginSession = useCallback((payload: SessionResponse, authMethod: AuthMethod) => {
+    const nextSession = sessionFromResponse(payload, authMethod);
     setSession(nextSession);
     setNow(Date.now());
-
-    if (payload.remember) {
-      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(nextSession));
-    } else {
-      localStorage.removeItem(AUTH_SESSION_KEY);
-    }
+    persistSession(nextSession);
   }, []);
 
   const touchActivity = useCallback(() => {
@@ -117,92 +185,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const next = { ...prev, lastActivityAt: Date.now() };
-      if (localStorage.getItem(AUTH_SESSION_KEY)) {
-        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(next));
-      }
+      persistSession(next);
       return next;
     });
   }, []);
 
   const logout = useCallback(() => {
-    const refreshToken = sessionRef.current?.refreshToken;
-    if (refreshToken) {
+    if (sessionRef.current) {
+      // Revoke the refresh cookie server-side to terminate the session chain.
       void fetch(authApiPath('/auth/logout'), {
-        // Revoke refresh token server-side to terminate session chain.
         method: 'POST',
-        credentials: 'include',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
       }).catch(() => {
         // Best-effort logout revocation.
       });
     }
 
     setSession(null);
-    localStorage.removeItem(AUTH_SESSION_KEY);
+    persistSession(null);
   }, []);
 
-  const refreshSession = useCallback(async (): Promise<boolean> => {
-    const current = sessionRef.current;
-    if (!current?.refreshToken) {
-      return false;
-    }
-
+  const refreshSession = useCallback(async (): Promise<RefreshResult> => {
     if (refreshInFlightRef.current) {
       return refreshInFlightRef.current;
     }
 
-    const refreshPromise = (async () => {
-      try {
-        const response = await fetch(authApiPath('/auth/refresh'), {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ refreshToken: current.refreshToken }),
-        });
-
-        if (!response.ok) {
-          return false;
-        }
-
-        const payload = (await response.json()) as RefreshSessionResponse;
-        if (!payload?.accessToken || !payload?.expiresIn) {
-          return false;
-        }
-
+    const refreshPromise = requestRefresh().then((result) => {
+      if (result.ok) {
         setSession((prev) => {
-          if (!prev) {
-            return prev;
-          }
-
-          const nextSession: AuthSession = {
-            ...prev,
-            accessToken: payload.accessToken,
-            refreshToken: payload.refreshToken || prev.refreshToken,
-            expiresAt: Date.now() + payload.expiresIn * 1000,
-            lastActivityAt: Date.now(),
-          };
-
-          if (localStorage.getItem(AUTH_SESSION_KEY)) {
-            localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(nextSession));
-          }
-
-          return nextSession;
+          const base = sessionFromResponse(result.payload, prev?.authMethod ?? 'password');
+          const next = prev ? { ...base, lastActivityAt: prev.lastActivityAt } : base;
+          persistSession(next);
+          return next;
         });
-
         setNow(Date.now());
-        return true;
-      } catch {
-        return false;
-      } finally {
-        refreshInFlightRef.current = null;
       }
-    })();
+      return result;
+    }).finally(() => {
+      refreshInFlightRef.current = null;
+    });
 
     refreshInFlightRef.current = refreshPromise;
     return refreshPromise;
+  }, []);
+
+  // Restore a session from the refresh cookie after a reload or in a new tab.
+  useEffect(() => {
+    if (!isRestoring) {
+      return;
+    }
+
+    void refreshSession().then((result) => {
+      if (!result.ok && !result.retryable) {
+        persistSession(null);
+      }
+      setIsRestoring(false);
+    });
+    // Runs once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -248,17 +289,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const tokenExpired = now >= session.expiresAt;
     const tokenNearExpiry = session.expiresAt - now <= REFRESH_LEEWAY_MS;
 
-    if ((tokenExpired || tokenNearExpiry) && session.refreshToken) {
-      void refreshSession().then((ok) => {
-        if (!ok && tokenExpired) {
+    if (tokenExpired || tokenNearExpiry) {
+      // Retry transient failures every 30s rather than on every 1s tick.
+      if (refreshInFlightRef.current || now - lastRefreshAttemptRef.current < 30 * 1000) {
+        return;
+      }
+      lastRefreshAttemptRef.current = now;
+      void refreshSession().then((result) => {
+        if (!result.ok && (tokenExpired || !result.retryable)) {
           logout();
         }
       });
-      return;
-    }
-
-    if (tokenExpired) {
-      logout();
     }
   }, [session, now, refreshSession, logout]);
 
@@ -267,18 +308,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AuthContextValue>(() => ({
     user: session?.user ?? null,
     isAuthenticated,
+    isRestoring,
     accessToken: session?.accessToken ?? null,
+    role: session?.role ?? null,
+    facility: session?.facility ?? null,
     expiresAt: session?.expiresAt ?? null,
     sessionRemainingMs,
     loginSession,
     touchActivity,
     logout,
-  }), [session, isAuthenticated, sessionRemainingMs, loginSession, touchActivity, logout]);
+  }), [session, isAuthenticated, isRestoring, sessionRemainingMs, loginSession, touchActivity, logout]);
 
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// Provider and hook share a module by design; fast refresh reloads this file fully.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

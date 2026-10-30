@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     return json(res, 405, { error: 'Method not allowed' });
   }
 
-  if (!enforceRateLimit(req, res, { scope: 'sales-leads', maxRequests: 10, windowMs: 60 * 60 * 1000 })) {
+  if (!await enforceRateLimit(req, res, { scope: 'sales-leads', maxRequests: 10, windowMs: 60 * 60 * 1000 })) {
     return;
   }
 

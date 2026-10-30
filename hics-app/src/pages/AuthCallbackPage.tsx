@@ -29,20 +29,7 @@ export default function AuthCallbackPage() {
       try {
         const redirectUri = `${window.location.origin}/auth/callback`;
         const result = await exchangeOidcCode(provider, code, redirectUri);
-        loginSession({
-          user: {
-            fullName: result.fullName,
-            email: result.email,
-            organization: result.organization,
-            mfaEnabled: true,
-            plan: 'enterprise',
-          },
-          accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
-          authMethod: provider === 'okta' ? 'okta-oidc' : 'entra-oidc',
-          expiresInSeconds: result.expiresIn,
-          remember: true,
-        });
+        loginSession(result, provider === 'okta' ? 'okta-oidc' : 'entra-oidc');
         setStatus('Authentication complete. Redirecting to dashboard...');
         navigate('/dashboard', { replace: true });
       } catch (caughtError) {

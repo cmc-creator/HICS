@@ -22,15 +22,35 @@ import HealthCheckPage from './pages/HealthCheckPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
-import { TenantProvider } from './lib/tenantContext';
+import { TenantProvider, useTenant } from './lib/tenantContext';
 import { AuthProvider, useAuth } from './lib/authContext';
+import { normalizeFacility } from './data/facilityProfiles';
 import { sendNotification } from './lib/notifications';
 import GlobalAssistant from './components/GlobalAssistant';
 
+function SessionRestoring() {
+  return (
+    <div className="min-h-screen flex items-center justify-center text-sm text-gray-600 dark:text-white/70" role="status">
+      Restoring your secure session...
+    </div>
+  );
+}
+
 function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggleTheme: () => void }) {
-  const { isAuthenticated, touchActivity, sessionRemainingMs, user } = useAuth();
+  const { isAuthenticated, isRestoring, touchActivity, sessionRemainingMs, user, role, facility } = useAuth();
+  const { role: tenantRole, setRole, facility: tenantFacility, setFacility } = useTenant();
   const [sessionAlerted, setSessionAlerted] = useState(false);
   const sessionMinutes = Math.ceil(sessionRemainingMs / 60000);
+
+  // The signed token decides what the API allows; keep the UI's role and facility in step with it.
+  useEffect(() => {
+    if (role && role !== tenantRole) {
+      setRole(role);
+    }
+    if (facility && normalizeFacility(facility) !== tenantFacility) {
+      setFacility(normalizeFacility(facility));
+    }
+  }, [role, facility, tenantRole, tenantFacility, setRole, setFacility]);
 
   useEffect(() => {
     // Record activity on initial mount; ongoing tracking uses window event listeners in AuthProvider.
@@ -60,6 +80,10 @@ function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; on
     }
   }, [isAuthenticated, sessionRemainingMs, sessionAlerted, user]);
 
+  if (isRestoring) {
+    return <SessionRestoring />;
+  }
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -82,12 +106,12 @@ function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; on
 }
 
 function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggleTheme: () => void }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isRestoring } = useAuth();
 
   return (
     <Routes>
       <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage theme={theme} onToggleTheme={onToggleTheme} />} />
-      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage theme={theme} onToggleTheme={onToggleTheme} />} />
+      <Route path="/login" element={isRestoring ? <SessionRestoring /> : isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage theme={theme} onToggleTheme={onToggleTheme} />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/request-demo" element={<RequestDemoPage />} />
       <Route path="/health" element={<HealthCheckPage />} />

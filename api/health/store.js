@@ -1,4 +1,4 @@
-import { getStore, getStoreHealth, json, snapshotStore } from '../_store.js';
+import { getStoreHealth, json, readStore } from '../_store.js';
 import { requireAuth, isEnterpriseAdmin } from '../_auth.js';
 
 export default async function handler(req, res) {
@@ -11,25 +11,30 @@ export default async function handler(req, res) {
     return;
   }
 
-  const store = await getStore();
-  const health = getStoreHealth();
-  const snap = snapshotStore(store);
+  let store;
+  try {
+    store = await readStore();
+  } catch (error) {
+    console.error('store health check failed', error);
+    return json(res, 503, { ok: false, error: 'Datastore unavailable' });
+  }
 
+  const health = getStoreHealth();
   const fullHealth = isEnterpriseAdmin(auth.claims)
     ? health
-    : { mode: health.mode, redisConfigured: health.redisConfigured };
+    : { mode: health.mode, durable: health.durable, redisConfigured: health.redisConfigured };
 
   return json(res, 200, {
     ok: true,
     store: {
       ...fullHealth,
       counts: {
-        attempts: Array.isArray(snap.attempts) ? snap.attempts.length : 0,
-        events: Array.isArray(snap.events) ? snap.events.length : 0,
-        progressKeys: snap.progress ? Object.keys(snap.progress).length : 0,
-        users: Array.isArray(snap.users) ? snap.users.length : 0,
-        auditLogs: Array.isArray(snap.auditLogs) ? snap.auditLogs.length : 0,
-        notifications: Array.isArray(snap.notifications) ? snap.notifications.length : 0,
+        attempts: store.attempts.length,
+        events: store.events.length,
+        progressKeys: Object.keys(store.progress).length,
+        users: store.users.length,
+        auditLogs: store.auditLogs.length,
+        notifications: store.notifications.length,
       },
     },
   });

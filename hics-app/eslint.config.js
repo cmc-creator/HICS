@@ -19,5 +19,10 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Seven pages load data with setState inside effects. Keep this visible as a warning
+      // until they move to a data-loading pattern, without blocking CI on existing code.
+      'react-hooks/set-state-in-effect': 'warn',
+    },
   },
 ])

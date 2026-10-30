@@ -1,58 +1,49 @@
 # Enterprise Deployment Checklist
 
-## 1. Environment Configuration
+NyxHICSlab deploys to Vercel: the Vite app is served statically and `api/` runs as serverless functions on the same origin.
 
-- Copy `.env.example` to deployment environment variables
-- Set `VITE_API_BASE_URL` to production API gateway
-- Set `VITE_AUTH_EXCHANGE_ENDPOINT` to backend auth exchange endpoint
-- Configure Entra and Okta client ids, authorize URLs, and scopes
-- Ensure `VITE_ALLOW_LOCAL_AUTH_FALLBACK=false` and `VITE_ALLOW_LOCAL_LEAD_FALLBACK=false` in production
+## 1. Required Environment Variables
 
-Recommended same-origin values for this repo:
-- `VITE_API_BASE_URL=/api`
-- `VITE_AUTH_EXCHANGE_ENDPOINT=/api/auth/exchange`
+Copy every value from `hics-app/.env.example` into the Vercel project settings. At minimum:
+
+- `TOKEN_SIGNING_SECRET`: long random value (`openssl rand -base64 48`)
+- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`: the API refuses to start on Vercel without them
+- `BOOTSTRAP_ADMIN_EMAILS`: your first administrator, until real accounts exist
+- `ALLOW_LOCAL_AUTH_FALLBACK=false` unless you deliberately use password accounts
+- `VITE_API_BASE_URL=/api` and `VITE_AUTH_EXCHANGE_ENDPOINT=/api/auth/exchange`
 
 ## 2. Identity Provider Setup
 
-- Register redirect URI: `https://<app-domain>/auth/callback`
+- Register redirect URI `https://<app-domain>/auth/callback` and set `ALLOWED_OIDC_REDIRECT_URI` to the same value
 - Enable PKCE (S256)
-- Enforce MFA and conditional access rules
-- Map directory groups to app roles (enterprise-admin, facility-admin, training-manager, facilitator, observer)
+- Enforce MFA and conditional access rules in the IdP
+- Set the server-side `OIDC_*` variables (token URL, JWKS URL, issuer, client id/secret) and the client-side `VITE_OIDC_*` variables
 
-## 3. Backend Auth Exchange
+## 3. Provision Users
 
-- Implement `/auth/exchange` per `ENTERPRISE_AUTH_EXCHANGE_CONTRACT.md`
-- Validate authorization code with provider
-- Issue app access token and refresh token
-- Include tenant and role claims in token payload
+Roles are assigned in NyxHICSlab, not inferred from email addresses.
 
-This repository now includes an implementation scaffold at:
-- `api/auth/exchange.js`
+1. Sign in once as a `BOOTSTRAP_ADMIN_EMAILS` address.
+2. Add users from **Admin → Add User** (enterprise-admin, facility-admin, training-manager, facilitator, observer).
+3. Remove the bootstrap address from `BOOTSTRAP_ADMIN_EMAILS` once a real enterprise admin account exists.
 
-## 3b. Sales Lead Intake API
+For scripted setup, run `npm run create-user -- --email ... --name ... --role ... --facility ...` from the repo root with the production Redis variables exported.
 
-- Implement `POST /sales/leads` on the same API base URL
-- Validate required fields: name, email, organization
-- Persist lead with timestamp and source context
-- Return `201` on successful lead creation
+## 4. App Security Controls (already in this repo)
 
-This repository now includes an implementation scaffold at:
-- `api/sales/leads.js`
-
-## 4. App Security Controls
-
-- Enforce HTTPS only
-- Add CSP, HSTS, and secure headers at edge
-- Enable structured auth and audit logging
-- Configure token expiration and session idle timeout
+- HSTS, CSP without inline scripts, frame denial, and other headers in `vercel.json`
+- Refresh tokens in httpOnly, Secure, SameSite=Strict cookies; access tokens expire after 1 hour
+- Rate limits shared across serverless instances through Redis
+- Audit log for sign-ins, session rotation and replay detection, and data changes
 
 ## 5. Go-Live Verification
 
-- SSO login success for Entra and Okta users
-- Unauthorized API calls force logout and redirect
-- Session idle timeout logs out correctly
+- SSO sign-in works for a provisioned Entra or Okta user; an unprovisioned user sees the "not provisioned" message
+- Reloading the page keeps you signed in; signing out ends the session in every tab
 - Role-based routes and actions behave as expected
-- Demo request funnel posts to `/sales/leads` and routes correctly
+- The AI assistant answers when signed in and returns 401 when called anonymously
+- The Health page shows `durable: true` for the datastore
+- Demo request funnel posts to `/api/sales/leads`
 
 ## 6. Legal and Product Branding
 

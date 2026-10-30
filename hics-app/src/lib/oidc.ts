@@ -1,4 +1,5 @@
 import { publicApiRequest } from './apiClient';
+import type { SessionResponse } from './authContext';
 
 export type OidcProvider = 'entra' | 'okta';
 
@@ -14,15 +15,6 @@ interface ProviderConfig {
   scope: string;
 }
 
-interface OidcExchangeResult {
-  accessToken: string;
-  refreshToken?: string;
-  expiresIn: number;
-  email: string;
-  fullName: string;
-  organization: string;
-}
-
 function getProviderConfig(provider: OidcProvider): ProviderConfig {
   const prefix = provider === 'entra' ? 'VITE_OIDC_ENTRA' : 'VITE_OIDC_OKTA';
   return {
@@ -34,9 +26,11 @@ function getProviderConfig(provider: OidcProvider): ProviderConfig {
   };
 }
 
+// PKCE verifiers and state must be unguessable, so use the CSPRNG rather than Math.random.
 function randomString(length: number): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(bytes, (byte) => chars[byte % chars.length]).join('');
 }
 
 async function createCodeChallenge(verifier: string): Promise<string> {
@@ -82,29 +76,22 @@ export function validateOidcState(state: string): boolean {
   return !!expected && expected === state;
 }
 
-export async function exchangeOidcCode(provider: OidcProvider, code: string, redirectUri: string): Promise<OidcExchangeResult> {
+export async function exchangeOidcCode(provider: OidcProvider, code: string, redirectUri: string): Promise<SessionResponse> {
   const verifier = sessionStorage.getItem(VERIFIER_KEY) ?? '';
   const config = getProviderConfig(provider);
 
-  const allowLocalFallback = (import.meta.env.VITE_ALLOW_LOCAL_AUTH_FALLBACK as string | undefined) === 'true';
-
   if (!config.tokenExchangeEndpoint) {
-    if (!allowLocalFallback) {
-      throw new Error('OIDC token exchange endpoint is not configured. Set VITE_AUTH_EXCHANGE_ENDPOINT.');
-    }
-
-    return {
-      accessToken: `oidc-${provider}-${randomString(24)}`,
-      refreshToken: randomString(32),
-      expiresIn: 3600,
-      email: provider === 'okta' ? 'admin@healthsystem.com' : 'it.admin@healthsystem.com',
-      fullName: provider === 'okta' ? 'Okta Administrator' : 'Entra Administrator',
-      organization: 'Enterprise Health System',
-    };
+    throw new Error('OIDC token exchange endpoint is not configured. Set VITE_AUTH_EXCHANGE_ENDPOINT.');
   }
 
-  return publicApiRequest<OidcExchangeResult>(config.tokenExchangeEndpoint, {
-    method: 'POST',
-    body: JSON.stringify({ provider, code, codeVerifier: verifier, redirectUri }),
-  });
+  try {
+    return await publicApiRequest<SessionResponse>(config.tokenExchangeEndpoint, {
+      method: 'POST',
+      body: JSON.stringify({ provider, code, codeVerifier: verifier, redirectUri, remember: true }),
+    });
+  } finally {
+    // One-time values: never reuse a verifier or state after an exchange attempt.
+    sessionStorage.removeItem(STATE_KEY);
+    sessionStorage.removeItem(VERIFIER_KEY);
+  }
 }

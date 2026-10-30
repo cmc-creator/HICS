@@ -81,6 +81,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   return <TenantContext.Provider value={value}>{children}</TenantContext.Provider>;
 }
 
+// Provider and hook share a module by design; fast refresh reloads this file fully.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTenant() {
   const context = useContext(TenantContext);
   if (!context) {

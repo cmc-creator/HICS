@@ -1,4 +1,4 @@
-import { appendAuditLog, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, json, readStore, updateStore } from '../_store.js';
 import { requireAuth } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
@@ -13,7 +13,7 @@ function keyFacilityMatches(key, facility) {
 }
 
 export default async function handler(req, res) {
-  if (!enforceRateLimit(req, res, {
+  if (!await enforceRateLimit(req, res, {
     scope: 'training-progress',
     maxRequests: 180,
     windowMs: 5 * 60 * 1000,
@@ -30,7 +30,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  const store = await getStore();
   const requesterFacility = String(auth.claims.facility || 'all');
 
   if (req.method === 'GET') {
@@ -43,6 +42,7 @@ export default async function handler(req, res) {
       return json(res, 403, { error: 'Progress key outside facility scope' });
     }
 
+    const store = await readStore();
     return json(res, 200, { progress: store.progress[key] ?? null });
   }
 
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
     }
 
     const { key, progress } = body;
-    if (!key || typeof key !== 'string' || !progress || typeof progress !== 'object') {
+    if (!progress || typeof progress !== 'object') {
       return json(res, 400, { error: 'key and progress are required' });
     }
 
@@ -72,15 +72,15 @@ export default async function handler(req, res) {
       return json(res, 403, { error: 'Progress key outside facility scope' });
     }
 
-    store.progress[key] = {
-      ...progress,
-      facility: requesterFacility,
-      organization: String(auth.claims.organization || 'Enterprise Health System'),
-      updatedAt: new Date().toISOString(),
-    };
-
-    appendAuditLog(store, 'scenario_progress_saved', { key });
-    await saveStore(store);
+    await updateStore((store) => {
+      store.progress[key] = {
+        ...progress,
+        facility: requesterFacility,
+        organization: String(auth.claims.organization || 'Enterprise Health System'),
+        updatedAt: new Date().toISOString(),
+      };
+      appendAuditLog(store, 'scenario_progress_saved', { key, facility: requesterFacility });
+    });
     return json(res, 200, { ok: true });
   }
 
@@ -94,9 +94,10 @@ export default async function handler(req, res) {
       return json(res, 403, { error: 'Progress key outside facility scope' });
     }
 
-    delete store.progress[key];
-    appendAuditLog(store, 'scenario_progress_cleared', { key });
-    await saveStore(store);
+    await updateStore((store) => {
+      delete store.progress[key];
+      appendAuditLog(store, 'scenario_progress_cleared', { key, facility: requesterFacility });
+    });
     return json(res, 204, {});
   }
 

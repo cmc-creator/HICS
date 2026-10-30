@@ -1,6 +1,8 @@
 // api/chat.js - Vercel serverless function for HICS AI chatbot
 // Provider order: Anthropic first, Gemini fallback
 
+import Anthropic from '@anthropic-ai/sdk';
+import { requireAuth } from './_auth.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from './_security.js';
 
 const SYSTEM_PROMPT = `You are NyxHICSlab Assistant, an expert HICS (Hospital Incident Command System) training AI embedded in NyxHICSlab by NyxCollective LLC.
@@ -15,6 +17,8 @@ Guidelines:
 - Always remind users that your guidance is for training purposes and they should follow their facility's official Emergency Operations Plan for real incidents
 - Do not generate any harmful, misleading, or legally sensitive medical advice`;
 
+let anthropicClient = null;
+
 function normalizeHistory(history) {
   const safeHistory = Array.isArray(history) ? history.slice(-10) : [];
   return safeHistory
@@ -23,52 +27,35 @@ function normalizeHistory(history) {
 }
 
 async function chatWithAnthropic({ message, history }) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
+  if (!process.env.ANTHROPIC_API_KEY) {
     return null;
   }
 
-  const model = process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-latest';
-  const messages = [
-    ...history.map((m) => ({
-      role: m.role,
-      content: m.content,
-    })),
-    { role: 'user', content: message },
-  ];
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model,
-      system: SYSTEM_PROMPT,
-      messages,
-      max_tokens: 700,
-      temperature: 0.4,
-    }),
+  anthropicClient ??= new Anthropic();
+  const response = await anthropicClient.messages.create({
+    model: process.env.ANTHROPIC_MODEL || 'claude-haiku-5-5',
+    max_tokens: 4000,
+    // Low effort keeps the widget responsive; these are short conversational answers.
+    output_config: { effort: 'low' },
+    system: SYSTEM_PROMPT,
+    messages: [
+      ...history,
+      { role: 'user', content: message },
+    ],
   });
 
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Anthropic API error ${response.status}: ${errorBody}`);
+  if (response.stop_reason === 'refusal') {
+    throw new Error(`Anthropic declined the request (${response.stop_details?.category ?? 'unspecified'})`);
   }
 
-  const data = await response.json();
-  const text = Array.isArray(data?.content)
-    ? data.content
-        .filter((item) => item?.type === 'text' && typeof item?.text === 'string')
-        .map((item) => item.text)
-        .join('\n')
-        .trim()
-    : '';
+  const text = response.content
+    .filter((block) => block.type === 'text')
+    .map((block) => block.text)
+    .join('\n')
+    .trim();
 
   if (!text) {
-    throw new Error('Anthropic returned an empty response');
+    throw new Error(`Anthropic returned no text (stop_reason: ${response.stop_reason})`);
   }
 
   return text;
@@ -80,7 +67,7 @@ async function chatWithGemini({ message, history }) {
     return null;
   }
 
-  const model = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
   const contents = [
     ...history.map((m) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -89,10 +76,12 @@ async function chatWithGemini({ message, history }) {
     { role: 'user', parts: [{ text: message }] },
   ];
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+  // Key goes in a header, not the URL, so it never lands in request logs.
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
     },
     body: JSON.stringify({
       systemInstruction: {
@@ -132,10 +121,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!enforceRateLimit(req, res, {
+  const auth = requireAuth(req, res);
+  if (!auth) {
+    return;
+  }
+
+  // Limit per signed-in user so one account can't run up the AI provider bill.
+  if (!await enforceRateLimit(req, res, {
     scope: 'chat',
     maxRequests: 40,
     windowMs: 5 * 60 * 1000,
+    identity: auth.claims.sub,
   })) {
     return;
   }
@@ -158,50 +154,39 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'history must be an array when provided.' });
   }
 
-  if (!message || typeof message !== 'string' || message.trim().length === 0) {
+  if (message.trim().length === 0) {
     return res.status(400).json({ error: 'Message is required.' });
-  }
-
-  if (message.length > 2000) {
-    return res.status(400).json({ error: 'Message is too long.' });
   }
 
   const normalizedHistory = normalizeHistory(history);
 
   if (!process.env.ANTHROPIC_API_KEY && !process.env.GEMINI_API_KEY) {
-    return res.status(503).json({
-      error: 'AI service not configured. Set ANTHROPIC_API_KEY or GEMINI_API_KEY.',
-    });
+    return res.status(503).json({ error: 'The AI assistant is not configured yet.' });
   }
 
   try {
-    try {
-      const anthropicReply = await chatWithAnthropic({
-        message: message.trim(),
-        history: normalizedHistory,
-      });
-      if (anthropicReply) {
-        return res.status(200).json({ reply: anthropicReply, provider: 'anthropic' });
-      }
-    } catch (anthropicError) {
-      console.error('Anthropic chat error:', anthropicError);
+    const anthropicReply = await chatWithAnthropic({
+      message: message.trim(),
+      history: normalizedHistory,
+    });
+    if (anthropicReply) {
+      return res.status(200).json({ reply: anthropicReply, provider: 'anthropic' });
     }
-
-    try {
-      const geminiReply = await chatWithGemini({
-        message: message.trim(),
-        history: normalizedHistory,
-      });
-      if (geminiReply) {
-        return res.status(200).json({ reply: geminiReply, provider: 'gemini' });
-      }
-    } catch (geminiError) {
-      console.error('Gemini chat error:', geminiError);
-    }
-
-    return res.status(502).json({ error: 'AI providers unavailable. Check Anthropic/Gemini credentials.' });
-  } catch (err) {
-    console.error('Chat handler error:', err);
-    return res.status(500).json({ error: 'Internal server error.' });
+  } catch (anthropicError) {
+    console.error('Anthropic chat error:', anthropicError);
   }
+
+  try {
+    const geminiReply = await chatWithGemini({
+      message: message.trim(),
+      history: normalizedHistory,
+    });
+    if (geminiReply) {
+      return res.status(200).json({ reply: geminiReply, provider: 'gemini' });
+    }
+  } catch (geminiError) {
+    console.error('Gemini chat error:', geminiError);
+  }
+
+  return res.status(502).json({ error: 'The AI assistant is temporarily unavailable. Please try again shortly.' });
 }

@@ -1,4 +1,5 @@
-import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import crypto from 'node:crypto';
+import { appendAuditLog, createId, json, readStore, updateStore } from '../_store.js';
 import { isEnterpriseAdmin, requireAuth, scopeByFacility } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
@@ -8,7 +9,7 @@ const MAX_EVENTS = 80;
 
 function randomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  return Array.from({ length: 6 }, () => chars[crypto.randomInt(chars.length)]).join('');
 }
 
 function sanitizeParticipants(value) {
@@ -34,7 +35,7 @@ function sanitizeEvents(value) {
   return value
     .filter((item) => item && typeof item === 'object')
     .map((item) => ({
-      at: typeof item.at === 'string' ? item.at : new Date().toISOString(),
+      at: typeof item.at === 'string' ? item.at.slice(0, 40) : new Date().toISOString(),
       message: String(item.message || '').slice(0, 240),
     }))
     .filter((item) => item.message.length >= 1)
@@ -42,7 +43,7 @@ function sanitizeEvents(value) {
 }
 
 export default async function handler(req, res) {
-  if (!enforceRateLimit(req, res, {
+  if (!await enforceRateLimit(req, res, {
     scope: 'live-drills',
     maxRequests: 220,
     windowMs: 5 * 60 * 1000,
@@ -59,15 +60,11 @@ export default async function handler(req, res) {
     return;
   }
 
-  const store = await getStore();
   const requesterFacility = String(auth.claims.facility || 'all');
-
-  if (!Array.isArray(store.liveDrills)) {
-    store.liveDrills = [];
-  }
 
   if (req.method === 'GET') {
     const sessionCode = typeof req.query?.sessionCode === 'string' ? req.query.sessionCode.toUpperCase() : '';
+    const store = await readStore();
     const scoped = scopeByFacility(store.liveDrills, auth.claims, 'facility');
 
     if (sessionCode) {
@@ -108,42 +105,47 @@ export default async function handler(req, res) {
     const participants = sanitizeParticipants(body.participants);
     const events = sanitizeEvents(body.events);
 
-    const existing = store.liveDrills.find((item) => String(item.sessionCode || '').toUpperCase() === sessionCode);
-    if (existing && !isEnterpriseAdmin(auth.claims) && requesterFacility !== 'all' && String(existing.facility || '') !== requesterFacility) {
+    const result = await updateStore((store) => {
+      const existing = store.liveDrills.find((item) => String(item.sessionCode || '').toUpperCase() === sessionCode);
+      if (existing && !isEnterpriseAdmin(auth.claims) && requesterFacility !== 'all' && String(existing.facility || '') !== requesterFacility) {
+        return { forbidden: true };
+      }
+
+      const nextFacility = existing
+        ? String(existing.facility || requesterFacility)
+        : (isEnterpriseAdmin(auth.claims) && typeof body.facility === 'string' && body.facility ? body.facility : requesterFacility);
+
+      const session = {
+        id: existing?.id || createId('drill'),
+        sessionCode,
+        phaseIndex: Math.max(0, Number(body.phaseIndex ?? existing?.phaseIndex ?? 0) || 0),
+        running: Boolean(body.running ?? existing?.running ?? false),
+        elapsedSeconds: Math.max(0, Number(body.elapsedSeconds ?? existing?.elapsedSeconds ?? 0) || 0),
+        participants,
+        events,
+        facility: nextFacility,
+        organization: String(auth.claims.organization || existing?.organization || 'Enterprise Health System'),
+        updatedBy: String(auth.claims.email || 'unknown@nyxhicslab.local'),
+        createdAt: existing?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (existing) {
+        const index = store.liveDrills.findIndex((item) => item.id === existing.id);
+        store.liveDrills[index] = session;
+        appendAuditLog(store, 'live_drill_updated', { sessionCode, facility: session.facility });
+      } else {
+        store.liveDrills.unshift(session);
+        store.liveDrills = store.liveDrills.slice(0, 500);
+        appendAuditLog(store, 'live_drill_created', { sessionCode, facility: session.facility });
+      }
+      return { session };
+    });
+
+    if (result.forbidden) {
       return json(res, 403, { error: 'Live drill session outside facility scope' });
     }
-
-    const nextFacility = existing
-      ? String(existing.facility || requesterFacility)
-      : (isEnterpriseAdmin(auth.claims) && typeof body.facility === 'string' && body.facility ? body.facility : requesterFacility);
-
-    const session = {
-      id: existing?.id || createId('drill'),
-      sessionCode,
-      phaseIndex: Math.max(0, Number(body.phaseIndex ?? existing?.phaseIndex ?? 0)),
-      running: Boolean(body.running ?? existing?.running ?? false),
-      elapsedSeconds: Math.max(0, Number(body.elapsedSeconds ?? existing?.elapsedSeconds ?? 0)),
-      participants,
-      events,
-      facility: nextFacility,
-      organization: String(auth.claims.organization || existing?.organization || 'Enterprise Health System'),
-      updatedBy: String(auth.claims.email || 'unknown@nyxhicslab.local'),
-      createdAt: existing?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (existing) {
-      const index = store.liveDrills.findIndex((item) => item.id === existing.id);
-      store.liveDrills[index] = session;
-      appendAuditLog(store, 'live_drill_updated', { sessionCode, facility: session.facility });
-    } else {
-      store.liveDrills.unshift(session);
-      store.liveDrills = store.liveDrills.slice(0, 500);
-      appendAuditLog(store, 'live_drill_created', { sessionCode, facility: session.facility });
-    }
-
-    await saveStore(store);
-    return json(res, 200, { session });
+    return json(res, 200, { session: result.session });
   }
 
   if (req.method === 'DELETE') {
@@ -152,19 +154,24 @@ export default async function handler(req, res) {
       return json(res, 400, { error: 'sessionCode query parameter is required' });
     }
 
-    const beforeCount = store.liveDrills.length;
-    if (isEnterpriseAdmin(auth.claims) || requesterFacility === 'all') {
-      store.liveDrills = store.liveDrills.filter((item) => String(item.sessionCode || '').toUpperCase() !== sessionCode);
-    } else {
-      store.liveDrills = store.liveDrills.filter((item) => !(String(item.sessionCode || '').toUpperCase() === sessionCode && String(item.facility || '') === requesterFacility));
-    }
+    const deleted = await updateStore((store) => {
+      const beforeCount = store.liveDrills.length;
+      if (isEnterpriseAdmin(auth.claims) || requesterFacility === 'all') {
+        store.liveDrills = store.liveDrills.filter((item) => String(item.sessionCode || '').toUpperCase() !== sessionCode);
+      } else {
+        store.liveDrills = store.liveDrills.filter((item) => !(String(item.sessionCode || '').toUpperCase() === sessionCode && String(item.facility || '') === requesterFacility));
+      }
 
-    if (store.liveDrills.length === beforeCount) {
+      if (store.liveDrills.length === beforeCount) {
+        return false;
+      }
+      appendAuditLog(store, 'live_drill_deleted', { sessionCode, facility: requesterFacility });
+      return true;
+    });
+
+    if (!deleted) {
       return json(res, 404, { error: 'Live drill session not found' });
     }
-
-    appendAuditLog(store, 'live_drill_deleted', { sessionCode });
-    await saveStore(store);
     return json(res, 204, {});
   }
 

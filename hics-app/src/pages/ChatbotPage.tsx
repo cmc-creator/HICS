@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ChatMessage } from '../types';
+import { useAuth } from '../lib/authContext';
 
 function getInitialMessage(): ChatMessage {
   return {
@@ -66,6 +67,7 @@ const suggestedQuestions = [
 ];
 
 export default function ChatbotPage() {
+  const { accessToken } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([getInitialMessage()]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -109,7 +111,10 @@ export default function ChatbotPage() {
 
     fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
       body: JSON.stringify({ message: text.trim(), history: historySnapshot }),
     })
       .then(async (response) => {

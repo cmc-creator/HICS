@@ -35,7 +35,7 @@ export function getAchievementSummary(attempts: ScenarioAttempt[]): AchievementS
   const days = [...uniqueDaysFromAttempts(attempts)].sort((a, b) => b.localeCompare(a));
   let streakDays = 0;
   if (days.length > 0) {
-    let cursor = new Date(days[0]);
+    const cursor = new Date(days[0]);
     for (const day of days) {
       const current = new Date(day);
       if (current.toISOString().slice(0, 10) !== cursor.toISOString().slice(0, 10)) {

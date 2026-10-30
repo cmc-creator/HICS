@@ -1,7 +1,8 @@
 import crypto from 'node:crypto';
-import { issueSignedAccessToken } from '../_auth.js';
+import { readStore } from '../_store.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
-import { issueRefreshSession } from '../_sessions.js';
+import { completeLogin } from '../_sessions.js';
+import { isValidEmail, normalizeEmail, resolveAccount } from '../_users.js';
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -9,8 +10,12 @@ function json(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-function isValidEmail(value) {
-  return typeof value === 'string' && value.includes('@') && value.includes('.');
+class SsoError extends Error {
+  constructor(status, publicMessage, detail) {
+    super(detail || publicMessage);
+    this.status = status;
+    this.publicMessage = publicMessage;
+  }
 }
 
 function base64UrlDecode(value) {
@@ -98,10 +103,10 @@ function getProviderExchangeConfig(provider) {
   };
 }
 
-async function exchangeCodeForIdToken({ provider, code, codeVerifier, redirectUri }) {
+async function exchangeCodeForIdentity({ provider, code, codeVerifier, redirectUri }) {
   const config = getProviderExchangeConfig(provider);
   if (!config.tokenUrl || !config.clientId || !config.jwksUrl || !config.issuer) {
-    return null;
+    throw new SsoError(503, 'Single sign-on is not configured for this provider.', `Missing OIDC config for ${provider}`);
   }
 
   const params = new URLSearchParams();
@@ -147,28 +152,16 @@ async function exchangeCodeForIdToken({ provider, code, codeVerifier, redirectUr
     throw new Error('OIDC audience mismatch');
   }
 
+  // Entra often omits `email`; preferred_username/upn carry the sign-in address instead.
+  const email = normalizeEmail(claims.email || claims.preferred_username || claims.upn);
+  if (!isValidEmail(email)) {
+    throw new Error('OIDC id_token has no usable email claim');
+  }
+
   return {
-    email: claims.email,
-    fullName: claims.name || claims.preferred_username || claims.email,
+    email,
+    fullName: claims.name || email,
   };
-}
-
-function inferRole(email, provider) {
-  const normalized = String(email || '').toLowerCase();
-  if (normalized.startsWith('it.') || normalized.includes('admin')) {
-    return 'enterprise-admin';
-  }
-  if (provider === 'okta') {
-    return 'facility-admin';
-  }
-  return 'training-manager';
-}
-
-function inferFacility(role) {
-  if (role === 'enterprise-admin') {
-    return 'all';
-  }
-  return process.env.DEFAULT_USER_FACILITY || 'general-acute-care';
 }
 
 export default async function handler(req, res) {
@@ -176,7 +169,7 @@ export default async function handler(req, res) {
     return json(res, 405, { error: 'Method not allowed' });
   }
 
-  if (!enforceRateLimit(req, res, {
+  if (!await enforceRateLimit(req, res, {
     scope: 'auth-exchange',
     maxRequests: 20,
     windowMs: 5 * 60 * 1000,
@@ -192,18 +185,15 @@ export default async function handler(req, res) {
   const validationError = validateBodyFields(body, [
     { name: 'provider', required: true, type: 'string', maxLength: 20 },
     { name: 'code', required: true, type: 'string', minLength: 5, maxLength: 4096 },
-    { name: 'codeVerifier', required: true, type: 'string', minLength: 32, maxLength: 256 },
+    { name: 'codeVerifier', required: true, type: 'string', minLength: 43, maxLength: 128 },
     { name: 'redirectUri', required: true, type: 'string', minLength: 8, maxLength: 2048 },
+    { name: 'remember', required: false, type: 'boolean' },
   ]);
   if (validationError) {
     return json(res, 400, { error: validationError });
   }
 
   const { provider, code, codeVerifier, redirectUri } = body;
-
-  if (!provider || !code || !codeVerifier || !redirectUri) {
-    return json(res, 400, { error: 'Missing required fields: provider, code, codeVerifier, redirectUri' });
-  }
 
   if (!['entra', 'okta'].includes(provider)) {
     return json(res, 400, { error: 'Provider must be entra or okta' });
@@ -214,84 +204,36 @@ export default async function handler(req, res) {
     return json(res, 400, { error: 'Invalid redirectUri' });
   }
 
-  let email = provider === 'okta' ? 'admin@healthsystem.com' : 'it.admin@healthsystem.com';
-  let fullName = provider === 'okta' ? 'Okta Administrator' : 'Entra Administrator';
+  let identity;
+  try {
+    identity = await exchangeCodeForIdentity({ provider, code, codeVerifier, redirectUri });
+  } catch (error) {
+    console.error('OIDC exchange failed', error);
+    if (error instanceof SsoError) {
+      return json(res, error.status, { error: error.publicMessage });
+    }
+    return json(res, 401, { error: 'Single sign-on could not be verified. Please try again.' });
+  }
 
   try {
-    const idTokenIdentity = await exchangeCodeForIdToken({ provider, code, codeVerifier, redirectUri });
-    if (idTokenIdentity?.email) {
-      email = String(idTokenIdentity.email).toLowerCase();
-      fullName = String(idTokenIdentity.fullName || fullName);
-    }
-  } catch (error) {
-    if (process.env.ALLOW_OIDC_MOCK_FALLBACK !== 'true') {
-      return json(res, 401, {
-        error: error instanceof Error ? error.message : 'OIDC token verification failed',
+    const store = await readStore();
+    const account = resolveAccount(store, identity.email);
+    if (!account) {
+      return json(res, 403, {
+        error: 'Your account has not been provisioned for NyxHICSlab. Ask your facility administrator to add you.',
       });
     }
-  }
 
-  if (!isValidEmail(email)) {
-    return json(res, 500, { error: 'Unable to determine user identity' });
-  }
-
-  const role = inferRole(email, provider);
-  const facility = inferFacility(role);
-  const organization = process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System';
-
-  let accessToken = '';
-  try {
-    accessToken = issueSignedAccessToken({
-      email,
-      fullName,
-      organization,
-      role,
-      facility,
-      authMethod: provider === 'okta' ? 'okta-oidc' : 'entra-oidc',
-    });
-  } catch (error) {
-    return json(res, 500, {
-      error: error instanceof Error ? error.message : 'Unable to issue access token',
-    });
-  }
-
-  let refreshToken = '';
-  try {
-    const refreshSession = await issueRefreshSession({
-      email,
-      fullName,
-      organization,
-      role,
-      facility,
-      authMethod: provider === 'okta' ? 'okta-oidc' : 'entra-oidc',
+    const session = await completeLogin(req, res, {
+      ...account,
+      fullName: account.user?.fullName || identity.fullName,
     }, {
-      ip: req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown',
-      userAgent: req.headers?.['user-agent'] || 'unknown',
+      authMethod: provider === 'okta' ? 'okta-oidc' : 'entra-oidc',
+      persistent: body.remember !== false,
     });
-    refreshToken = refreshSession.refreshToken;
-  } catch (err) {
-    // Refresh session store unavailable — return access-token-only response; client will re-auth at expiry.
-    return json(res, 200, {
-      accessToken,
-      refreshToken: '',
-      expiresIn: 3600,
-      email,
-      fullName,
-      organization,
-      role,
-      facility,
-      warning: 'Persistent session unavailable. You will need to log in again after your session expires.',
-    });
+    return json(res, 200, session);
+  } catch (error) {
+    console.error('OIDC session issue failed', error);
+    return json(res, 500, { error: 'Unable to complete sign in right now. Please try again.' });
   }
-
-  return json(res, 200, {
-    accessToken,
-    refreshToken,
-    expiresIn: 3600,
-    email,
-    fullName,
-    organization,
-    role,
-    facility,
-  });
 }

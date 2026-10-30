@@ -1,21 +1,18 @@
-import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, createId, json, readStore, updateStore } from '../_store.js';
 import { canManageData, isEnterpriseAdmin, requireAuth, scopeByFacility } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 
-const MAX_DATA_URL_LENGTH = 8 * 1024 * 1024;
-
-function isValidHttpUrl(value) {
+function isValidHttpsUrl(value) {
   try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    return new URL(value).protocol === 'https:';
   } catch {
     return false;
   }
 }
 
 export default async function handler(req, res) {
-  if (!enforceRateLimit(req, res, {
+  if (!await enforceRateLimit(req, res, {
     scope: 'training-media',
     maxRequests: 120,
     windowMs: 5 * 60 * 1000,
@@ -32,16 +29,12 @@ export default async function handler(req, res) {
     return;
   }
 
-  const store = await getStore();
   const requesterFacility = String(auth.claims.facility || 'all');
-
-  if (!Array.isArray(store.mediaAssets)) {
-    store.mediaAssets = [];
-  }
 
   if (req.method === 'GET') {
     const moduleId = typeof req.query?.moduleId === 'string' ? req.query.moduleId : '';
 
+    const store = await readStore();
     let scoped = scopeByFacility(store.mediaAssets, auth.claims, 'facility');
     if (moduleId) {
       scoped = scoped.filter((item) => String(item.moduleId || '') === moduleId);
@@ -60,11 +53,12 @@ export default async function handler(req, res) {
       { name: 'moduleId', required: true, type: 'string', minLength: 2, maxLength: 120 },
       { name: 'title', required: true, type: 'string', minLength: 2, maxLength: 140 },
       { name: 'sourceType', required: true, type: 'string', minLength: 5, maxLength: 10 },
-      { name: 'videoUrl', required: true, type: 'string', minLength: 10, maxLength: MAX_DATA_URL_LENGTH },
+      { name: 'videoUrl', required: true, type: 'string', minLength: 10, maxLength: 2048 },
       { name: 'posterUrl', required: false, type: 'string', maxLength: 500 },
       { name: 'description', required: false, type: 'string', maxLength: 300 },
       { name: 'storageKey', required: false, type: 'string', maxLength: 400 },
       { name: 'storageProvider', required: false, type: 'string', maxLength: 40 },
+      { name: 'mimeType', required: false, type: 'string', maxLength: 80 },
     ]);
     if (validationError) {
       return json(res, 400, { error: validationError });
@@ -75,22 +69,15 @@ export default async function handler(req, res) {
       return json(res, 400, { error: 'sourceType must be stream or upload' });
     }
 
+    // Uploads go to Vercel Blob first, so only https URLs are stored. Inline data: URLs
+    // would bloat the shared store past Redis request limits.
     const videoUrl = String(body.videoUrl);
-    if (sourceType === 'upload') {
-      const isDataUrl = videoUrl.startsWith('data:video/');
-      const isHttpUrl = isValidHttpUrl(videoUrl);
-
-      if (!isDataUrl && !isHttpUrl) {
-        return json(res, 400, { error: 'Uploaded media must be a video data URL or object URL' });
-      }
-
-      if (isDataUrl && videoUrl.length > MAX_DATA_URL_LENGTH) {
-        return json(res, 413, { error: 'Uploaded media exceeds maximum allowed size' });
-      }
+    if (!isValidHttpsUrl(videoUrl)) {
+      return json(res, 400, { error: 'videoUrl must be a valid https URL' });
     }
 
-    if (sourceType === 'stream' && !isValidHttpUrl(videoUrl)) {
-      return json(res, 400, { error: 'videoUrl must be a valid http(s) stream URL' });
+    if (typeof body.posterUrl === 'string' && body.posterUrl && !isValidHttpsUrl(body.posterUrl)) {
+      return json(res, 400, { error: 'posterUrl must be a valid https URL' });
     }
 
     const facility = isEnterpriseAdmin(auth.claims) && typeof body.facility === 'string' && body.facility
@@ -103,11 +90,11 @@ export default async function handler(req, res) {
       title: String(body.title),
       sourceType,
       videoUrl,
-      posterUrl: typeof body.posterUrl === 'string' ? body.posterUrl : undefined,
+      posterUrl: typeof body.posterUrl === 'string' && body.posterUrl ? body.posterUrl : undefined,
       description: typeof body.description === 'string' ? body.description : undefined,
-      durationSeconds: Number(body.durationSeconds ?? 0),
+      durationSeconds: Math.max(0, Number(body.durationSeconds ?? 0) || 0),
       mimeType: typeof body.mimeType === 'string' ? body.mimeType : undefined,
-      bytes: Number(body.bytes ?? 0),
+      bytes: Math.max(0, Number(body.bytes ?? 0) || 0),
       storageKey: typeof body.storageKey === 'string' ? body.storageKey : undefined,
       storageProvider: typeof body.storageProvider === 'string' ? body.storageProvider : undefined,
       facility,
@@ -116,16 +103,16 @@ export default async function handler(req, res) {
       createdAt: new Date().toISOString(),
     };
 
-    store.mediaAssets.unshift(asset);
-    store.mediaAssets = store.mediaAssets.slice(0, 1200);
-    appendAuditLog(store, 'learning_media_uploaded', {
-      moduleId: asset.moduleId,
-      facility: asset.facility,
-      sourceType: asset.sourceType,
-      uploadedBy: asset.uploadedBy,
+    await updateStore((store) => {
+      store.mediaAssets.unshift(asset);
+      store.mediaAssets = store.mediaAssets.slice(0, 1200);
+      appendAuditLog(store, 'learning_media_uploaded', {
+        moduleId: asset.moduleId,
+        facility: asset.facility,
+        sourceType: asset.sourceType,
+        uploadedBy: asset.uploadedBy,
+      });
     });
-
-    await saveStore(store);
     return json(res, 201, { mediaAsset: asset });
   }
 
@@ -139,19 +126,24 @@ export default async function handler(req, res) {
       return json(res, 400, { error: 'id query parameter is required' });
     }
 
-    const beforeCount = store.mediaAssets.length;
-    if (isEnterpriseAdmin(auth.claims) || requesterFacility === 'all') {
-      store.mediaAssets = store.mediaAssets.filter((item) => item.id !== id);
-    } else {
-      store.mediaAssets = store.mediaAssets.filter((item) => !(item.id === id && String(item.facility || '') === requesterFacility));
-    }
+    const deleted = await updateStore((store) => {
+      const beforeCount = store.mediaAssets.length;
+      if (isEnterpriseAdmin(auth.claims) || requesterFacility === 'all') {
+        store.mediaAssets = store.mediaAssets.filter((item) => item.id !== id);
+      } else {
+        store.mediaAssets = store.mediaAssets.filter((item) => !(item.id === id && String(item.facility || '') === requesterFacility));
+      }
 
-    if (store.mediaAssets.length === beforeCount) {
+      if (store.mediaAssets.length === beforeCount) {
+        return false;
+      }
+      appendAuditLog(store, 'learning_media_deleted', { id, facility: requesterFacility });
+      return true;
+    });
+
+    if (!deleted) {
       return json(res, 404, { error: 'Media asset not found' });
     }
-
-    appendAuditLog(store, 'learning_media_deleted', { id });
-    await saveStore(store);
     return json(res, 204, {});
   }
 

@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "typecheck": "tsc -b",
     "test:auth": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%INIT_CWD%\\scripts\\run-auth-smoke.ps1\"",
     "test:smoke": "playwright test",
     "test:smoke:headed": "playwright test --headed",

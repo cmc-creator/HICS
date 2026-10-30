@@ -1,5 +1,5 @@
-import { revokeRefreshSession } from '../_sessions.js';
-import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
+import { clearRefreshCookie, readRefreshCookie, revokeRefreshSession } from '../_sessions.js';
+import { enforceRateLimit } from '../_security.js';
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     return json(res, 405, { error: 'Method not allowed' });
   }
 
-  if (!enforceRateLimit(req, res, {
+  if (!await enforceRateLimit(req, res, {
     scope: 'auth-logout',
     maxRequests: 50,
     windowMs: 5 * 60 * 1000,
@@ -20,18 +20,16 @@ export default async function handler(req, res) {
     return;
   }
 
-  const body = parseJsonBody(req);
-  if (!body || typeof body !== 'object') {
-    return json(res, 400, { error: 'Invalid JSON payload' });
+  const refreshToken = readRefreshCookie(req);
+  clearRefreshCookie(res);
+
+  if (refreshToken) {
+    try {
+      await revokeRefreshSession(refreshToken, 'logout');
+    } catch (error) {
+      console.error('logout revocation failed', error);
+    }
   }
 
-  const validationError = validateBodyFields(body, [
-    { name: 'refreshToken', required: true, type: 'string', minLength: 20, maxLength: 512 },
-  ]);
-  if (validationError) {
-    return json(res, 400, { error: validationError });
-  }
-
-  await revokeRefreshSession(String(body.refreshToken), 'logout');
   return json(res, 200, { ok: true });
 }

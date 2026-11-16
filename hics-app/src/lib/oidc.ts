@@ -1,6 +1,6 @@
 import { publicApiRequest } from './apiClient';
 
-export type OidcProvider = 'entra' | 'okta';
+export type OidcProvider = 'entra' | 'okta' | 'google';
 
 const STATE_KEY = 'nyx-oidc-state';
 const VERIFIER_KEY = 'nyx-oidc-verifier';
@@ -23,7 +23,21 @@ interface OidcExchangeResult {
   organization: string;
 }
 
+const GOOGLE_AUTHORIZE_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
+
 function getProviderConfig(provider: OidcProvider): ProviderConfig {
+  if (provider === 'google') {
+    return {
+      name: 'Google',
+      clientId: (import.meta.env.VITE_OIDC_GOOGLE_CLIENT_ID as string) ?? '',
+      // Google's authorize endpoint is fixed, so it defaults when unset.
+      authorizeEndpoint:
+        (import.meta.env.VITE_OIDC_GOOGLE_AUTHORIZE_URL as string) || GOOGLE_AUTHORIZE_ENDPOINT,
+      tokenExchangeEndpoint: (import.meta.env.VITE_AUTH_EXCHANGE_ENDPOINT as string) ?? '',
+      scope: (import.meta.env.VITE_OIDC_GOOGLE_SCOPE as string) ?? 'openid profile email',
+    };
+  }
+
   const prefix = provider === 'entra' ? 'VITE_OIDC_ENTRA' : 'VITE_OIDC_OKTA';
   return {
     name: provider === 'entra' ? 'Microsoft Entra ID' : 'Okta',
@@ -68,13 +82,21 @@ export async function beginOidcLogin(provider: OidcProvider, redirectUri: string
   url.searchParams.set('state', state);
   url.searchParams.set('code_challenge', challenge);
   url.searchParams.set('code_challenge_method', 'S256');
+  if (provider === 'google') {
+    // Always show Google's account chooser, matching the behavior of
+    // Connie's other apps.
+    url.searchParams.set('prompt', 'select_account');
+  }
 
   window.location.assign(url.toString());
 }
 
 export function getStoredOidcProvider(): OidcProvider {
   const stored = sessionStorage.getItem(PROVIDER_KEY);
-  return stored === 'okta' ? 'okta' : 'entra';
+  if (stored === 'okta' || stored === 'google' || stored === 'entra') {
+    return stored;
+  }
+  return 'entra';
 }
 
 export function validateOidcState(state: string): boolean {
@@ -97,8 +119,18 @@ export async function exchangeOidcCode(provider: OidcProvider, code: string, red
       accessToken: `oidc-${provider}-${randomString(24)}`,
       refreshToken: randomString(32),
       expiresIn: 3600,
-      email: provider === 'okta' ? 'admin@healthsystem.com' : 'it.admin@healthsystem.com',
-      fullName: provider === 'okta' ? 'Okta Administrator' : 'Entra Administrator',
+      email:
+        provider === 'okta'
+          ? 'admin@healthsystem.com'
+          : provider === 'google'
+            ? 'google.admin@healthsystem.com'
+            : 'it.admin@healthsystem.com',
+      fullName:
+        provider === 'okta'
+          ? 'Okta Administrator'
+          : provider === 'google'
+            ? 'Google Administrator'
+            : 'Entra Administrator',
       organization: 'Enterprise Health System',
     };
   }

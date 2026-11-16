@@ -9,6 +9,8 @@
 - `hics-app/src/pages/ResetPasswordPage.tsx` and public route `/reset-password`: neutral "Set your password" page used by both password resets and admin invites.
 - Bootstrap admin: when `HICS_BOOTSTRAP_ADMIN_EMAIL` and `HICS_BOOTSTRAP_ADMIN_PASSWORD` are set, store load creates that enterprise admin (facility `all`) if no user with the email exists. Idempotent across loads and store backends.
 - `api/tests/auth-credentials-smoke.mjs`: credential auth smoke suite (hashing, real login, forgot/reset flow, token reuse and expiry, bootstrap admin, seed behavior).
+- Google SSO: `google` added as a third OIDC provider end to end - `hics-app/src/lib/oidc.ts` (authorize URL defaults to Google's fixed endpoint when unset; the authorize request carries `prompt=select_account`) and `api/auth/exchange.js` (token, JWKS, and issuer default to Google's fixed endpoints, so only `OIDC_GOOGLE_CLIENT_ID` and `OIDC_GOOGLE_CLIENT_SECRET` must be configured). Google sessions are labeled `google-oidc` and default to the facility-admin role.
+- `api/tests/auth-exchange-google-smoke.mjs`: exchange smoke suite proving the google allowlist entry, the default Google endpoint resolution, and a full fetch-stubbed exchange of a Google-shaped RS256 ID token.
 
 ### Changed
 - `api/auth/local-login.js`: demo login replaced with real credential verification against the store. Users must exist, be `active`, and have a verifying `passwordHash`; token claims (email, fullName, organization, role, facility) come from the user record. All failures return the same generic 401 `Invalid email or password.` The email-string role/facility inference helpers were removed.
@@ -18,6 +20,7 @@
 - `api/tests/auth-session-smoke.mjs`: seeds a real credential user for the login step now that demo login is gone.
 - `hics-app/src/lib/apiClient.ts`: `publicApiRequest` now surfaces the server's `error` message (e.g. the login 401) instead of only a bare status code.
 - `hics-app/.env.example`: documented `APP_BASE_URL`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `HICS_BOOTSTRAP_ADMIN_EMAIL`, `HICS_BOOTSTRAP_ADMIN_PASSWORD`, and `HICS_SEED_DEMO`.
+- `hics-app/src/pages/LoginPage.tsx`: the Microsoft Entra and Okta sign-in buttons were replaced with a single "Continue with Google" button. The entra/okta providers remain in code, dormant and env-gated, for customers on those identity providers. `hics-app/src/pages/HealthCheckPage.tsx` environment panel now shows the Google Client ID instead of the Entra/Okta rows, and `.env.example` documents the Google OIDC block with the Entra/Okta blocks marked optional/legacy.
 
 ## 2026-04-17
 

@@ -64,12 +64,12 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
     }
   };
 
-  const handleSsoLogin = async (provider: 'entra' | 'okta') => {
+  const handleGoogleLogin = async () => {
     try {
       const redirectUri = `${window.location.origin}/auth/callback`;
-      await beginOidcLogin(provider, redirectUri);
+      await beginOidcLogin('google', redirectUri);
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Unable to start enterprise SSO flow.');
+      setError(caughtError instanceof Error ? caughtError.message : 'Unable to start Google sign in.');
     }
   };
 
@@ -102,9 +102,8 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
 
           <section className="nyx-panel p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Login</h2>
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              <button type="button" onClick={() => handleSsoLogin('entra')} className="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-gray-50">Microsoft Entra</button>
-              <button type="button" onClick={() => handleSsoLogin('okta')} className="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-gray-50">Okta</button>
+            <div className="mb-4">
+              <button type="button" onClick={handleGoogleLogin} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-gray-50">Continue with Google</button>
             </div>
 
             <form onSubmit={handleCredentialLogin} className="space-y-3">

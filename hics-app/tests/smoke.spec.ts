@@ -95,6 +95,22 @@ test('public routes and CTAs resolve', async ({ page }) => {
   await expect(page.getByRole('button', { name: /Re-run checks/i })).toBeVisible();
 });
 
+test('login page offers Google as the only SSO option', async ({ page }) => {
+  await page.goto('/login');
+  await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
+
+  await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Entra/i })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Okta/i })).toHaveCount(0);
+
+  // The test build has no Google client id configured, so clicking
+  // surfaces the graceful not-configured error and stays on /login
+  // instead of navigating away or crashing.
+  await page.getByRole('button', { name: 'Continue with Google' }).click();
+  await expect(page.getByText(/OIDC provider Google is not configured/i)).toBeVisible();
+  await expect(page).toHaveURL(/\/login$/);
+});
+
 test('protected routes redirect anonymous users to login', async ({ page }) => {
   await page.goto('/dashboard');
   await expect(page).toHaveURL(/\/login$/);

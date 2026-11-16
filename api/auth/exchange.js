@@ -89,6 +89,18 @@ function getProviderExchangeConfig(provider) {
     };
   }
 
+  if (provider === 'google') {
+    return {
+      // Google's token, JWKS, and issuer endpoints are fixed public
+      // values, so they default when the env overrides are unset.
+      tokenUrl: process.env.OIDC_GOOGLE_TOKEN_URL || 'https://oauth2.googleapis.com/token',
+      clientId: process.env.OIDC_GOOGLE_CLIENT_ID,
+      clientSecret: process.env.OIDC_GOOGLE_CLIENT_SECRET,
+      jwksUrl: process.env.OIDC_GOOGLE_JWKS_URL || 'https://www.googleapis.com/oauth2/v3/certs',
+      issuer: process.env.OIDC_GOOGLE_ISSUER || 'https://accounts.google.com',
+    };
+  }
+
   return {
     tokenUrl: process.env.OIDC_OKTA_TOKEN_URL,
     clientId: process.env.OIDC_OKTA_CLIENT_ID,
@@ -158,7 +170,7 @@ function inferRole(email, provider) {
   if (normalized.startsWith('it.') || normalized.includes('admin')) {
     return 'enterprise-admin';
   }
-  if (provider === 'okta') {
+  if (provider === 'okta' || provider === 'google') {
     return 'facility-admin';
   }
   return 'training-manager';
@@ -205,8 +217,8 @@ export default async function handler(req, res) {
     return json(res, 400, { error: 'Missing required fields: provider, code, codeVerifier, redirectUri' });
   }
 
-  if (!['entra', 'okta'].includes(provider)) {
-    return json(res, 400, { error: 'Provider must be entra or okta' });
+  if (!['entra', 'okta', 'google'].includes(provider)) {
+    return json(res, 400, { error: 'Provider must be entra, okta, or google' });
   }
 
   const allowedRedirect = process.env.ALLOWED_OIDC_REDIRECT_URI;
@@ -216,6 +228,10 @@ export default async function handler(req, res) {
 
   let email = provider === 'okta' ? 'admin@healthsystem.com' : 'it.admin@healthsystem.com';
   let fullName = provider === 'okta' ? 'Okta Administrator' : 'Entra Administrator';
+  if (provider === 'google') {
+    email = 'google.admin@healthsystem.com';
+    fullName = 'Google Administrator';
+  }
 
   try {
     const idTokenIdentity = await exchangeCodeForIdToken({ provider, code, codeVerifier, redirectUri });
@@ -247,7 +263,7 @@ export default async function handler(req, res) {
       organization,
       role,
       facility,
-      authMethod: provider === 'okta' ? 'okta-oidc' : 'entra-oidc',
+      authMethod: `${provider}-oidc`,
     });
   } catch (error) {
     return json(res, 500, {
@@ -263,7 +279,7 @@ export default async function handler(req, res) {
       organization,
       role,
       facility,
-      authMethod: provider === 'okta' ? 'okta-oidc' : 'entra-oidc',
+      authMethod: `${provider}-oidc`,
     }, {
       ip: req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown',
       userAgent: req.headers?.['user-agent'] || 'unknown',

@@ -199,10 +199,8 @@ export default function HealthCheckPage() {
               <dd>{import.meta.env.VITE_API_BASE_URL || <span className="opacity-40 italic">not set</span>}</dd>
               <dt className="opacity-50">Auth Exchange</dt>
               <dd>{import.meta.env.VITE_AUTH_EXCHANGE_ENDPOINT || <span className="opacity-40 italic">not set</span>}</dd>
-              <dt className="opacity-50">Entra Client ID</dt>
-              <dd>{import.meta.env.VITE_OIDC_ENTRA_CLIENT_ID ? '••••' + String(import.meta.env.VITE_OIDC_ENTRA_CLIENT_ID).slice(-4) : <span className="opacity-40 italic">not set</span>}</dd>
-              <dt className="opacity-50">Okta Domain</dt>
-              <dd>{import.meta.env.VITE_OIDC_OKTA_DOMAIN || <span className="opacity-40 italic">not set</span>}</dd>
+              <dt className="opacity-50">Google Client ID</dt>
+              <dd>{import.meta.env.VITE_OIDC_GOOGLE_CLIENT_ID ? '••••' + String(import.meta.env.VITE_OIDC_GOOGLE_CLIENT_ID).slice(-4) : <span className="opacity-40 italic">not set</span>}</dd>
               <dt className="opacity-50">Local Auth Fallback</dt>
               <dd>{import.meta.env.VITE_ALLOW_LOCAL_AUTH_FALLBACK || 'false'}</dd>
               <dt className="opacity-50">Local Lead Fallback</dt>

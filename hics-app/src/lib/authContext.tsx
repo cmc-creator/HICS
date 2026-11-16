@@ -27,7 +27,7 @@ interface AuthSession {
   user: AuthUser;
   accessToken: string;
   refreshToken?: string;
-  authMethod: 'password' | 'entra-oidc' | 'okta-oidc';
+  authMethod: 'password' | 'entra-oidc' | 'okta-oidc' | 'google-oidc';
   expiresAt: number;
   lastActivityAt: number;
 }

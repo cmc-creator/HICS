@@ -39,7 +39,8 @@ export default function AuthCallbackPage() {
           },
           accessToken: result.accessToken,
           refreshToken: result.refreshToken,
-          authMethod: provider === 'okta' ? 'okta-oidc' : 'entra-oidc',
+          authMethod:
+            provider === 'okta' ? 'okta-oidc' : provider === 'google' ? 'google-oidc' : 'entra-oidc',
           expiresInSeconds: result.expiresIn,
           remember: true,
         });

@@ -94,7 +94,18 @@ async function readStoreFromRedis() {
     return null;
   }
 
-  return JSON.parse(payload.result);
+  const parsed = JSON.parse(payload.result);
+  // Only a plain object is a store. Anything else (an array, a
+  // string) means the stored value is not one of ours - e.g. it was
+  // written by the pre-2026-11-16 write path, which wrapped the
+  // store JSON in a JSON array that Upstash stored literally.
+  // Treat it as missing so a fresh, correctly shaped store is
+  // created and written back, healing the database automatically.
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return null;
+  }
+
+  return parsed;
 }
 
 async function writeStoreToRedis(store) {
@@ -103,14 +114,19 @@ async function writeStoreToRedis(store) {
     return false;
   }
 
-  // Use POST body to avoid URL length limits on large stores.
+  // Use POST body to avoid URL length limits on large stores. The
+  // body must be the raw store JSON: the Upstash REST API stores a
+  // POST body verbatim. (An earlier version sent a JSON array
+  // containing the store JSON; Upstash stored that array text
+  // literally, so every later read parsed back an array instead of
+  // the store object and handlers crashed on missing collections.)
   const response = await fetch(`${redis.url}/set/${encodeURIComponent(STORE_REDIS_KEY)}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${redis.token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify([JSON.stringify(store)]),
+    body: JSON.stringify(store),
   });
 
   if (!response.ok) {
@@ -235,10 +251,25 @@ async function readStoreFromBacking() {
   return { store, mode };
 }
 
+// Fills in any top-level collections a loaded store is missing
+// (older or partially written data) so handlers can rely on the
+// store's shape - appendAuditLog, for one, crashes on a store
+// whose auditLogs array is absent.
+function ensureStoreShape(store) {
+  const defaults = createInitialStore();
+  for (const key of Object.keys(defaults)) {
+    if (store[key] === undefined) {
+      store[key] = defaults[key];
+    }
+  }
+  return store;
+}
+
 // Shared tail for loadStore() and reloadStore(): installs the
 // store as this instance's cache, warns about ephemeral production
 // persistence, and makes sure the bootstrap admin exists.
 async function installLoadedStore(store, mode) {
+  ensureStoreShape(store);
   globalThis[STORE_KEY] = store;
   globalThis[STORE_MODE_KEY] = mode;
   warnIfEphemeralStoreInProduction(mode);

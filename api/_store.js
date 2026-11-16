@@ -205,7 +205,11 @@ async function readStoreFromBacking() {
     if (store) {
       mode = 'redis';
     }
-  } catch {
+  } catch (error) {
+    console.error(
+      '[NyxHICSlab] Redis store read failed; falling back to file/tmp storage:',
+      error instanceof Error ? error.message : error,
+    );
     store = null;
   }
 
@@ -276,7 +280,11 @@ export async function saveStore(store) {
       globalThis[STORE_MODE_KEY] = 'redis';
       return;
     }
-  } catch {
+  } catch (error) {
+    console.error(
+      '[NyxHICSlab] Redis store write failed; falling back to file/tmp storage:',
+      error instanceof Error ? error.message : error,
+    );
     // Fall through to file persistence.
   }
 

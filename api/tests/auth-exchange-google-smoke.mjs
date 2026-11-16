@@ -15,6 +15,8 @@ delete process.env.OIDC_GOOGLE_TOKEN_URL;
 delete process.env.OIDC_GOOGLE_JWKS_URL;
 delete process.env.OIDC_GOOGLE_ISSUER;
 delete process.env.ALLOW_OIDC_MOCK_FALLBACK;
+delete process.env.UPSTASH_REDIS_REST_URL;
+delete process.env.UPSTASH_REDIS_REST_TOKEN;
 
 const CLIENT_ID = process.env.OIDC_GOOGLE_CLIENT_ID;
 const KID = 'google-smoke-test-kid';
@@ -84,6 +86,25 @@ globalThis.fetch = async (url, options = {}) => {
 };
 
 const { default: exchange } = await import('../auth/exchange.js');
+const { getStore, saveStore } = await import('../_store.js');
+
+// SSO sign-in requires a provisioned store user (audit fix B4):
+// role, facility, and organization come from the record, never
+// from the email string. Seed the user the minted ID tokens name.
+const seedStore = await getStore();
+if (!seedStore.users.some((candidate) => String(candidate.email || '').toLowerCase() === 'charge.nurse@example.com')) {
+  seedStore.users.push({
+    id: 'usr-smoke-charge-nurse',
+    fullName: 'Charge Nurse',
+    email: 'charge.nurse@example.com',
+    role: 'facility-admin',
+    facility: 'psychiatric-inpatient',
+    organization: 'Nyx Test Health',
+    status: 'active',
+    createdAt: new Date().toISOString(),
+  });
+  await saveStore(seedStore);
+}
 
 function createMockRes() {
   let statusCode = 200;
@@ -169,7 +190,7 @@ assert.equal(success.status, 200, `google exchange should succeed (got ${success
 assert.equal(success.body.email, 'charge.nurse@example.com');
 assert.equal(success.body.fullName, 'Charge Nurse');
 assert.equal(success.body.organization, 'Nyx Test Health');
-assert.equal(success.body.role, 'facility-admin', 'google sign-ins default to facility-admin');
+assert.equal(success.body.role, 'facility-admin', 'role comes from the store record');
 assert.equal(success.body.facility, 'psychiatric-inpatient');
 assert.equal(typeof success.body.accessToken, 'string');
 assert.ok(success.body.accessToken.length > 20, 'access token should be issued');
@@ -198,6 +219,23 @@ currentIdToken = mintIdToken({ aud: 'someone-elses-client-id' });
 const wrongAudience = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
 assert.equal(wrongAudience.status, 401, 'wrong-audience id_token should be rejected');
 assert.match(String(wrongAudience.body.error), /audience/i);
+
+// 5. A fully verified Google identity with no store record is
+// refused (audit fix B4): SSO is not an open door, and no token
+// is issued.
+currentIdToken = mintIdToken({ email: 'stranger@example.com', name: 'Unprovisioned Stranger' });
+const unprovisioned = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
+assert.equal(unprovisioned.status, 403, 'unprovisioned SSO user should be refused');
+assert.match(String(unprovisioned.body.error), /not provisioned/i);
+assert.equal(unprovisioned.body.accessToken, undefined, 'no access token for unprovisioned user');
+
+// 6. An unconfigured provider (entra env is unset in this suite)
+// is refused with 503 and issues no token (audit fix B2 - the
+// mock-identity fallthrough is gone).
+currentIdToken = mintIdToken();
+const unconfigured = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'entra' }));
+assert.equal(unconfigured.status, 503, 'unconfigured provider should return 503');
+assert.equal(unconfigured.body.accessToken, undefined, 'no access token for unconfigured provider');
 
 globalThis.fetch = originalFetch;
 

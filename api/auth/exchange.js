@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { issueSignedAccessToken } from '../_auth.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 import { issueRefreshSession } from '../_sessions.js';
+import { reloadStore } from '../_store.js';
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -49,6 +50,23 @@ async function fetchJwks(jwksUrl) {
   return Array.isArray(payload?.keys) ? payload.keys : [];
 }
 
+// JWKS documents change only when a provider rotates its signing
+// keys, so cache them per URL for 10 minutes instead of fetching
+// on every exchange. An unknown kid bypasses the cache once, which
+// picks up a rotation immediately without waiting out the TTL.
+const JWKS_CACHE_TTL_MS = 10 * 60 * 1000;
+const jwksCache = new Map();
+
+async function getJwksKeys(jwksUrl, { forceRefresh = false } = {}) {
+  const cached = jwksCache.get(jwksUrl);
+  if (!forceRefresh && cached && Date.now() - cached.fetchedAt < JWKS_CACHE_TTL_MS) {
+    return cached.keys;
+  }
+  const keys = await fetchJwks(jwksUrl);
+  jwksCache.set(jwksUrl, { keys, fetchedAt: Date.now() });
+  return keys;
+}
+
 async function verifyIdTokenSignature(idToken, jwksUrl) {
   const decoded = parseJwt(idToken);
   if (!decoded) {
@@ -59,8 +77,11 @@ async function verifyIdTokenSignature(idToken, jwksUrl) {
     throw new Error('Unsupported id_token signature algorithm');
   }
 
-  const keys = await fetchJwks(jwksUrl);
-  const matching = keys.find((key) => key.kid === decoded.header.kid && key.kty === 'RSA');
+  const findKey = (keys) => keys.find((key) => key.kid === decoded.header.kid && key.kty === 'RSA');
+  let matching = findKey(await getJwksKeys(jwksUrl));
+  if (!matching) {
+    matching = findKey(await getJwksKeys(jwksUrl, { forceRefresh: true }));
+  }
   if (!matching) {
     throw new Error('No matching JWKS key found for id_token');
   }
@@ -110,10 +131,20 @@ function getProviderExchangeConfig(provider) {
   };
 }
 
+function isProviderConfigured(provider) {
+  const config = getProviderExchangeConfig(provider);
+  return Boolean(config.tokenUrl && config.clientId && config.jwksUrl && config.issuer);
+}
+
 async function exchangeCodeForIdToken({ provider, code, codeVerifier, redirectUri }) {
   const config = getProviderExchangeConfig(provider);
   if (!config.tokenUrl || !config.clientId || !config.jwksUrl || !config.issuer) {
-    return null;
+    // Defense in depth: the handler checks configuration first and
+    // answers 503, so reaching this throw means a caller skipped
+    // the check. An unconfigured provider must never produce an
+    // identity - there is no mock or fallback identity anywhere in
+    // this flow.
+    throw new Error(`OIDC provider ${provider} is not configured`);
   }
 
   const params = new URLSearchParams();
@@ -165,24 +196,6 @@ async function exchangeCodeForIdToken({ provider, code, codeVerifier, redirectUr
   };
 }
 
-function inferRole(email, provider) {
-  const normalized = String(email || '').toLowerCase();
-  if (normalized.startsWith('it.') || normalized.includes('admin')) {
-    return 'enterprise-admin';
-  }
-  if (provider === 'okta' || provider === 'google') {
-    return 'facility-admin';
-  }
-  return 'training-manager';
-}
-
-function inferFacility(role) {
-  if (role === 'enterprise-admin') {
-    return 'all';
-  }
-  return process.env.DEFAULT_USER_FACILITY || 'general-acute-care';
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return json(res, 405, { error: 'Method not allowed' });
@@ -226,34 +239,49 @@ export default async function handler(req, res) {
     return json(res, 400, { error: 'Invalid redirectUri' });
   }
 
-  let email = provider === 'okta' ? 'admin@healthsystem.com' : 'it.admin@healthsystem.com';
-  let fullName = provider === 'okta' ? 'Okta Administrator' : 'Entra Administrator';
-  if (provider === 'google') {
-    email = 'google.admin@healthsystem.com';
-    fullName = 'Google Administrator';
+  // An unconfigured provider (missing token URL, client id, JWKS
+  // URL, or issuer after defaults) can never verify an identity.
+  // Refuse the exchange outright: no session is issued, and there
+  // is deliberately no mock/fallback identity to fall through to.
+  if (!isProviderConfigured(provider)) {
+    return json(res, 503, { error: 'This sign-in provider is not configured.' });
   }
 
+  let identity = null;
   try {
-    const idTokenIdentity = await exchangeCodeForIdToken({ provider, code, codeVerifier, redirectUri });
-    if (idTokenIdentity?.email) {
-      email = String(idTokenIdentity.email).toLowerCase();
-      fullName = String(idTokenIdentity.fullName || fullName);
-    }
+    identity = await exchangeCodeForIdToken({ provider, code, codeVerifier, redirectUri });
   } catch (error) {
-    if (process.env.ALLOW_OIDC_MOCK_FALLBACK !== 'true') {
-      return json(res, 401, {
-        error: error instanceof Error ? error.message : 'OIDC token verification failed',
-      });
-    }
+    console.error('[NyxHICSlab] OIDC exchange failed:', error instanceof Error ? error.message : error);
+    return json(res, 401, {
+      error: error instanceof Error ? error.message : 'OIDC token verification failed',
+    });
   }
 
+  const email = String(identity?.email || '').trim().toLowerCase();
   if (!isValidEmail(email)) {
-    return json(res, 500, { error: 'Unable to determine user identity' });
+    return json(res, 401, { error: 'Unable to determine user identity' });
   }
 
-  const role = inferRole(email, provider);
-  const facility = inferFacility(role);
-  const organization = process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System';
+  // A verified identity is not enough on its own: the person must
+  // be provisioned in the user store. Role, facility, and
+  // organization always come from the store record - never from
+  // the email string - and unknown or inactive accounts are
+  // refused. Reload first so a just-provisioned user is visible
+  // even on a warm instance with a stale cache.
+  const store = await reloadStore();
+  const users = Array.isArray(store.users) ? store.users : [];
+  const user = users.find((candidate) => String(candidate?.email || '').toLowerCase() === email);
+
+  if (!user || user.status !== 'active') {
+    return json(res, 403, {
+      error: 'This account is not provisioned for NyxHICSlab. Contact your administrator to request access.',
+    });
+  }
+
+  const fullName = String(user.fullName || identity.fullName || email);
+  const role = String(user.role || 'facility-admin');
+  const facility = String(user.facility || process.env.DEFAULT_USER_FACILITY || 'general-acute-care');
+  const organization = String(user.organization || process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System');
 
   let accessToken = '';
   try {
@@ -266,9 +294,8 @@ export default async function handler(req, res) {
       authMethod: `${provider}-oidc`,
     });
   } catch (error) {
-    return json(res, 500, {
-      error: error instanceof Error ? error.message : 'Unable to issue access token',
-    });
+    console.error('[NyxHICSlab] Failed to issue access token for SSO session:', error instanceof Error ? error.message : error);
+    return json(res, 500, { error: 'Unable to issue access token' });
   }
 
   let refreshToken = '';

@@ -192,20 +192,18 @@ async function ensureBootstrapAdmin(store) {
   await saveStore(store);
 }
 
-export async function loadStore() {
-  if (globalThis[STORE_KEY]) {
-    if (!globalThis[STORE_MODE_KEY]) {
-      globalThis[STORE_MODE_KEY] = 'memory';
-    }
-    return globalThis[STORE_KEY];
-  }
-
+// Shared read path behind loadStore() and reloadStore(): Redis
+// first, then the primary store file, then the tmp fallback, then
+// a fresh in-memory store. Returns the store plus the mode it
+// came from.
+async function readStoreFromBacking() {
   let store = null;
+  let mode = 'memory';
 
   try {
     store = await readStoreFromRedis();
     if (store) {
-      globalThis[STORE_MODE_KEY] = 'redis';
+      mode = 'redis';
     }
   } catch {
     store = null;
@@ -214,26 +212,59 @@ export async function loadStore() {
   if (!store) {
     store = await readStoreFromFile(STORE_FILE_PATH);
     if (store) {
-      globalThis[STORE_MODE_KEY] = 'file';
+      mode = 'file';
     }
   }
 
   if (!store) {
     store = await readStoreFromFile(FALLBACK_TMP_FILE_PATH);
     if (store) {
-      globalThis[STORE_MODE_KEY] = 'tmp-file';
+      mode = 'tmp-file';
     }
   }
 
   if (!store) {
     store = createInitialStore();
-    globalThis[STORE_MODE_KEY] = 'memory';
+    mode = 'memory';
   }
 
+  return { store, mode };
+}
+
+// Shared tail for loadStore() and reloadStore(): installs the
+// store as this instance's cache, warns about ephemeral production
+// persistence, and makes sure the bootstrap admin exists.
+async function installLoadedStore(store, mode) {
   globalThis[STORE_KEY] = store;
-  warnIfEphemeralStoreInProduction(globalThis[STORE_MODE_KEY]);
+  globalThis[STORE_MODE_KEY] = mode;
+  warnIfEphemeralStoreInProduction(mode);
   await ensureBootstrapAdmin(store);
   return store;
+}
+
+export async function loadStore() {
+  if (globalThis[STORE_KEY]) {
+    if (!globalThis[STORE_MODE_KEY]) {
+      globalThis[STORE_MODE_KEY] = 'memory';
+    }
+    return globalThis[STORE_KEY];
+  }
+
+  const { store, mode } = await readStoreFromBacking();
+  return installLoadedStore(store, mode);
+}
+
+// Forces a fresh read from the backing store and replaces this
+// instance's cache with what was read. Auth-critical handlers
+// (forgot/reset password, credential login, refresh-session
+// validation) call this instead of getStore(): a warm serverless
+// instance's cache can predate another instance's writes - a
+// freshly created reset token, a new password hash, a session
+// revocation - and trusting it makes valid reset links report
+// "invalid or expired" and revoked sessions look alive.
+export async function reloadStore() {
+  const { store, mode } = await readStoreFromBacking();
+  return installLoadedStore(store, mode);
 }
 
 export async function saveStore(store) {

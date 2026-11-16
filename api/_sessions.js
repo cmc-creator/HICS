@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { addAuditLog, createId, getStore, saveStore } from './_store.js';
+import { addAuditLog, createId, getStore, reloadStore, saveStore } from './_store.js';
 
 const DEFAULT_REFRESH_TTL_DAYS = 30;
 
@@ -120,7 +120,11 @@ export async function issueRefreshSession(claims, metadata = {}) {
 }
 
 export async function rotateRefreshSession(existingRefreshToken, metadata = {}) {
-  const store = await getStore();
+  // Validation reloads the store: a password reset revokes
+  // sessions by rewriting store.refreshTokens in the backing
+  // store, and a warm instance validating against its stale cache
+  // would keep honoring sessions that no longer exist there.
+  const store = await reloadStore();
   ensureRefreshStoreShape(store);
   cleanupExpiredSessions(store, Date.now());
 

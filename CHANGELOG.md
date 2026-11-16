@@ -22,6 +22,9 @@
 - `hics-app/.env.example`: documented `APP_BASE_URL`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `HICS_BOOTSTRAP_ADMIN_EMAIL`, `HICS_BOOTSTRAP_ADMIN_PASSWORD`, and `HICS_SEED_DEMO`.
 - `hics-app/src/pages/LoginPage.tsx`: the Microsoft Entra and Okta sign-in buttons were replaced with a single "Continue with Google" button. The entra/okta providers remain in code, dormant and env-gated, for customers on those identity providers. `hics-app/src/pages/HealthCheckPage.tsx` environment panel now shows the Google Client ID instead of the Entra/Okta rows, and `.env.example` documents the Google OIDC block with the Entra/Okta blocks marked optional/legacy.
 
+### Fixed
+- Fresh password reset links reporting "invalid or expired": serverless instances cache the store in memory per instance, so a reset token written to the backing store by one instance was invisible to a warm instance holding an older cache (the same staleness could keep an old password hash valid after a reset and keep reset-revoked sessions alive). `api/_store.js` now exports `reloadStore()` - a forced fresh read from the backing store that shares `loadStore()`'s read path - and the auth-critical handlers reload before reading: `api/auth/forgot-password.js`, `api/auth/reset-password.js`, `api/auth/local-login.js`, and refresh-session validation in `api/_sessions.js`. Covered by a two-instance staleness simulation in `api/tests/auth-credentials-smoke.mjs`.
+
 ## 2026-04-17
 
 ### Removed

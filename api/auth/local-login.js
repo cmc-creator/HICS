@@ -2,7 +2,7 @@ import { issueSignedAccessToken } from '../_auth.js';
 import { verifyPassword } from '../_passwords.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 import { issueRefreshSession } from '../_sessions.js';
-import { getStore } from '../_store.js';
+import { reloadStore } from '../_store.js';
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -51,8 +51,10 @@ export default async function handler(req, res) {
   // Real credential check: the user must exist in the store, be
   // active, and have a passwordHash that verifies. Every failure
   // mode returns the same generic 401 so responses never reveal
-  // whether an email is registered.
-  const store = await getStore();
+  // whether an email is registered. The store is reloaded first:
+  // a warm instance's cache can still hold the pre-reset password
+  // hash after another instance handled a password reset.
+  const store = await reloadStore();
   const users = Array.isArray(store.users) ? store.users : [];
   const user = users.find((candidate) => String(candidate?.email || '').toLowerCase() === email);
 

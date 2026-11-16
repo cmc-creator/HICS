@@ -1,5 +1,5 @@
 import { consumePasswordToken, hashPassword } from '../_passwords.js';
-import { appendAuditLog, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, json, reloadStore, saveStore } from '../_store.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 
 export default async function handler(req, res) {
@@ -28,7 +28,11 @@ export default async function handler(req, res) {
     return json(res, 400, { error: validationError });
   }
 
-  const store = await getStore();
+  // Reload before consuming the token: the token was written to
+  // the backing store by whichever instance handled the
+  // forgot-password request, and this instance's cache may predate
+  // it. Without the reload, fresh links read as invalid/expired.
+  const store = await reloadStore();
   const user = consumePasswordToken(store, String(body.token));
   if (!user) {
     return json(res, 400, { error: 'This password link is invalid or has expired. Request a new one and try again.' });

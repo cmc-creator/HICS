@@ -1,6 +1,6 @@
 import { buildPasswordSetUrl, sendEmail } from '../_email.js';
 import { createPasswordToken } from '../_passwords.js';
-import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, createId, json, reloadStore, saveStore } from '../_store.js';
 import { enforceRateLimit, parseJsonBody } from '../_security.js';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,7 +21,11 @@ export default async function handler(req, res) {
     return json(res, 400, { error: 'A valid enterprise email is required.' });
   }
 
-  const store = await getStore();
+  // Reload rather than trusting this warm instance's cache: the
+  // user lookup and token write must start from the backing
+  // store's current state, not a snapshot another instance has
+  // already moved past.
+  const store = await reloadStore();
   if (!Array.isArray(store.notifications)) {
     store.notifications = [];
   }

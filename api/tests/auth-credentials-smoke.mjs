@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -25,11 +26,12 @@ delete process.env.RESEND_FROM_EMAIL;
 delete process.env.UPSTASH_REDIS_REST_URL;
 delete process.env.UPSTASH_REDIS_REST_TOKEN;
 
-const { hashPassword, verifyPassword, createPasswordToken } = await import('../_passwords.js');
+const { hashPassword, verifyPassword, createPasswordToken, consumePasswordToken } = await import('../_passwords.js');
 const { getStore, saveStore } = await import('../_store.js');
 const { default: localLogin } = await import('../auth/local-login.js');
 const { default: forgotPassword } = await import('../auth/forgot-password.js');
 const { default: resetPassword } = await import('../auth/reset-password.js');
+const { default: refresh } = await import('../auth/refresh.js');
 
 function createMockRes() {
   let statusCode = 200;
@@ -217,12 +219,16 @@ const forgotKnown = await call(forgotPassword, createBaseReq('POST', {
 }));
 assert.equal(forgotKnown.status, 200, 'forgot-password returns 200 for a known email (email unconfigured)');
 
-const caseyAfterForgot = findUser(store, 'casey@example.com');
+// The forgot handler reloads the store before mutating it, which
+// replaces the cached object - so read the post-call state back
+// through getStore() rather than the reference captured above.
+const storeAfterForgot = await getStore();
+const caseyAfterForgot = findUser(storeAfterForgot, 'casey@example.com');
 assert.match(caseyAfterForgot.passwordTokenHash || '', /^[a-f0-9]{64}$/, 'forgot-password stores a sha256 token hash');
 const forgotExpiry = new Date(caseyAfterForgot.passwordTokenExpiresAt).getTime();
 assert.ok(forgotExpiry > Date.now() && forgotExpiry <= Date.now() + 61 * 60 * 1000, 'forgot-password token expires in about 1 hour');
 assert.ok(
-  store.notifications.some((entry) => entry.type === 'email_not_configured'),
+  storeAfterForgot.notifications.some((entry) => entry.type === 'email_not_configured'),
   'unconfigured email is recorded as an email_not_configured notification',
 );
 
@@ -249,8 +255,11 @@ const resetOk = await call(resetPassword, createBaseReq('POST', {
   password: 'BrandNewPassword99',
 }));
 assert.equal(resetOk.status, 200, 'reset-password accepts a valid token');
-assert.equal(casey.passwordTokenHash, undefined, 'token hash is cleared after a successful reset');
-assert.equal(casey.passwordTokenExpiresAt, undefined, 'token expiry is cleared after a successful reset');
+// Same reload note as the forgot section: assert against the
+// store's current state, not the pre-call reference.
+const caseyAfterReset = findUser(await getStore(), 'casey@example.com');
+assert.equal(caseyAfterReset.passwordTokenHash, undefined, 'token hash is cleared after a successful reset');
+assert.equal(caseyAfterReset.passwordTokenExpiresAt, undefined, 'token expiry is cleared after a successful reset');
 
 const newLogin = await call(localLogin, createBaseReq('POST', {
   email: 'casey@example.com',
@@ -284,6 +293,112 @@ const bogusReset = await call(resetPassword, createBaseReq('POST', {
   password: 'AnotherPassword111',
 }));
 assert.equal(bogusReset.status, 400, 'an unknown token is rejected');
+
+/* ---- two-instance staleness (serverless cache vs backing store) ----
+   Production runs many warm instances, each caching the store in
+   memory (globalThis['__nyx_hics_store__']). A reset token written
+   by instance A must still work when the reset lands on instance
+   B, whose cache predates the token - and B must not keep honoring
+   the old password hash or the sessions the reset revoked. The
+   auth handlers now reload the store from the backing store
+   before reading it; this section simulates instance B by
+   hand-installing a stale cache snapshot. */
+const STORE_CACHE_KEY = '__nyx_hics_store__';
+
+// Casey signs in first, so there is a live refresh session that
+// the upcoming password reset has to revoke.
+const preResetLogin = await call(localLogin, createBaseReq('POST', {
+  email: 'casey@example.com',
+  password: 'CorrectHorseBattery1',
+}));
+assert.equal(preResetLogin.status, 200, 'pre-reset login succeeds with the current password');
+const preResetRefreshToken = preResetLogin.body.refreshToken;
+assert.equal(typeof preResetRefreshToken, 'string', 'pre-reset login issued a refresh token');
+
+// Serialized snapshot of the backing store BEFORE the fresh reset
+// token exists: old password hash, live refresh session, and only
+// an earlier (expired) token on the record. This is what a warm
+// second instance would be holding in its cache.
+const staleSnapshot = JSON.parse(fs.readFileSync(STORE_FILE, 'utf8'));
+const staleCasey = staleSnapshot.users.find((candidate) => String(candidate.email || '').toLowerCase() === 'casey@example.com');
+assert.ok(staleCasey, 'stale snapshot contains Casey');
+assert.equal(verifyPassword('CorrectHorseBattery1', staleCasey.passwordHash), true, 'stale snapshot holds the pre-reset password hash');
+assert.ok(
+  staleSnapshot.refreshTokens.some((session) => String(session.email || '').toLowerCase() === 'casey@example.com'),
+  'stale snapshot still holds the pre-reset refresh session',
+);
+
+// Instance A: forgot-password creates the fresh token and persists
+// it to the backing store. The Resend fetch is stubbed so the test
+// can read the raw token out of the emailed link, exactly like a
+// user clicking it.
+process.env.RESEND_API_KEY = 'test-resend-key';
+process.env.RESEND_FROM_EMAIL = 'no-reply@example.com';
+const realFetch = globalThis.fetch;
+let emailedText = '';
+globalThis.fetch = async (url, options) => {
+  assert.ok(String(url).includes('api.resend.com'), 'only the Resend call is expected while fetch is stubbed');
+  emailedText = String(JSON.parse(options.body).text || '');
+  return { ok: true, status: 200, json: async () => ({ id: 'stubbed-email' }) };
+};
+let crossForgot;
+try {
+  crossForgot = await call(forgotPassword, createBaseReq('POST', { email: 'casey@example.com' }));
+} finally {
+  globalThis.fetch = realFetch;
+  delete process.env.RESEND_API_KEY;
+  delete process.env.RESEND_FROM_EMAIL;
+}
+assert.equal(crossForgot.status, 200, 'forgot-password (instance A) returns 200');
+const crossTokenMatch = emailedText.match(/token=([a-f0-9]{64})/);
+assert.ok(crossTokenMatch, 'reset email carries the raw token link');
+const crossRawToken = crossTokenMatch[1];
+const crossTokenHash = crypto.createHash('sha256').update(crossRawToken).digest('hex');
+
+const persistedCasey = JSON.parse(fs.readFileSync(STORE_FILE, 'utf8'))
+  .users.find((candidate) => String(candidate.email || '').toLowerCase() === 'casey@example.com');
+assert.equal(persistedCasey.passwordTokenHash, crossTokenHash, 'instance A persisted the fresh token hash to the backing store');
+assert.notEqual(staleCasey.passwordTokenHash, crossTokenHash, 'stale snapshot does not contain the fresh token');
+
+// Instance B: install the stale snapshot as this process's cache.
+// Proof the trap is real: against the stale cache alone, the
+// fresh token does not exist - this is the production failure.
+globalThis[STORE_CACHE_KEY] = staleSnapshot;
+assert.equal(consumePasswordToken(staleSnapshot, crossRawToken), null, 'stale cache alone would reject the fresh token');
+
+// The reset handler reloads before reading, so the fresh link works.
+const crossReset = await call(resetPassword, createBaseReq('POST', {
+  token: crossRawToken,
+  password: 'CrossInstancePass77',
+}));
+assert.equal(crossReset.status, 200, 'reset succeeds on a warm instance whose cache predates the token');
+
+const storeAfterCrossReset = await getStore();
+const caseyAfterCrossReset = findUser(storeAfterCrossReset, 'casey@example.com');
+assert.equal(verifyPassword('CrossInstancePass77', caseyAfterCrossReset.passwordHash), true, 'new password verifies after the cross-instance reset');
+assert.equal(caseyAfterCrossReset.passwordTokenHash, undefined, 'cross-instance reset clears the token hash');
+assert.ok(
+  !storeAfterCrossReset.refreshTokens.some((session) => String(session.email || '').toLowerCase() === 'casey@example.com'),
+  'the reset removed Casey\'s refresh sessions from the backing store',
+);
+
+// The revoked session stays revoked when refresh validation runs:
+// rotation reloads too, so the deleted session is not resurrected
+// from a stale cache.
+const revokedRefresh = await call(refresh, createBaseReq('POST', {
+  refreshToken: preResetRefreshToken,
+}));
+assert.equal(revokedRefresh.status, 401, 'refresh with a session revoked by the reset is rejected');
+
+// A warm instance still holding the pre-reset cache must also let
+// Casey sign in with the NEW password: login reloads, so the stale
+// password hash in its cache does not lock her out.
+globalThis[STORE_CACHE_KEY] = staleSnapshot;
+const staleCacheLogin = await call(localLogin, createBaseReq('POST', {
+  email: 'casey@example.com',
+  password: 'CrossInstancePass77',
+}));
+assert.equal(staleCacheLogin.status, 200, 'login with the new password succeeds despite a stale instance cache');
 
 /* ---- demo seeding opt-in (separate process, separate store) ---- */
 const seedStoreFile = path.join(process.cwd(), '.nyx-hics-store-seed-smoke.json');

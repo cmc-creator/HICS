@@ -6,14 +6,15 @@ import { quizQuestions } from '../data/quiz';
 import { getScenarioAttempts, getTrainingSummary, type ScenarioAttempt } from '../lib/trainingAnalytics';
 import { getAchievementSummary, getFacilityLeaderboard } from '../lib/gamification';
 import { writeAuditLog } from '../lib/notifications';
+import { publicAsset } from '../lib/publicAsset';
 
 const ONBOARDING_KEY = 'nyx-first-run-complete';
 
 const stats = [
-  { label: 'HICS Roles', value: hicsRoles.length, icon: '/lux-icons/roles.svg', color: 'bg-blue-500', path: '/roles' },
-  { label: 'Training Scenarios', value: scenarios.length, icon: '/lux-icons/scenarios.svg', color: 'bg-green-500', path: '/scenarios' },
-  { label: 'Quiz Questions', value: quizQuestions.length, icon: '/lux-icons/quiz.svg', color: 'bg-purple-500', path: '/quiz' },
-  { label: 'HICS Sections', value: 5, icon: '/lux-icons/admin.svg', color: 'bg-red-500', path: '/roles' },
+  { label: 'HICS Roles', value: hicsRoles.length, icon: publicAsset('lux-icons/roles.svg'), color: 'bg-blue-500', path: '/roles' },
+  { label: 'Training Scenarios', value: scenarios.length, icon: publicAsset('lux-icons/scenarios.svg'), color: 'bg-green-500', path: '/scenarios' },
+  { label: 'Quiz Questions', value: quizQuestions.length, icon: publicAsset('lux-icons/quiz.svg'), color: 'bg-purple-500', path: '/quiz' },
+  { label: 'HICS Sections', value: 5, icon: publicAsset('lux-icons/admin.svg'), color: 'bg-red-500', path: '/roles' },
 ];
 
 const quickLinks = [
@@ -21,7 +22,7 @@ const quickLinks = [
     path: '/roles',
     title: 'Explore HICS Roles',
     description: 'Learn about each position in the HICS organizational structure, including responsibilities and reporting relationships.',
-    icon: '/lux-icons/roles.svg',
+    icon: publicAsset('lux-icons/roles.svg'),
     color: 'border-blue-500',
     badge: 'Interactive Chart',
   },
@@ -29,7 +30,7 @@ const quickLinks = [
     path: '/scenarios',
     title: 'Training Scenarios',
     description: 'Practice responding to real-world hospital emergencies including mass casualty incidents, fires, and hazmat events.',
-    icon: '/lux-icons/scenarios.svg',
+    icon: publicAsset('lux-icons/scenarios.svg'),
     color: 'border-green-500',
     badge: `${scenarios.length} Scenarios`,
   },
@@ -37,7 +38,7 @@ const quickLinks = [
     path: '/quiz',
     title: 'Knowledge Quiz',
     description: 'Test your HICS knowledge with scenario-based questions covering triage, protocols, and emergency management.',
-    icon: '/lux-icons/quiz.svg',
+    icon: publicAsset('lux-icons/quiz.svg'),
     color: 'border-purple-500',
     badge: `${quizQuestions.length} Questions`,
   },
@@ -45,7 +46,7 @@ const quickLinks = [
     path: '/chatbot',
     title: 'AI Training Assistant',
     description: 'Ask questions and get instant answers about HICS protocols, procedures, and best practices from our AI assistant.',
-    icon: '/lux-icons/assistant.svg',
+    icon: publicAsset('lux-icons/assistant.svg'),
     color: 'border-orange-500',
     badge: '24/7 Available',
   },
@@ -53,7 +54,7 @@ const quickLinks = [
     path: '/quick-start',
     title: 'Facilitator Quick Start',
     description: 'Launch guided setup, debrief prompts, and a practical 30-minute training flow for team leads.',
-    icon: '/lux-icons/guide.svg',
+    icon: publicAsset('lux-icons/guide.svg'),
     color: 'border-amber-500',
     badge: 'Session Guide',
   },
@@ -61,7 +62,7 @@ const quickLinks = [
     path: '/reports',
     title: 'Training Reports',
     description: 'Review completion trends, score performance, and export facilitator-friendly training records.',
-    icon: '/lux-icons/reports.svg',
+    icon: publicAsset('lux-icons/reports.svg'),
     color: 'border-slate-500',
     badge: 'CSV Export',
   },
@@ -69,7 +70,7 @@ const quickLinks = [
     path: '/learning-center',
     title: 'Learning Center',
     description: 'Walk through storyboard-style training modules with guided frames and role-based objectives.',
-    icon: '/lux-icons/scenarios.svg',
+    icon: publicAsset('lux-icons/scenarios.svg'),
     color: 'border-cyan-500',
     badge: 'Storyboard Modules',
   },
@@ -77,7 +78,7 @@ const quickLinks = [
     path: '/rapid-challenge',
     title: 'Rapid Challenge',
     description: 'Play a timed mini-game with streak multipliers to sharpen high-pressure command decisions.',
-    icon: '/lux-icons/quiz.svg',
+    icon: publicAsset('lux-icons/quiz.svg'),
     color: 'border-indigo-500',
     badge: 'Timed Mode',
   },
@@ -85,7 +86,7 @@ const quickLinks = [
     path: '/live-drill',
     title: 'Live Drill Control',
     description: 'Run facilitator-led sessions with phase control, role assignments, and live announcements.',
-    icon: '/lux-icons/guide.svg',
+    icon: publicAsset('lux-icons/guide.svg'),
     color: 'border-rose-500',
     badge: 'Facilitator Mode',
   },
@@ -145,7 +146,7 @@ export default function Dashboard() {
           <div className="lux-hero-shell">
             <div className="flex items-center gap-4 mb-4">
               <span className="h-14 w-14 rounded-xl overflow-hidden border border-white/45 bg-white/90 shadow-lg flex items-center justify-center">
-                <img src="/hicslogo.png" alt="HICS" className="h-12 w-12 object-contain" />
+                <img src={publicAsset('hicslogo.png')} alt="HICS" className="h-12 w-12 object-contain" />
               </span>
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold lux-title">NyxHICSlab</h1>

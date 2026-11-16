@@ -134,7 +134,7 @@ export default function App() {
   return (
     <AuthProvider>
       <TenantProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
           <AppRoutes theme={theme} onToggleTheme={toggleTheme} />
         </BrowserRouter>
       </TenantProvider>

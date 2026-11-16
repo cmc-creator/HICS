@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { publicAsset } from '../lib/publicAsset';
 
 interface LandingPageProps {
   theme: 'light' | 'dark';
@@ -28,19 +29,19 @@ const pillars = [
   {
     title: 'Enterprise Governance',
     detail: 'Facility-scoped controls, role-based access, and audit-ready reporting aligned with health system operations.',
-    image: '/landing/dashboard-mockup.svg',
+    image: publicAsset('landing/dashboard-mockup.svg'),
     alt: 'NyxHICSlab dashboard showing stat cards and quick-link modules',
   },
   {
     title: 'High-Fidelity Simulation',
     detail: 'Scenarios spanning acute care, long-term care, ambulatory, and specialty settings — covering command activation, surge, safety incidents, and infrastructure failure.',
-    image: '/landing/scenario-mockup.svg',
+    image: publicAsset('landing/scenario-mockup.svg'),
     alt: 'NyxHICSlab scenario player with timed mode and facilitator notes',
   },
   {
     title: 'Operational Readiness',
     detail: 'Facilitator workflows, timed drills, and decision analytics that accelerate team competence and incident response consistency.',
-    image: '/landing/quiz-mockup.svg',
+    image: publicAsset('landing/quiz-mockup.svg'),
     alt: 'NyxHICSlab knowledge quiz with per-category scoring and answer reveal',
   },
 ];
@@ -106,7 +107,7 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="lux-logo-frame">
-              <img src="/hicslogo.png" alt="NyxHICSlab logo" className="h-20 w-20 rounded-lg object-contain lux-logo-img" />
+              <img src={publicAsset('hicslogo.png')} alt="NyxHICSlab logo" className="h-20 w-20 rounded-lg object-contain lux-logo-img" />
             </div>
             <div>
               <div className="text-xl font-bold lux-brand-title">NyxHICSlab</div>
@@ -146,7 +147,7 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
             </div>
           </div>
           <div className="nyx-panel p-3 flex items-center">
-            <img src="/landing/dashboard-mockup.svg" alt="NyxHICSlab enterprise dashboard — stat cards, quick-link modules, and facilitator controls" className="w-full h-auto rounded-xl" />
+            <img src={publicAsset('landing/dashboard-mockup.svg')} alt="NyxHICSlab enterprise dashboard — stat cards, quick-link modules, and facilitator controls" className="w-full h-auto rounded-xl" />
           </div>
         </section>
 

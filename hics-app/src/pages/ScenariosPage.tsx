@@ -12,6 +12,7 @@ import { trackEvent } from '../lib/trainingAnalytics';
 import { getScenarioAttempts } from '../lib/trainingAnalytics';
 import { getAdaptiveDifficultyProfile, type AdaptiveDifficultyProfile } from '../lib/gamification';
 import { useTenant } from '../lib/tenantContext';
+import { publicAsset } from '../lib/publicAsset';
 
 const difficultyColors = {
   beginner: 'bg-emerald-100 text-emerald-800 border border-emerald-300',
@@ -37,11 +38,11 @@ const typeColors: Record<string, string> = {
 };
 
 const typeImages: Record<string, string> = {
-  'Mass Casualty': '/lux-icons/alerts.svg',
-  'Fire/Evacuation': '/lux-icons/fire.svg',
-  HazMat: '/lux-icons/hazmat.svg',
-  Security: '/lux-icons/admin.svg',
-  'Behavioral Health': '/lux-icons/assistant.svg',
+  'Mass Casualty': publicAsset('lux-icons/alerts.svg'),
+  'Fire/Evacuation': publicAsset('lux-icons/fire.svg'),
+  HazMat: publicAsset('lux-icons/hazmat.svg'),
+  Security: publicAsset('lux-icons/admin.svg'),
+  'Behavioral Health': publicAsset('lux-icons/assistant.svg'),
 };
 
 type DifficultyFilter = 'all' | 'beginner' | 'intermediate' | 'advanced';
@@ -326,7 +327,7 @@ export default function ScenariosPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <span className={`h-7 w-7 inline-flex items-center justify-center rounded-full border ${typeColors[scenario.type] || 'bg-slate-100 border-slate-300 text-slate-700'}`}>
-                          <img src={typeImages[scenario.type] || '/lux-icons/scenarios.svg'} alt="" className="h-3.5 w-3.5 object-contain" />
+                          <img src={typeImages[scenario.type] || publicAsset('lux-icons/scenarios.svg')} alt="" className="h-3.5 w-3.5 object-contain" />
                         </span>
                         <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
                           {scenario.type}

@@ -1,3 +1,5 @@
+import { publicAsset } from '../lib/publicAsset';
+
 export interface StoryboardFrame {
   title: string;
   cue: string;
@@ -23,7 +25,7 @@ export const learningMediaModules: LearningMediaModule[] = [
     roleTrack: 'Command Staff',
     durationMinutes: 8,
     difficulty: 'beginner',
-    poster: '/landing/dashboard-mockup.svg',
+    poster: publicAsset('landing/dashboard-mockup.svg'),
     summary: 'A guided command briefing covering activation, objective setting, and first operational priorities.',
     objectives: [
       'Activate HICS with clear command transfer language',
@@ -43,7 +45,7 @@ export const learningMediaModules: LearningMediaModule[] = [
     roleTrack: 'Operations Section',
     durationMinutes: 11,
     difficulty: 'intermediate',
-    poster: '/landing/scenario-mockup.svg',
+    poster: publicAsset('landing/scenario-mockup.svg'),
     summary: 'Rapid triage sequencing with safety overlays, bed surge, and transfer routing decisions in high-acuity inpatient environments.',
     objectives: [
       'Prioritize triage in mixed acuity environments',
@@ -63,7 +65,7 @@ export const learningMediaModules: LearningMediaModule[] = [
     roleTrack: 'Planning and Recovery',
     durationMinutes: 9,
     difficulty: 'advanced',
-    poster: '/landing/readiness.svg',
+    poster: publicAsset('landing/readiness.svg'),
     summary: 'How to transition from active incident operations to structured debrief, documentation, and recovery actions.',
     objectives: [
       'Capture timeline and decision points for after-action review',

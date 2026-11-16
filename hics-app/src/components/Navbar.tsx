@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useTenant } from '../lib/tenantContext';
 import { useAuth } from '../lib/authContext';
 import { publicAsset } from '../lib/publicAsset';
 import { useState } from 'react';
@@ -25,10 +24,12 @@ interface NavbarProps {
 export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { canManageUsers } = useTenant();
-  const { user, logout, sessionRemainingMs } = useAuth();
+  // The Admin link follows the AUTH session role, not the tenant
+  // preview switcher: only facility-admin / enterprise-admin
+  // sessions ever see it (matching the /admin route gate).
+  const { user, logout, sessionRemainingMs, isAdmin } = useAuth();
   const sessionMinutes = Math.max(1, Math.floor(sessionRemainingMs / 60000));
-  const navItems = canManageUsers
+  const navItems = isAdmin
     ? [...baseNavItems, { path: '/admin', label: 'Admin', icon: publicAsset('lux-icons/admin.svg') }]
     : baseNavItems;
 

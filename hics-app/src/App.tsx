@@ -82,6 +82,22 @@ function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; on
   );
 }
 
+// The admin area is gated on the AUTH session role (facility-admin
+// or enterprise-admin, from the sign-in response) - never on the
+// tenant preview switcher, which any user can set to anything.
+// Non-admin sessions, including role-less sessions persisted
+// before the role was plumbed through, are sent to the dashboard
+// (fail closed; a fresh sign-in re-issues the session with a
+// role). The server enforces the same policy on every admin API
+// request regardless of what the UI shows.
+function AdminRoute() {
+  const { isAdmin } = useAuth();
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <FacilityAdminPage />;
+}
+
 function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggleTheme: () => void }) {
   const { isAuthenticated } = useAuth();
 
@@ -109,7 +125,7 @@ function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggle
         <Route path="/learning-center" element={<LearningCenterPage />} />
         <Route path="/rapid-challenge" element={<RapidChallengePage />} />
         <Route path="/live-drill" element={<LiveDrillControlPage />} />
-        <Route path="/admin" element={<FacilityAdminPage />} />
+        <Route path="/admin" element={<AdminRoute />} />
       </Route>
 
       <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/'} replace />} />

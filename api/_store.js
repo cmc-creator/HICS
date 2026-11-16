@@ -55,6 +55,7 @@ function createInitialStore() {
     mediaAssets: [],
     liveDrills: [],
     rapidChallengeScores: [],
+    leads: [],
   };
 }
 

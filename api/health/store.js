@@ -30,6 +30,7 @@ export default async function handler(req, res) {
         users: Array.isArray(snap.users) ? snap.users.length : 0,
         auditLogs: Array.isArray(snap.auditLogs) ? snap.auditLogs.length : 0,
         notifications: Array.isArray(snap.notifications) ? snap.notifications.length : 0,
+        leads: Array.isArray(snap.leads) ? snap.leads.length : 0,
       },
     },
   });

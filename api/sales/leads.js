@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { json } from '../_store.js';
+import { getStore, json, saveStore } from '../_store.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 
 function isValidEmail(value) {
@@ -48,6 +48,20 @@ export default async function handler(req, res) {
     source: 'nyxhicslab-request-demo',
   };
 
+  // Persist first: the store is the system of record. This
+  // handler used to only forward the lead to SALES_WEBHOOK_URL
+  // and return 201 regardless, so with the webhook unset every
+  // demo request vanished while the page showed success (audit
+  // B6). The webhook is now an optional relay on top of the
+  // stored lead, and 201 means the lead is actually saved.
+  const store = await getStore();
+  if (!Array.isArray(store.leads)) {
+    store.leads = [];
+  }
+  store.leads.unshift(lead);
+  store.leads = store.leads.slice(0, 1000);
+  await saveStore(store);
+
   if (process.env.SALES_WEBHOOK_URL) {
     try {
       await fetch(process.env.SALES_WEBHOOK_URL, {
@@ -56,7 +70,7 @@ export default async function handler(req, res) {
         body: JSON.stringify(lead),
       });
     } catch {
-      // Webhook failure is non-fatal; lead is still accepted.
+      // Webhook failure is non-fatal; the lead is already stored.
     }
   }
 

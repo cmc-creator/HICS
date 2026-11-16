@@ -32,6 +32,7 @@ interface StoreHealthSummary {
     users: number;
     auditLogs: number;
     notifications: number;
+    leads: number;
   };
 }
 
@@ -178,6 +179,8 @@ export default function HealthCheckPage() {
                 <dd>{storeHealth.counts.auditLogs}</dd>
                 <dt className="opacity-50">Notifications</dt>
                 <dd>{storeHealth.counts.notifications}</dd>
+                <dt className="opacity-50">Sales Leads</dt>
+                <dd>{storeHealth.counts.leads}</dd>
               </dl>
             </div>
           )}

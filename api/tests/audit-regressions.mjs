@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 
 // Regression suite for the 2026-11-16 security/reliability audit
-// fixes (B2, B3, B5, B6, B7, W8). Each block pins one fixed
-// behavior so the bug class cannot quietly return.
+// fixes (B2, B3, B5, B6, B7, W8) plus the same-day permissions
+// honesty follow-up (admin endpoints enforce the session role).
+// Each block pins one fixed behavior so the bug class cannot
+// quietly return.
 
 process.env.TOKEN_SIGNING_SECRET = process.env.TOKEN_SIGNING_SECRET || 'test-signing-secret-for-audit-regressions';
 process.env.DEFAULT_ORGANIZATION_NAME = 'Nyx Test Health';
@@ -27,6 +29,7 @@ delete process.env.OIDC_GOOGLE_CLIENT_SECRET;
 
 const { default: exchange } = await import('../auth/exchange.js');
 const { default: adminUsers } = await import('../admin/users.js');
+const { default: auditLogs } = await import('../audit/logs.js');
 const { default: attempts } = await import('../training/attempts.js');
 const { default: leads } = await import('../sales/leads.js');
 const { default: chat } = await import('../chat.js');
@@ -211,5 +214,54 @@ assert.equal(savedLead.id, leadPosted.body.leadId, 'persisted lead matches the r
 // provider work happens.
 const chatRefused = await call(chat, createBaseReq('POST', { message: 'How do I run a drill?' }));
 assert.equal(chatRefused.status, 401, 'unauthenticated chat should return 401');
+
+// --- (5) Permissions honesty follow-up: the admin endpoints
+// enforce the role carried by the session token, independent of
+// anything the frontend shows. An 'observer' session (the role
+// first-time SSO sign-ins are auto-provisioned with) is refused
+// by every admin read and write, while a facility-admin session
+// succeeds on the reads. This pins the server half of the rule
+// that the /admin UI is now gated on the same roles.
+const observerToken = issueSignedAccessToken({
+  email: 'observer.user@example.com',
+  fullName: 'Observer User',
+  organization: 'Nyx Test Health',
+  role: 'observer',
+  facility: 'general-acute-care',
+  authMethod: 'google-oidc',
+});
+const observerHeaders = { authorization: `Bearer ${observerToken}` };
+
+const observerListUsers = await call(adminUsers, createBaseReq('GET', {}, observerHeaders));
+assert.equal(observerListUsers.status, 403, 'observer must be refused the user list');
+
+const observerCreateUser = await call(adminUsers, createBaseReq('POST', {
+  fullName: 'Should Not Exist',
+  email: `observer.created+${runId}@example.com`,
+  role: 'facilitator',
+  facility: 'general-acute-care',
+}, observerHeaders));
+assert.equal(observerCreateUser.status, 403, 'observer must be refused user creation');
+
+const observerReadLogs = await call(auditLogs, createBaseReq('GET', {}, observerHeaders));
+assert.equal(observerReadLogs.status, 403, 'observer must be refused the audit logs');
+
+const facilityAdminToken = issueSignedAccessToken({
+  email: 'facility.admin@example.com',
+  fullName: 'Facility Admin',
+  organization: 'Nyx Test Health',
+  role: 'facility-admin',
+  facility: 'all',
+  authMethod: 'password',
+});
+const facilityAdminHeaders = { authorization: `Bearer ${facilityAdminToken}` };
+
+const adminListUsers = await call(adminUsers, createBaseReq('GET', {}, facilityAdminHeaders));
+assert.equal(adminListUsers.status, 200, `facility-admin should read the user list (got ${adminListUsers.status})`);
+assert.ok(Array.isArray(adminListUsers.body.users), 'user list response carries a users array');
+
+const adminReadLogs = await call(auditLogs, createBaseReq('GET', {}, facilityAdminHeaders));
+assert.equal(adminReadLogs.status, 200, `facility-admin should read the audit logs (got ${adminReadLogs.status})`);
+assert.ok(Array.isArray(adminReadLogs.body.logs), 'audit log response carries a logs array');
 
 console.log('audit-regressions: PASS');

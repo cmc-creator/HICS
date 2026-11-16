@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import EnterpriseFooter from '../components/EnterpriseFooter';
+import { publicAsset } from '../lib/publicAsset';
 
 interface EndpointStatus {
   label: string;
@@ -96,7 +97,7 @@ export default function HealthCheckPage() {
       <main className="flex-1 flex flex-col items-center justify-start p-8 pt-16 gap-8">
         <div className="w-full max-w-xl">
           <div className="flex items-center gap-3 mb-6">
-            <img src="/hicslogo.png" alt="NyxHICSlab" className="h-8 w-auto" />
+            <img src={publicAsset('hicslogo.png')} alt="NyxHICSlab" className="h-8 w-auto" />
             <span className="text-xl font-bold tracking-tight">NyxHICSlab</span>
             <span className="text-sm opacity-50 ml-auto">System Health</span>
           </div>

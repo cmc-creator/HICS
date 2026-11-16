@@ -1,19 +1,20 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTenant } from '../lib/tenantContext';
 import { useAuth } from '../lib/authContext';
+import { publicAsset } from '../lib/publicAsset';
 import { useState } from 'react';
 
 const baseNavItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: '/lux-icons/dashboard.svg' },
-  { path: '/roles', label: 'HICS Roles', icon: '/lux-icons/roles.svg' },
-  { path: '/scenarios', label: 'Scenarios', icon: '/lux-icons/scenarios.svg' },
-  { path: '/quiz', label: 'Quiz', icon: '/lux-icons/quiz.svg' },
-  { path: '/learning-center', label: 'Learning Center', icon: '/lux-icons/scenarios.svg' },
-  { path: '/rapid-challenge', label: 'Rapid Challenge', icon: '/lux-icons/quiz.svg' },
-  { path: '/live-drill', label: 'Live Drill', icon: '/lux-icons/guide.svg' },
-  { path: '/quick-start', label: 'Quick Start', icon: '/lux-icons/guide.svg' },
-  { path: '/reports', label: 'Reports', icon: '/lux-icons/reports.svg' },
-  { path: '/chatbot', label: 'AI Assistant', icon: '/lux-icons/assistant.svg' },
+  { path: '/dashboard', label: 'Dashboard', icon: publicAsset('lux-icons/dashboard.svg') },
+  { path: '/roles', label: 'HICS Roles', icon: publicAsset('lux-icons/roles.svg') },
+  { path: '/scenarios', label: 'Scenarios', icon: publicAsset('lux-icons/scenarios.svg') },
+  { path: '/quiz', label: 'Quiz', icon: publicAsset('lux-icons/quiz.svg') },
+  { path: '/learning-center', label: 'Learning Center', icon: publicAsset('lux-icons/scenarios.svg') },
+  { path: '/rapid-challenge', label: 'Rapid Challenge', icon: publicAsset('lux-icons/quiz.svg') },
+  { path: '/live-drill', label: 'Live Drill', icon: publicAsset('lux-icons/guide.svg') },
+  { path: '/quick-start', label: 'Quick Start', icon: publicAsset('lux-icons/guide.svg') },
+  { path: '/reports', label: 'Reports', icon: publicAsset('lux-icons/reports.svg') },
+  { path: '/chatbot', label: 'AI Assistant', icon: publicAsset('lux-icons/assistant.svg') },
 ];
 
 interface NavbarProps {
@@ -28,7 +29,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   const { user, logout, sessionRemainingMs } = useAuth();
   const sessionMinutes = Math.max(1, Math.floor(sessionRemainingMs / 60000));
   const navItems = canManageUsers
-    ? [...baseNavItems, { path: '/admin', label: 'Admin', icon: '/lux-icons/admin.svg' }]
+    ? [...baseNavItems, { path: '/admin', label: 'Admin', icon: publicAsset('lux-icons/admin.svg') }]
     : baseNavItems;
 
   return (
@@ -55,7 +56,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
           <div className="flex flex-col items-center text-center min-w-0">
             <div className="lux-logo-frame">
               <img
-                src="/hicslogo.png"
+                src={publicAsset('hicslogo.png')}
                 alt="HICS logo"
                 className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 lg:h-[120px] lg:w-[120px] rounded-lg object-contain lux-logo-img"
               />

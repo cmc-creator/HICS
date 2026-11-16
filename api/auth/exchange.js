@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { issueSignedAccessToken } from '../_auth.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 import { issueRefreshSession } from '../_sessions.js';
-import { reloadStore } from '../_store.js';
+import { appendAuditLog, createId, reloadStore, saveStore } from '../_store.js';
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -129,6 +129,65 @@ function getProviderExchangeConfig(provider) {
     jwksUrl: process.env.OIDC_OKTA_JWKS_URL,
     issuer: process.env.OIDC_OKTA_ISSUER,
   };
+}
+
+// The role a first-time SSO user gets when they are not an owner:
+// 'observer', the lowest-privilege non-admin role in the canonical
+// AppUserRole list (KNOWN_ROLES in api/admin/users.js, mirroring
+// hics-app/src/types/index.ts, privilege-ordered high to low). An
+// admin can promote the account later; a first sign-in must never
+// grant more than this on its own.
+const SSO_DEFAULT_ROLE = 'observer';
+
+// Owner emails auto-provision as enterprise admins on first SSO
+// sign-in: the people who run the deployment should never be
+// locked out of their own app for lack of a pre-created record.
+// Sources: the comma-separated HICS_OWNER_EMAILS env list, plus
+// the bootstrap admin email, which is an owner by definition.
+// Matching is case-insensitive on both sides.
+function getOwnerEmails() {
+  const owners = new Set();
+  for (const entry of String(process.env.HICS_OWNER_EMAILS || '').split(',')) {
+    const normalized = entry.trim().toLowerCase();
+    if (normalized) {
+      owners.add(normalized);
+    }
+  }
+  const bootstrapEmail = String(process.env.HICS_BOOTSTRAP_ADMIN_EMAIL || '').trim().toLowerCase();
+  if (bootstrapEmail) {
+    owners.add(bootstrapEmail);
+  }
+  return owners;
+}
+
+// Creates the store record for a first-time SSO sign-in and
+// persists it before any token is issued. The record is SSO-only:
+// it deliberately has no passwordHash, so credential login rejects
+// it with the generic 401, exactly like any account that has not
+// set a password - no credential is invented for it.
+async function provisionSsoUser(store, { email, fullName, provider }) {
+  const isOwner = getOwnerEmails().has(email);
+  const user = {
+    id: createId('usr'),
+    fullName: fullName || email,
+    email,
+    role: isOwner ? 'enterprise-admin' : SSO_DEFAULT_ROLE,
+    facility: isOwner ? 'all' : String(process.env.DEFAULT_USER_FACILITY || 'general-acute-care'),
+    organization: String(process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System'),
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    ssoProvider: provider,
+  };
+  store.users.push(user);
+  appendAuditLog(store, isOwner ? 'sso_owner_auto_provisioned' : 'sso_user_auto_provisioned', {
+    userId: user.id,
+    email,
+    role: user.role,
+    facility: user.facility,
+    provider,
+  });
+  await saveStore(store);
+  return user;
 }
 
 function isProviderConfigured(provider) {
@@ -262,20 +321,29 @@ export default async function handler(req, res) {
     return json(res, 401, { error: 'Unable to determine user identity' });
   }
 
-  // A verified identity is not enough on its own: the person must
-  // be provisioned in the user store. Role, facility, and
-  // organization always come from the store record - never from
-  // the email string - and unknown or inactive accounts are
-  // refused. Reload first so a just-provisioned user is visible
-  // even on a warm instance with a stale cache.
+  // Role, facility, and organization always come from the store
+  // record - never from the email string (audit B4: no substring
+  // role inference). An existing record governs as-is, and an
+  // inactive one is refused. A verified identity with no record
+  // yet is a first sign-in, not an intruder: provision one on the
+  // spot (owners as enterprise admins, everyone else with the
+  // lowest-privilege role) so legitimate users are never walled
+  // out. Reload first so a just-created user is visible even on a
+  // warm instance with a stale cache.
   const store = await reloadStore();
-  const users = Array.isArray(store.users) ? store.users : [];
-  const user = users.find((candidate) => String(candidate?.email || '').toLowerCase() === email);
+  if (!Array.isArray(store.users)) {
+    store.users = [];
+  }
+  let user = store.users.find((candidate) => String(candidate?.email || '').toLowerCase() === email);
 
-  if (!user || user.status !== 'active') {
+  if (user && user.status !== 'active') {
     return json(res, 403, {
-      error: 'This account is not provisioned for NyxHICSlab. Contact your administrator to request access.',
+      error: 'This account is inactive. Contact your administrator to request access.',
     });
+  }
+
+  if (!user) {
+    user = await provisionSsoUser(store, { email, fullName: identity.fullName, provider });
   }
 
   const fullName = String(user.fullName || identity.fullName || email);

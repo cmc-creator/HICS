@@ -11,6 +11,15 @@ process.env.DEFAULT_USER_FACILITY = 'psychiatric-inpatient';
 process.env.HICS_STORE_FILE_PATH = process.env.HICS_STORE_FILE_PATH || `${process.cwd()}/.nyx-hics-store-exchange-smoke.json`;
 process.env.OIDC_GOOGLE_CLIENT_ID = 'test-google-client-id.apps.googleusercontent.com';
 process.env.OIDC_GOOGLE_CLIENT_SECRET = 'test-google-client-secret';
+// Owner auto-provisioning sources (mixed case on purpose: matching
+// must be case-insensitive). HICS_BOOTSTRAP_ADMIN_PASSWORD is
+// deliberately NOT set - with no usable password the bootstrap
+// mechanism creates no user, so the bootstrap-email owner case
+// below exercises the SSO auto-provisioning path itself rather
+// than a bootstrap-created record.
+process.env.HICS_OWNER_EMAILS = 'Owner.Person@Example.com, second.owner@example.com';
+process.env.HICS_BOOTSTRAP_ADMIN_EMAIL = 'big.boss@example.com';
+delete process.env.HICS_BOOTSTRAP_ADMIN_PASSWORD;
 delete process.env.OIDC_GOOGLE_TOKEN_URL;
 delete process.env.OIDC_GOOGLE_JWKS_URL;
 delete process.env.OIDC_GOOGLE_ISSUER;
@@ -88,9 +97,10 @@ globalThis.fetch = async (url, options = {}) => {
 const { default: exchange } = await import('../auth/exchange.js');
 const { getStore, saveStore } = await import('../_store.js');
 
-// SSO sign-in requires a provisioned store user (audit fix B4):
-// role, facility, and organization come from the record, never
-// from the email string. Seed the user the minted ID tokens name.
+// For an existing store user, role, facility, and organization
+// come from the record, never from the email string (audit fix
+// B4). Seed the user the minted ID tokens name; first-time users
+// are auto-provisioned instead (cases 5, 7, and 8 below).
 const seedStore = await getStore();
 if (!seedStore.users.some((candidate) => String(candidate.email || '').toLowerCase() === 'charge.nurse@example.com')) {
   seedStore.users.push({
@@ -220,14 +230,54 @@ const wrongAudience = await call(exchange, createBaseReq('POST', { ...exchangeBo
 assert.equal(wrongAudience.status, 401, 'wrong-audience id_token should be rejected');
 assert.match(String(wrongAudience.body.error), /audience/i);
 
-// 5. A fully verified Google identity with no store record is
-// refused (audit fix B4): SSO is not an open door, and no token
-// is issued.
-currentIdToken = mintIdToken({ email: 'stranger@example.com', name: 'Unprovisioned Stranger' });
-const unprovisioned = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
-assert.equal(unprovisioned.status, 403, 'unprovisioned SSO user should be refused');
-assert.match(String(unprovisioned.body.error), /not provisioned/i);
-assert.equal(unprovisioned.body.accessToken, undefined, 'no access token for unprovisioned user');
+// 5. A fully verified Google identity with no store record is a
+// first sign-in: the exchange auto-provisions a basic account
+// (lowest-privilege role 'observer', default facility and
+// organization) and signs them in. Connie rejected the original
+// B4 behavior - a 403 wall for every first-time user - so SSO is
+// self-serve at the bottom of the privilege ladder, never above
+// it: no role ever comes from the email string.
+currentIdToken = mintIdToken({ email: 'new.hire@example.com', name: 'New Hire' });
+const firstTimer = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
+assert.equal(firstTimer.status, 200, `first-time SSO user should be auto-provisioned and signed in (got ${firstTimer.status}: ${JSON.stringify(firstTimer.body)})`);
+assert.equal(firstTimer.body.email, 'new.hire@example.com');
+assert.equal(firstTimer.body.role, 'observer', 'auto-provisioned role is the lowest-privilege non-admin role');
+assert.equal(firstTimer.body.facility, 'psychiatric-inpatient', 'auto-provisioned facility is DEFAULT_USER_FACILITY');
+assert.equal(firstTimer.body.organization, 'Nyx Test Health', 'auto-provisioned organization is DEFAULT_ORGANIZATION_NAME');
+assert.equal(typeof firstTimer.body.accessToken, 'string');
+assert.ok(firstTimer.body.accessToken.length > 20, 'access token should be issued');
+
+// The auto-created record is really in the store afterwards:
+// SSO-only (no password credential is invented for it), active,
+// and stamped with the provider. The provisioning is also in the
+// audit log under its own action.
+const storeAfterFirstTimer = await getStore();
+const provisioned = storeAfterFirstTimer.users.filter(
+  (candidate) => String(candidate.email || '').toLowerCase() === 'new.hire@example.com',
+);
+assert.equal(provisioned.length, 1, 'exactly one auto-provisioned record should exist');
+assert.equal(provisioned[0].role, 'observer');
+assert.equal(provisioned[0].status, 'active');
+assert.equal(provisioned[0].ssoProvider, 'google');
+assert.equal(provisioned[0].passwordHash, undefined, 'SSO-only account must not gain a password credential');
+assert.ok(
+  storeAfterFirstTimer.auditLogs.some(
+    (entry) => entry.action === 'sso_user_auto_provisioned' && entry.data?.email === 'new.hire@example.com',
+  ),
+  'auto-provisioning should be audit-logged',
+);
+
+// 5b. A second sign-in for the same person uses the record the
+// first one created - no duplicate provisioning, same role.
+const secondSignIn = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
+assert.equal(secondSignIn.status, 200, 'returning auto-provisioned user should sign in');
+assert.equal(secondSignIn.body.role, 'observer');
+const storeAfterSecond = await getStore();
+assert.equal(
+  storeAfterSecond.users.filter((candidate) => String(candidate.email || '').toLowerCase() === 'new.hire@example.com').length,
+  1,
+  'repeat sign-in must not create a duplicate record',
+);
 
 // 6. An unconfigured provider (entra env is unset in this suite)
 // is refused with 503 and issues no token (audit fix B2 - the
@@ -236,6 +286,61 @@ currentIdToken = mintIdToken();
 const unconfigured = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'entra' }));
 assert.equal(unconfigured.status, 503, 'unconfigured provider should return 503');
 assert.equal(unconfigured.body.accessToken, undefined, 'no access token for unconfigured provider');
+
+// 7. An owner email from HICS_OWNER_EMAILS (listed there in mixed
+// case; the token's email is lowercase) auto-provisions as an
+// enterprise admin with facility 'all', and the owner flavor of
+// provisioning gets its own audit action.
+currentIdToken = mintIdToken({ email: 'owner.person@example.com', name: 'Owner Person' });
+const ownerSignIn = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
+assert.equal(ownerSignIn.status, 200, `owner first sign-in should succeed (got ${ownerSignIn.status}: ${JSON.stringify(ownerSignIn.body)})`);
+assert.equal(ownerSignIn.body.role, 'enterprise-admin', 'owner auto-provisions as enterprise-admin');
+assert.equal(ownerSignIn.body.facility, 'all', 'owner auto-provisions with facility all');
+const storeAfterOwner = await getStore();
+const ownerRecord = storeAfterOwner.users.find(
+  (candidate) => String(candidate.email || '').toLowerCase() === 'owner.person@example.com',
+);
+assert.ok(ownerRecord, 'owner record should exist in the store');
+assert.equal(ownerRecord.role, 'enterprise-admin');
+assert.equal(ownerRecord.ssoProvider, 'google');
+assert.ok(
+  storeAfterOwner.auditLogs.some(
+    (entry) => entry.action === 'sso_owner_auto_provisioned' && entry.data?.email === 'owner.person@example.com',
+  ),
+  'owner auto-provisioning should be audit-logged distinctly',
+);
+
+// 8. The bootstrap admin email counts as an owner even when it is
+// not in HICS_OWNER_EMAILS. (No bootstrap user exists in this
+// suite: the bootstrap password env is unset, so this record can
+// only have come from SSO auto-provisioning.)
+currentIdToken = mintIdToken({ email: 'big.boss@example.com', name: 'Big Boss' });
+const bootstrapOwnerSignIn = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
+assert.equal(bootstrapOwnerSignIn.status, 200, 'bootstrap-email first sign-in should succeed');
+assert.equal(bootstrapOwnerSignIn.body.role, 'enterprise-admin', 'bootstrap email auto-provisions as enterprise-admin');
+assert.equal(bootstrapOwnerSignIn.body.facility, 'all');
+
+// 9. An existing but INACTIVE store record is still refused:
+// auto-provisioning must never resurrect or bypass a disabled
+// account.
+const inactiveStore = await getStore();
+if (!inactiveStore.users.some((candidate) => String(candidate.email || '').toLowerCase() === 'suspended.user@example.com')) {
+  inactiveStore.users.push({
+    id: 'usr-smoke-suspended',
+    fullName: 'Suspended User',
+    email: 'suspended.user@example.com',
+    role: 'facility-admin',
+    facility: 'psychiatric-inpatient',
+    organization: 'Nyx Test Health',
+    status: 'inactive',
+    createdAt: new Date().toISOString(),
+  });
+  await saveStore(inactiveStore);
+}
+currentIdToken = mintIdToken({ email: 'suspended.user@example.com', name: 'Suspended User' });
+const inactive = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
+assert.equal(inactive.status, 403, 'inactive store user should still be refused');
+assert.equal(inactive.body.accessToken, undefined, 'no access token for inactive user');
 
 globalThis.fetch = originalFetch;
 

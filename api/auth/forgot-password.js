@@ -57,7 +57,7 @@ export default async function handler(req, res) {
   await saveStore(store);
 
   if (user && resetUrl) {
-    await sendEmail({
+    const result = await sendEmail({
       to: email,
       subject: 'Set your NyxHICSlab password',
       text: [
@@ -81,6 +81,14 @@ export default async function handler(req, res) {
         '<p>- NyxHICSlab</p>',
       ].join(''),
     });
+    // The response stays identical either way (anti-enumeration),
+    // but a failed send must be loud server-side (audit S3): the
+    // original reset saga looked exactly like this from outside.
+    if (!result?.sent) {
+      console.error(
+        `[NyxHICSlab] Password reset email was NOT delivered (reason: ${result?.reason || 'unknown'}). The user-facing response is unchanged by design.`,
+      );
+    }
   }
 
   // Always return success to prevent email enumeration.

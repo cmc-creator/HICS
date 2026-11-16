@@ -50,14 +50,23 @@ export default async function handler(req, res) {
     return json(res, 401, { error: 'Invalid or expired refresh token' });
   }
 
-  const accessToken = issueSignedAccessToken({
-    email: rotated.session.email,
-    fullName: rotated.session.fullName,
-    organization: rotated.session.organization,
-    role: rotated.session.role,
-    facility: rotated.session.facility,
-    authMethod: rotated.session.authMethod,
-  });
+  // Token issuance throws when TOKEN_SIGNING_SECRET is missing;
+  // that is a server configuration error, not something to leak
+  // to the client or crash on unhandled (audit W4).
+  let accessToken = '';
+  try {
+    accessToken = issueSignedAccessToken({
+      email: rotated.session.email,
+      fullName: rotated.session.fullName,
+      organization: rotated.session.organization,
+      role: rotated.session.role,
+      facility: rotated.session.facility,
+      authMethod: rotated.session.authMethod,
+    });
+  } catch (error) {
+    console.error('[NyxHICSlab] Failed to issue access token during refresh:', error instanceof Error ? error.message : error);
+    return json(res, 500, { error: 'Internal error' });
+  }
 
   return json(res, 200, {
     accessToken,

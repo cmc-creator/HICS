@@ -4,6 +4,14 @@ import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 
 const MAX_DATA_URL_LENGTH = 8 * 1024 * 1024;
+// Inline data URLs live inside the single store value, so they
+// are capped hard (audit W3): 512 KB of data-URL text. Anything
+// larger belongs in Vercel Blob via the upload-url route, whose
+// URL is what gets stored instead. The app's own upload flow
+// already works that way (LearningCenterPage uploads the file to
+// Blob and saves the blob URL), so this cap only affects direct
+// API callers still inlining media.
+const MAX_INLINE_DATA_URL_LENGTH = 512 * 1024;
 
 function isValidHttpUrl(value) {
   try {
@@ -84,8 +92,8 @@ export default async function handler(req, res) {
         return json(res, 400, { error: 'Uploaded media must be a video data URL or object URL' });
       }
 
-      if (isDataUrl && videoUrl.length > MAX_DATA_URL_LENGTH) {
-        return json(res, 413, { error: 'Uploaded media exceeds maximum allowed size' });
+      if (isDataUrl && videoUrl.length > MAX_INLINE_DATA_URL_LENGTH) {
+        return json(res, 400, { error: 'Inline media data URLs are limited to 512 KB. Upload the file through the media upload flow (Vercel Blob) and save the returned URL instead.' });
       }
     }
 

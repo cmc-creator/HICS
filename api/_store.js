@@ -179,7 +179,18 @@ function warnIfEphemeralStoreInProduction(mode) {
 async function ensureBootstrapAdmin(store) {
   const email = String(process.env.HICS_BOOTSTRAP_ADMIN_EMAIL || '').trim().toLowerCase();
   const password = String(process.env.HICS_BOOTSTRAP_ADMIN_PASSWORD || '');
-  if (!email || password.length < 10) {
+  if (!email && !password) {
+    return; // Bootstrap admin not configured at all - nothing to do.
+  }
+  // Partial or invalid configuration used to disable the bootstrap
+  // admin silently (audit S4): a fresh environment could come up
+  // with no admin and no signal. Log it loudly instead.
+  if (!email) {
+    console.error('[NyxHICSlab] HICS_BOOTSTRAP_ADMIN_PASSWORD is set but HICS_BOOTSTRAP_ADMIN_EMAIL is missing - bootstrap admin NOT created.');
+    return;
+  }
+  if (password.length < 10) {
+    console.error('[NyxHICSlab] HICS_BOOTSTRAP_ADMIN_PASSWORD is shorter than 10 characters - bootstrap admin NOT created.');
     return;
   }
 
@@ -255,12 +266,23 @@ async function readStoreFromBacking() {
 // Fills in any top-level collections a loaded store is missing
 // (older or partially written data) so handlers can rely on the
 // store's shape - appendAuditLog, for one, crashes on a store
-// whose auditLogs array is absent.
+// whose auditLogs array is absent. Collections that are present
+// but the WRONG TYPE (null, a string, an array where an object
+// belongs) are reset to their defaults too (audit W5): a single
+// corrupted value must not 500 every handler that touches it.
 function ensureStoreShape(store) {
   const defaults = createInitialStore();
   for (const key of Object.keys(defaults)) {
-    if (store[key] === undefined) {
-      store[key] = defaults[key];
+    const expected = defaults[key];
+    const actual = store[key];
+    if (Array.isArray(expected)) {
+      if (!Array.isArray(actual)) {
+        store[key] = expected;
+      }
+    } else if (expected && typeof expected === 'object') {
+      if (!actual || typeof actual !== 'object' || Array.isArray(actual)) {
+        store[key] = expected;
+      }
     }
   }
   return store;
@@ -348,6 +370,12 @@ export function createId(prefix) {
 }
 
 export function appendAuditLog(store, action, data = {}) {
+  // Never throw on shape: audit logging rides along inside other
+  // handlers' mutations, and a malformed auditLogs value must not
+  // take the whole request down with it (audit W5).
+  if (!Array.isArray(store.auditLogs)) {
+    store.auditLogs = [];
+  }
   const entry = {
     id: createId('audit'),
     action,

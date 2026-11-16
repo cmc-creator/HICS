@@ -22,6 +22,14 @@ export async function sendEmail({ to, subject, text, html }) {
   const from = process.env.RESEND_FROM_EMAIL;
 
   if (!apiKey || !from) {
+    // Loud on the server (audit S3): a silently undelivered
+    // password-reset or invite email is indistinguishable from
+    // success for the user, which is exactly how the reset saga
+    // hid. The store notification below is the in-app trace; this
+    // log is the operator's.
+    console.error(
+      `[NyxHICSlab] Email NOT sent (not configured): to=${String(to || '')} subject=${String(subject || '')} - set RESEND_API_KEY and RESEND_FROM_EMAIL.`,
+    );
     try {
       const store = await getStore();
       if (!Array.isArray(store.notifications)) {
@@ -61,11 +69,18 @@ export async function sendEmail({ to, subject, text, html }) {
     });
 
     if (!response.ok) {
+      console.error(
+        `[NyxHICSlab] Email provider rejected a send (status ${response.status}): to=${String(to || '')} subject=${String(subject || '')}`,
+      );
       return { sent: false, reason: 'provider_error', status: response.status };
     }
 
     return { sent: true };
   } catch (error) {
+    console.error(
+      `[NyxHICSlab] Email send failed: to=${String(to || '')} subject=${String(subject || '')}:`,
+      error instanceof Error ? error.message : error,
+    );
     return {
       sent: false,
       reason: 'network_error',

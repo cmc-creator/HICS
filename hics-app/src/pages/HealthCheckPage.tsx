@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import EnterpriseFooter from '../components/EnterpriseFooter';
 import { publicAsset } from '../lib/publicAsset';
+import { publicApiRequest } from '../lib/apiClient';
 
 interface EndpointStatus {
   label: string;
@@ -73,12 +74,14 @@ export default function HealthCheckPage() {
     setChecks(results);
 
     try {
-      const response = await fetch('/api/health/store', { method: 'GET' });
-      if (response.ok) {
-        const payload = await response.json();
-        if (payload?.store) {
-          setStoreHealth(payload.store as StoreHealthSummary);
-        }
+      // Go through the API client so a signed-in session's token is
+      // attached - the store health endpoint requires auth, and a
+      // bare fetch always came back 401, hiding the panel below.
+      const payload = await publicApiRequest<{ store?: StoreHealthSummary }>('/health/store', { method: 'GET' });
+      if (payload?.store) {
+        setStoreHealth(payload.store);
+      } else {
+        setStoreHealth(null);
       }
     } catch {
       setStoreHealth(null);

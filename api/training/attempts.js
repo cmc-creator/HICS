@@ -1,5 +1,5 @@
 import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
-import { canManageData, isEnterpriseAdmin, requireAuth, scopeByFacility } from '../_auth.js';
+import { canManageData, isEnterpriseAdmin, requireAuth, resolveFacility, scopeByFacility } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       id: createId('attempt'),
       scenarioId: String(body.scenarioId),
       scenarioTitle: String(body.scenarioTitle),
-      facility: String(body.facility ?? requesterFacility === 'all' ? 'psychiatric-inpatient' : requesterFacility),
+      facility: resolveFacility(body.facility, requesterFacility),
       correctAnswers: Math.max(0, Math.min(1000, Number(body.correctAnswers ?? 0))),
       totalSteps: Math.max(0, Math.min(1000, Number(body.totalSteps ?? 0))),
       scorePercent: Math.max(0, Math.min(100, Number(body.scorePercent ?? 0))),

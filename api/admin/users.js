@@ -1,9 +1,15 @@
 import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
-import { isEnterpriseAdmin, requireAuth, scopeByFacility } from '../_auth.js';
+import { isEnterpriseAdmin, requireAuth, resolveFacility, scopeByFacility } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { buildPasswordSetUrl, sendEmail } from '../_email.js';
 import { createPasswordToken } from '../_passwords.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
+
+// The canonical role list, mirroring AppUserRole in
+// hics-app/src/types/index.ts (and the roleOptions in
+// tenantContext.tsx). Unknown roles are rejected at creation so a
+// typo can never mint an account no policy recognizes (audit W8).
+const KNOWN_ROLES = ['enterprise-admin', 'facility-admin', 'training-manager', 'facilitator', 'observer'];
 
 // Credential material (password hashes, set-password token hashes)
 // lives on the stored user record but must never leave the server.
@@ -57,7 +63,18 @@ export default async function handler(req, res) {
       return json(res, 400, { error: validationError });
     }
 
-    const facility = String(body.facility ?? requesterFacility === 'all' ? 'psychiatric-inpatient' : requesterFacility);
+    const role = String(body.role);
+    if (!KNOWN_ROLES.includes(role)) {
+      return json(res, 400, { error: `Unknown role: ${role}` });
+    }
+
+    const email = String(body.email).trim().toLowerCase();
+    const users = Array.isArray(store.users) ? store.users : [];
+    if (users.some((candidate) => String(candidate?.email || '').toLowerCase() === email)) {
+      return json(res, 409, { error: 'A user with this email already exists' });
+    }
+
+    const facility = resolveFacility(body.facility, requesterFacility);
     if (!isEnterpriseAdmin(auth.claims) && requesterFacility !== 'all' && facility !== requesterFacility) {
       return json(res, 403, { error: 'Cannot create users outside your facility scope' });
     }
@@ -65,8 +82,8 @@ export default async function handler(req, res) {
     const user = {
       id: createId('usr'),
       fullName: String(body.fullName),
-      email: String(body.email).toLowerCase(),
-      role: String(body.role),
+      email,
+      role,
       facility,
       organization: String(auth.claims.organization || 'Enterprise Health System'),
       status: 'active',

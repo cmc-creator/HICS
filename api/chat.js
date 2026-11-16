@@ -1,6 +1,7 @@
 // api/chat.js - Vercel serverless function for HICS AI chatbot
 // Provider order: Anthropic first, Gemini fallback
 
+import { requireAuth } from './_auth.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from './_security.js';
 
 const SYSTEM_PROMPT = `You are NyxHICSlab Assistant, an expert HICS (Hospital Incident Command System) training AI embedded in NyxHICSlab by NyxCollective LLC.
@@ -137,6 +138,15 @@ export default async function handler(req, res) {
     maxRequests: 40,
     windowMs: 5 * 60 * 1000,
   })) {
+    return;
+  }
+
+  // The assistant spends real Anthropic/Gemini credit per call,
+  // so it requires a valid signed-in session (audit B7). Both
+  // frontend call sites live behind the protected layout and send
+  // the session token via the API client.
+  const auth = requireAuth(req, res);
+  if (!auth) {
     return;
   }
 

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { publicApiRequest } from '../lib/apiClient';
 
 interface WidgetMessage {
   id: string;
@@ -45,26 +46,28 @@ export default function GlobalAssistant() {
 
     try {
       const history = messages.slice(-8).map((m) => ({ role: m.role, content: m.content }));
-      const response = await fetch('/api/chat', {
+      // Through the API client so the session token is attached -
+      // /api/chat requires auth (audit B7).
+      const data = await publicApiRequest<{ reply?: string }>('/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: trimmed,
           history,
         }),
       });
 
-      const data = await response.json();
-      const reply = response.ok
-        ? (typeof data?.reply === 'string' ? data.reply : 'I did not receive a response. Please try again.')
-        : (typeof data?.error === 'string' ? data.error : 'Assistant temporarily unavailable.');
-
+      const reply = typeof data?.reply === 'string' ? data.reply : 'I did not receive a response. Please try again.';
       setMessages((prev) => [...prev, { id: getNextId(), role: 'assistant', content: reply }]);
-    } catch {
+    } catch (error) {
+      // A server refusal carries its own message (and a status);
+      // a bare network failure gets the connectivity wording.
+      const serverMessage = (error as { status?: number })?.status && error instanceof Error
+        ? error.message
+        : null;
       setMessages((prev) => [...prev, {
         id: getNextId(),
         role: 'assistant',
-        content: 'Network issue reaching the assistant. Please try again in a moment.',
+        content: serverMessage ?? 'Network issue reaching the assistant. Please try again in a moment.',
       }]);
     } finally {
       setIsLoading(false);

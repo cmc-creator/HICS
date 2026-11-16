@@ -94,7 +94,12 @@ export async function publicApiRequest<T>(
     } catch {
       // Keep the generic message when the body is not JSON.
     }
-    throw new Error(message);
+    // Carry the HTTP status on the error so callers can tell a
+    // server refusal (show its message) from a network failure,
+    // and so health probes can assert on the status itself.
+    const error = new Error(message) as Error & { status?: number };
+    error.status = response.status;
+    throw error;
   }
 
   if (response.status === 204) {

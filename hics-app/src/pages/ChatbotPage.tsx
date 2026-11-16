@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ChatMessage } from '../types';
+import { publicApiRequest } from '../lib/apiClient';
 
 function getInitialMessage(): ChatMessage {
   return {
@@ -107,29 +108,31 @@ export default function ChatbotPage() {
       .slice(-10)
       .map((m) => ({ role: m.role, content: m.content }));
 
-    fetch('/api/chat', {
+    // Through the API client so the session token is attached -
+    // /api/chat requires auth (audit B7).
+    publicApiRequest<{ reply?: string }>('/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: text.trim(), history: historySnapshot }),
     })
-      .then(async (response) => {
-        const data = await response.json();
-        const reply = response.ok
-          ? (data.reply ?? 'No response received.')
-          : (data.error ?? 'AI service is temporarily unavailable. Please try again.');
+      .then((data) => {
         const botMessage: ChatMessage = {
           id: getNextMessageId(),
           role: 'assistant',
-          content: reply,
+          content: data.reply ?? 'No response received.',
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, botMessage]);
       })
-      .catch(() => {
+      .catch((error) => {
+        // A server refusal carries its own message (and a status);
+        // a bare network failure gets the connectivity wording.
+        const serverMessage = (error as { status?: number })?.status && error instanceof Error
+          ? error.message
+          : null;
         const botMessage: ChatMessage = {
           id: getNextMessageId(),
           role: 'assistant',
-          content: 'Unable to reach the AI service. Check your connection and try again.',
+          content: serverMessage ?? 'Unable to reach the AI service. Check your connection and try again.',
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, botMessage]);

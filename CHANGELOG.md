@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-11-16 - Security and reliability audit fixes
+
+A full audit of `api/` and `hics-app/src` (requested after the reset/Google sign-in bug chain surfaced three latent defects in one day) found the items below; all were fixed the same day. New regression suite: `api/tests/audit-regressions.mjs`. Note for deployments: the `ALLOW_LOCAL_AUTH_FALLBACK` and `ALLOW_OIDC_MOCK_FALLBACK` env vars are no longer read anywhere and can be removed from the Vercel project; `VITE_ALLOW_LOCAL_AUTH_FALLBACK` is likewise unused by the frontend.
+
+### Fixed (security)
+- **SSO mock-identity bypass (B2):** `api/auth/exchange.js` fell through to hardcoded mock identities (with `enterprise-admin` granted to any email containing "admin") whenever a provider's env config was missing - Entra/Okta are unset, so a direct call issued real signed sessions with no credentials. The fallthrough and `ALLOW_OIDC_MOCK_FALLBACK` are deleted: an unconfigured provider returns 503, a failed or identity-less exchange returns 401, and no session is ever issued without a JWKS-verified identity.
+- **SSO now requires a provisioned user (B4):** after verification, the exchange reloads the store and looks the user up by email; unknown or inactive accounts get 403. Role, facility, and organization come from the store record - the email-string role inference (`inferRole`/`inferFacility`) is deleted.
+- **Forgeable `pwd-` bearer tokens (B3):** `api/_auth.js` accepted any bearer token starting with `pwd-` as a facility admin while `ALLOW_LOCAL_AUTH_FALLBACK` was set - and that flag was live in production. `parseDevFallbackToken` is deleted outright. The same flag also gated real credential login; `api/auth/local-login.js` no longer depends on it, and the frontend's fabricate-a-session branch in `hics-app/src/lib/oidc.ts` is deleted (a missing exchange endpoint now throws a clear configuration error).
+- **Unauthenticated AI chat (B7):** `api/chat.js` now requires a valid session (401 otherwise). `GlobalAssistant` and `ChatbotPage` call it through `publicApiRequest` so the session token is attached; both already lived behind the protected layout.
+
+### Fixed (data correctness)
+- **Facility silently rewritten (B5):** `String(body.facility ?? requesterFacility === 'all' ? ...)` in `api/admin/users.js` and `api/training/attempts.js` parsed so every provided facility was discarded for `psychiatric-inpatient` - admin-created users landed in the wrong facility and out-of-scope attempts 403'd into a swallowed client-side fallback. Both use the new explicit `resolveFacility()` helper in `api/_auth.js`; a repo-wide grep confirms no other instances.
+- **Sales leads discarded (B6):** `api/sales/leads.js` only forwarded leads to `SALES_WEBHOOK_URL` and returned 201 regardless, so with the webhook unset every demo request vanished. Leads are now persisted to a new `leads` store collection (201 means saved); the webhook remains as an optional relay, and the health endpoint/panel report `counts.leads`.
+- **Progress scoping (W6):** `api/training/progress.js` authorized against the facility embedded in the progress key (the player's UI selection), locking users out of their own progress. Records now carry a session-stamped `ownerEmail` and authorize by owner; legacy ownerless records keep the old rule until rewritten.
+
+### Changed (hardening)
+- **W3:** `api/training/media.js` rejects inline media data URLs over 512 KB with a clear 400 pointing at the Blob upload flow (the app's own uploads already store Blob URLs; the cap protects the single store value from growing past Upstash payload limits).
+- **W4:** `api/auth/refresh.js` wraps token issuance in try/catch with a generic 500; the exchange and local-login issuance failures were genericized the same way (details logged server-side, no config text leaked to clients).
+- **W5:** `ensureStoreShape` resets top-level collections that are present but the wrong type, not just missing ones; `appendAuditLog` guards its array so it can never throw.
+- **W7:** JWKS responses are cached per issuer URL for 10 minutes in `api/auth/exchange.js`, refetching once on an unknown kid so key rotation still lands immediately.
+- **W8:** admin user creation rejects duplicate emails (case-insensitive, 409) and unknown roles (400, validated against the canonical `AppUserRole` list).
+- **S1 (light):** swallowed catches in `hics-app/src/lib/trainingAnalytics.ts` and `notifications.ts` now `console.error` the operation and HTTP status before the local fallback; `publicApiRequest` errors carry the HTTP status to make that possible.
+- **S2:** the HealthCheckPage Auth Exchange probe goes through `publicApiRequest` with an intentionally invalid body and treats HTTP 400 as alive (404/500/network = failure), so it exercises the same path building as real sign-in.
+- **S3:** undelivered email is loud server-side: `api/_email.js` logs unconfigured/provider/transport failures, and `api/auth/forgot-password.js` logs when a reset email was not delivered (user-facing response unchanged).
+- **S4:** `ensureBootstrapAdmin` logs an error when the bootstrap config is partially present but unusable instead of silently skipping admin creation.
+- **H1/H2:** `authContext.tsx` uses the shared `normalizePath` from `apiClient.ts` (its private pre-fix copy is deleted), and the unused `apiRequest` export is removed from `apiClient.ts`.
+- **H3 (partial):** `vercel.json` CSP `connect-src` no longer allows `login.microsoftonline.com` or `*.okta.com`.
+
 ## 2026-11-16
 
 ### Added

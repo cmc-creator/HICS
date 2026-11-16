@@ -1,5 +1,5 @@
 import { appendAuditLog, getStore, json, saveStore } from '../_store.js';
-import { requireAuth } from '../_auth.js';
+import { isEnterpriseAdmin, requireAuth } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 
@@ -10,6 +10,28 @@ function keyFacilityMatches(key, facility) {
   const parts = String(key).split(':');
   const keyFacility = parts[1] || '';
   return keyFacility === facility;
+}
+
+// Authorization is by record ownership, not by the facility
+// string embedded in the key (audit W6). The key's facility
+// segment comes from whichever facility the player UI had
+// selected, so keying access off it 403'd a user for resuming
+// their own progress after selecting a different facility - and
+// the client swallowed the 403 into local-only progress. Now:
+// enterprise/'all' requesters pass; a record with an ownerEmail
+// (stamped on every PUT) belongs to that user wherever the key
+// points; legacy records without an owner keep the old
+// key-facility rule until their next write stamps one. Another
+// user's record is never readable or writable.
+function canAccessProgress(claims, key, existing) {
+  const requesterFacility = String(claims?.facility || 'all');
+  if (isEnterpriseAdmin(claims) || requesterFacility === 'all') {
+    return true;
+  }
+  if (existing && typeof existing.ownerEmail === 'string' && existing.ownerEmail) {
+    return existing.ownerEmail.toLowerCase() === String(claims?.email || '').toLowerCase();
+  }
+  return keyFacilityMatches(key, requesterFacility);
 }
 
 export default async function handler(req, res) {
@@ -32,6 +54,9 @@ export default async function handler(req, res) {
 
   const store = await getStore();
   const requesterFacility = String(auth.claims.facility || 'all');
+  if (!store.progress || typeof store.progress !== 'object' || Array.isArray(store.progress)) {
+    store.progress = {};
+  }
 
   if (req.method === 'GET') {
     const key = String(req.query?.key ?? '');
@@ -39,11 +64,12 @@ export default async function handler(req, res) {
       return json(res, 400, { error: 'key query parameter is required' });
     }
 
-    if (!keyFacilityMatches(key, requesterFacility)) {
-      return json(res, 403, { error: 'Progress key outside facility scope' });
+    const existing = store.progress[key];
+    if (existing && !canAccessProgress(auth.claims, key, existing)) {
+      return json(res, 403, { error: 'Progress record belongs to another user' });
     }
 
-    return json(res, 200, { progress: store.progress[key] ?? null });
+    return json(res, 200, { progress: existing ?? null });
   }
 
   if (req.method === 'PUT') {
@@ -68,12 +94,16 @@ export default async function handler(req, res) {
       return json(res, 400, { error: 'Progress payload exceeds maximum size' });
     }
 
-    if (!keyFacilityMatches(key, requesterFacility)) {
-      return json(res, 403, { error: 'Progress key outside facility scope' });
+    const existing = store.progress[key];
+    if (existing && !canAccessProgress(auth.claims, key, existing)) {
+      return json(res, 403, { error: 'Progress record belongs to another user' });
     }
 
     store.progress[key] = {
       ...progress,
+      // Ownership is stamped from the session, never from the
+      // payload, and is what later reads/writes authorize against.
+      ownerEmail: String(auth.claims.email || '').toLowerCase(),
       facility: requesterFacility,
       organization: String(auth.claims.organization || 'Enterprise Health System'),
       updatedAt: new Date().toISOString(),
@@ -90,8 +120,9 @@ export default async function handler(req, res) {
       return json(res, 400, { error: 'key query parameter is required' });
     }
 
-    if (!keyFacilityMatches(key, requesterFacility)) {
-      return json(res, 403, { error: 'Progress key outside facility scope' });
+    const existing = store.progress[key];
+    if (existing && !canAccessProgress(auth.claims, key, existing)) {
+      return json(res, 403, { error: 'Progress record belongs to another user' });
     }
 
     delete store.progress[key];

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-16 - Permissions honesty: admin UI gated on the real role
+
+### Fixed
+- **The admin page dressed basic accounts up as admins:** SSO auto-provisioning gives first-time Google sign-ins an `observer` account, but the frontend never stored the role the sign-in endpoints returned. Any signed-in user could open `/admin`, where the Tenant Profile's "Current Role" showed the local preview switcher (which defaults to Facility Admin) and the Permission Matrix rendered ENABLED from that same switcher. The API refused the actual data all along (the page silently showed empty lists), but for a product sold to hospitals the dressing itself misrepresented the account's permissions.
+- **The real role is now plumbed end to end:** both sign-in endpoints already returned `role` and `facility`; the password path (`LoginPage`) and the SSO path (`OidcExchangeResult` / `AuthCallbackPage`) now store them in the auth session (`AuthUser.role` / `AuthUser.facility`), and the auth context exposes `isAdmin` (facility-admin or enterprise-admin).
+- **The admin area is gated on the session role:** the `/admin` route redirects any non-admin session to `/dashboard`, and the Navbar Admin link renders only for admin sessions. Sessions persisted before this change carry no role and are treated as non-admin (fail closed) until the user signs in again. The server still enforces the same policy on every admin request; this gate makes the UI honest, it is not the enforcement.
+- **Honest labels on Facility Admin:** the Tenant Profile now shows a read-only "Signed-in Role" (the actual account role, which cannot be changed on the page) next to the switcher, the switcher is relabeled "Preview As Role" with a note that it only changes reporting-scope displays, and the Permission Matrix is captioned as reflecting the previewed role.
+- **Unchanged on purpose:** the tenant preview switcher still drives reporting-scope displays elsewhere (TrainingReports uses it for its export and clear-data affordances); only the admin route, the Admin nav link, and the profile labels stopped treating it as a permission.
+- Tests: `api/tests/audit-regressions.mjs` gains a block pinning the server half of the rule - an observer-role session token receives 403 from `GET /api/admin/users`, `POST /api/admin/users`, and `GET /api/audit/logs`, while a facility-admin token succeeds on the GETs.
+
 ## 2026-11-16 - SSO auto-provisioning (B4 follow-up)
 
 ### Changed

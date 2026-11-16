@@ -36,6 +36,37 @@ interface StoreHealthSummary {
   };
 }
 
+// The Auth Exchange probe goes through the API client with the
+// configured endpoint, exactly like the real sign-in callback
+// (audit S2). The old raw-fetch probe used a hardcoded full path
+// and counted anything under 500 as alive, so it reported the
+// exchange healthy while real sign-ins 404'd on the doubled
+// /api/api path the client was constructing. An empty body must
+// fail server-side validation with 400; a 404 means the built
+// path is wrong, and a 500 or network error means it is down.
+async function probeExchangeEndpoint(): Promise<{ ok: boolean; latencyMs: number; detail: string }> {
+  const start = performance.now();
+  const endpoint = (import.meta.env.VITE_AUTH_EXCHANGE_ENDPOINT as string | undefined) ?? '';
+  if (!endpoint) {
+    return { ok: false, latencyMs: 0, detail: 'VITE_AUTH_EXCHANGE_ENDPOINT not set' };
+  }
+  try {
+    await publicApiRequest(endpoint, { method: 'POST', body: JSON.stringify({}) });
+    return { ok: true, latencyMs: Math.round(performance.now() - start), detail: 'HTTP 200' };
+  } catch (error) {
+    const latencyMs = Math.round(performance.now() - start);
+    const status = (error as { status?: number })?.status;
+    if (status === 400) {
+      return { ok: true, latencyMs, detail: 'HTTP 400 (validation, via API client)' };
+    }
+    return {
+      ok: false,
+      latencyMs,
+      detail: status ? `HTTP ${status}` : (error instanceof Error ? error.message : 'Network error'),
+    };
+  }
+}
+
 async function probeEndpoint(path: string, method: 'GET' | 'POST'): Promise<{ ok: boolean; latencyMs: number; detail: string }> {
   const start = performance.now();
   try {
@@ -67,7 +98,9 @@ export default function HealthCheckPage() {
 
     const results = await Promise.all(
       ENDPOINTS.map(async (e) => {
-        const { ok, latencyMs, detail } = await probeEndpoint(e.path, e.method);
+        const { ok, latencyMs, detail } = e.label === 'Auth Exchange'
+          ? await probeExchangeEndpoint()
+          : await probeEndpoint(e.path, e.method);
         return { ...e, status: ok ? ('ok' as const) : ('error' as const), latencyMs, detail };
       })
     );
@@ -204,8 +237,6 @@ export default function HealthCheckPage() {
               <dd>{import.meta.env.VITE_AUTH_EXCHANGE_ENDPOINT || <span className="opacity-40 italic">not set</span>}</dd>
               <dt className="opacity-50">Google Client ID</dt>
               <dd>{import.meta.env.VITE_OIDC_GOOGLE_CLIENT_ID ? '••••' + String(import.meta.env.VITE_OIDC_GOOGLE_CLIENT_ID).slice(-4) : <span className="opacity-40 italic">not set</span>}</dd>
-              <dt className="opacity-50">Local Auth Fallback</dt>
-              <dd>{import.meta.env.VITE_ALLOW_LOCAL_AUTH_FALLBACK || 'false'}</dd>
               <dt className="opacity-50">Local Lead Fallback</dt>
               <dd>{import.meta.env.VITE_ALLOW_LOCAL_LEAD_FALLBACK || 'false'}</dd>
             </dl>

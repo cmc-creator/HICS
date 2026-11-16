@@ -1,19 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { normalizePath } from './apiClient';
 
 const AUTH_SESSION_KEY = 'nyx-auth-session';
 const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
 const REFRESH_LEEWAY_MS = 4 * 60 * 1000;
-
-function authApiPath(path: string): string {
-  const base = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
-  if (!base) {
-    return path;
-  }
-
-  const left = base.endsWith('/') ? base.slice(0, -1) : base;
-  const right = path.startsWith('/') ? path : `/${path}`;
-  return `${left}${right}`;
-}
 
 export interface AuthUser {
   fullName: string;
@@ -127,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     const refreshToken = sessionRef.current?.refreshToken;
     if (refreshToken) {
-      void fetch(authApiPath('/auth/logout'), {
+      void fetch(normalizePath('/auth/logout'), {
         // Revoke refresh token server-side to terminate session chain.
         method: 'POST',
         credentials: 'include',
@@ -154,7 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const refreshPromise = (async () => {
       try {
-        const response = await fetch(authApiPath('/auth/refresh'), {
+        const response = await fetch(normalizePath('/auth/refresh'), {
           method: 'POST',
           credentials: 'include',
           headers: {

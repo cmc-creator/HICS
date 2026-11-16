@@ -1,4 +1,4 @@
-function normalizePath(path: string): string {
+export function normalizePath(path: string): string {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
@@ -100,37 +100,6 @@ export async function publicApiRequest<T>(
     const error = new Error(message) as Error & { status?: number };
     error.status = response.status;
     throw error;
-  }
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return response.json() as Promise<T>;
-}
-
-export async function apiRequest<T>(
-  path: string,
-  options: RequestInit,
-  accessToken: string,
-  onUnauthorized: () => void,
-): Promise<T> {
-  const response = await fetch(normalizePath(path), {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers ?? {}),
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (response.status === 401) {
-    onUnauthorized();
-    throw new Error('Session expired. Please sign in again.');
-  }
-
-  if (!response.ok) {
-    throw new Error(`API request failed with status ${response.status}`);
   }
 
   if (response.status === 204) {

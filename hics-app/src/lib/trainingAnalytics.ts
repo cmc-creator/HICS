@@ -138,6 +138,19 @@ function getProgressStorageKey(key: string) {
   return `${PROGRESS_PREFIX}${key}`;
 }
 
+// Server failures fall back to local data by design, but they
+// must never be silent (audit S1): a 401/403/500 hidden behind a
+// local fallback is how the facility bug (B5) dropped training
+// records unnoticed. Log the operation and HTTP status so the
+// failure is at least visible in the console.
+function logApiFailure(operation: string, error: unknown) {
+  const status = (error as { status?: number } | null)?.status;
+  console.error(
+    `[NyxHICSlab] ${operation} failed${typeof status === 'number' ? ` (HTTP ${status})` : ''}; using local fallback.`,
+    error,
+  );
+}
+
 export function getScenarioAttemptsSync(): ScenarioAttempt[] {
   return readJson<ScenarioAttempt>(ATTEMPTS_KEY);
 }
@@ -148,7 +161,8 @@ export async function getScenarioAttempts(): Promise<ScenarioAttempt[]> {
     const attempts = Array.isArray(response?.attempts) ? response.attempts : [];
     writeJson(ATTEMPTS_KEY, attempts);
     return attempts;
-  } catch {
+  } catch (error) {
+    logApiFailure('GET /training/attempts', error);
     return getScenarioAttemptsSync();
   }
 }
@@ -170,7 +184,8 @@ export async function recordScenarioAttempt(attempt: Omit<ScenarioAttempt, 'id' 
       body: JSON.stringify(attempt),
     });
     return response?.attempt ?? entry;
-  } catch {
+  } catch (error) {
+    logApiFailure('POST /training/attempts', error);
     return entry;
   }
 }
@@ -180,8 +195,9 @@ export async function clearScenarioAttempts() {
 
   try {
     await publicApiRequest('/training/attempts', { method: 'DELETE' });
-  } catch {
+  } catch (error) {
     // Local clear already completed.
+    logApiFailure('DELETE /training/attempts', error);
   }
 }
 
@@ -206,7 +222,8 @@ export async function getEventCounts() {
   try {
     const response = await publicApiRequest<{ eventCounts: Array<{ event: string; count: number }> }>('/training/events', { method: 'GET' });
     return Array.isArray(response?.eventCounts) ? response.eventCounts : [];
-  } catch {
+  } catch (error) {
+    logApiFailure('GET /training/events', error);
     return getEventCountsSync();
   }
 }
@@ -216,8 +233,9 @@ export async function clearEvents() {
 
   try {
     await publicApiRequest('/training/events', { method: 'DELETE' });
-  } catch {
+  } catch (error) {
     // Local clear already completed.
+    logApiFailure('DELETE /training/events', error);
   }
 }
 
@@ -236,12 +254,12 @@ export function trackEvent(event: string, data?: Record<string, string | number 
   void publicApiRequest('/training/events', {
     method: 'POST',
     body: JSON.stringify({ event, data }),
-  }).catch(() => undefined);
+  }).catch((error) => logApiFailure('POST /training/events', error));
 
   void publicApiRequest('/audit/logs', {
     method: 'POST',
     body: JSON.stringify({ action: event, data }),
-  }).catch(() => undefined);
+  }).catch((error) => logApiFailure('POST /audit/logs', error));
 }
 
 export async function saveScenarioProgress(key: string, progress: Omit<ScenarioProgressState, 'savedAt'>) {
@@ -257,8 +275,9 @@ export async function saveScenarioProgress(key: string, progress: Omit<ScenarioP
       method: 'PUT',
       body: JSON.stringify({ key, progress: payload }),
     });
-  } catch {
+  } catch (error) {
     // Local save already completed.
+    logApiFailure('PUT /training/progress', error);
   }
 }
 
@@ -271,8 +290,9 @@ export async function loadScenarioProgress(key: string): Promise<ScenarioProgres
       localStorage.setItem(getProgressStorageKey(key), JSON.stringify(response.progress));
       return response.progress;
     }
-  } catch {
+  } catch (error) {
     // Fallback below.
+    logApiFailure('GET /training/progress', error);
   }
 
   try {
@@ -291,8 +311,9 @@ export async function clearScenarioProgress(key: string) {
 
   try {
     await publicApiRequest(`/training/progress?key=${encodeURIComponent(key)}`, { method: 'DELETE' });
-  } catch {
+  } catch (error) {
     // Local clear already completed.
+    logApiFailure('DELETE /training/progress', error);
   }
 }
 
@@ -349,7 +370,8 @@ export async function getLearningMediaAssets(moduleId?: string): Promise<Learnin
     const query = moduleId ? `?moduleId=${encodeURIComponent(moduleId)}` : '';
     const response = await publicApiRequest<{ mediaAssets: LearningMediaAsset[] }>(`/training/media${query}`, { method: 'GET' });
     return Array.isArray(response?.mediaAssets) ? response.mediaAssets : [];
-  } catch {
+  } catch (error) {
+    logApiFailure('GET /training/media', error);
     return [];
   }
 }
@@ -373,7 +395,8 @@ export async function uploadLearningMediaAsset(payload: {
       body: JSON.stringify(payload),
     });
     return response?.mediaAsset ?? null;
-  } catch {
+  } catch (error) {
+    logApiFailure('POST /training/media', error);
     return null;
   }
 }
@@ -382,7 +405,8 @@ export async function deleteLearningMediaAsset(id: string): Promise<boolean> {
   try {
     await publicApiRequest(`/training/media?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
     return true;
-  } catch {
+  } catch (error) {
+    logApiFailure('DELETE /training/media', error);
     return false;
   }
 }
@@ -393,7 +417,8 @@ export async function getLiveDrillSession(sessionCode: string): Promise<LiveDril
       method: 'GET',
     });
     return response?.session ?? null;
-  } catch {
+  } catch (error) {
+    logApiFailure('GET /training/live-drills', error);
     return null;
   }
 }
@@ -412,7 +437,8 @@ export async function saveLiveDrillSession(payload: {
       body: JSON.stringify(payload),
     });
     return response?.session ?? null;
-  } catch {
+  } catch (error) {
+    logApiFailure('PUT /training/live-drills', error);
     return null;
   }
 }
@@ -421,7 +447,8 @@ export async function deleteLiveDrillSession(sessionCode: string): Promise<boole
   try {
     await publicApiRequest(`/training/live-drills?sessionCode=${encodeURIComponent(sessionCode)}`, { method: 'DELETE' });
     return true;
-  } catch {
+  } catch (error) {
+    logApiFailure('DELETE /training/live-drills', error);
     return false;
   }
 }
@@ -432,7 +459,8 @@ export async function getRapidChallengeLeaderboard(): Promise<RapidChallengeLead
       method: 'GET',
     });
     return Array.isArray(response?.leaderboard) ? response.leaderboard : [];
-  } catch {
+  } catch (error) {
+    logApiFailure('GET /training/rapid-challenge', error);
     return [];
   }
 }
@@ -452,7 +480,8 @@ export async function recordRapidChallengeScore(payload: {
       body: JSON.stringify(payload),
     });
     return Array.isArray(response?.leaderboard) ? response.leaderboard : [];
-  } catch {
+  } catch (error) {
+    logApiFailure('POST /training/rapid-challenge', error);
     return [];
   }
 }

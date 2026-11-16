@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-16 - SSO auto-provisioning (B4 follow-up)
+
+### Changed
+- **First-time Google sign-in now auto-provisions an account instead of returning 403:** the audit fix for B4 made `api/auth/exchange.js` refuse any verified Google identity with no store record ("not provisioned"). Connie rejected that posture the same day - it walled out legitimate first-time sign-ins, including her own other owner emails, and the production site doubles as the sales demo. A verified identity with no record now gets one created and persisted before tokens are issued: owner emails become `enterprise-admin` with facility `all`; everyone else becomes `observer` - the lowest-privilege non-admin role in the canonical `AppUserRole` list - with the `DEFAULT_USER_FACILITY` / `DEFAULT_ORGANIZATION_NAME` defaults. Existing records are untouched (role/facility/organization still come from the record, never the email string), and an inactive record is still refused with 403. Auto-created records are SSO-only: no password credential is created, so credential login rejects them like any passwordless account. Provisioning is audit-logged as `sso_user_auto_provisioned`, or `sso_owner_auto_provisioned` for owners.
+- **Owner emails** come from the new `HICS_OWNER_EMAILS` env var (comma-separated, case-insensitive); the `HICS_BOOTSTRAP_ADMIN_EMAIL` value always counts as an owner too. Deployment note: set `HICS_OWNER_EMAILS` in Vercel to Connie's owner emails so they auto-provision as enterprise admins on first Google sign-in.
+- Tests: `api/tests/auth-exchange-google-smoke.mjs` updated - the unprovisioned case now expects auto-provisioned success with the default role, and new cases cover owner provisioning via `HICS_OWNER_EMAILS`, owner provisioning via the bootstrap email, inactive-user refusal, and the created record actually persisting in the store.
+
 ## 2026-11-16 - Security and reliability audit fixes
 
 A full audit of `api/` and `hics-app/src` (requested after the reset/Google sign-in bug chain surfaced three latent defects in one day) found the items below; all were fixed the same day. New regression suite: `api/tests/audit-regressions.mjs`. Note for deployments: the `ALLOW_LOCAL_AUTH_FALLBACK` and `ALLOW_OIDC_MOCK_FALLBACK` env vars are no longer read anywhere and can be removed from the Vercel project; `VITE_ALLOW_LOCAL_AUTH_FALLBACK` is likewise unused by the frontend.

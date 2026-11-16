@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { facilityLabels, type FacilityType } from '../data/facilityProfiles';
 import { useTenant } from '../lib/tenantContext';
+import { useAuth } from '../lib/authContext';
 import { getScenarioAttempts, type ScenarioAttempt } from '../lib/trainingAnalytics';
 import { publicApiRequest } from '../lib/apiClient';
 import { writeAuditLog } from '../lib/notifications';
@@ -34,6 +35,15 @@ export default function FacilityAdminPage() {
     setFacility,
     setDisplayName,
   } = useTenant();
+
+  // The signed-in user's REAL role, from the auth session (issued
+  // by the sign-in endpoints from the store record). The tenant
+  // role above is only a preview switcher for reporting scope -
+  // it is not a permission and is labeled as such below.
+  const { user: authUser } = useAuth();
+  const signedInRoleLabel = authUser?.role
+    ? (roleOptions.find((option) => option.value === authUser.role)?.label ?? authUser.role)
+    : 'Not recorded - sign in again';
 
   const [attempts, setAttempts] = useState<ScenarioAttempt[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -128,7 +138,7 @@ export default function FacilityAdminPage() {
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         <div className="nyx-panel p-5">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Tenant Profile</h2>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
             <div>
               <label htmlFor="tenant-name" className="text-xs font-semibold text-gray-600 dark:text-white/60">Facility Name</label>
               <input
@@ -139,7 +149,14 @@ export default function FacilityAdminPage() {
               />
             </div>
             <div>
-              <label htmlFor="tenant-role" className="text-xs font-semibold text-gray-600 dark:text-white/60">Current Role</label>
+              <span className="text-xs font-semibold text-gray-600 dark:text-white/60">Signed-in Role</span>
+              <div className="mt-1 w-full border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm bg-gray-50 dark:bg-white/5 text-gray-800 dark:text-white">
+                {signedInRoleLabel}
+              </div>
+              <p className="text-[11px] text-gray-500 dark:text-white/50 mt-1">Your actual permission, from your account. It cannot be changed here.</p>
+            </div>
+            <div>
+              <label htmlFor="tenant-role" className="text-xs font-semibold text-gray-600 dark:text-white/60">Preview As Role</label>
               <select
                 id="tenant-role"
                 value={role}
@@ -152,6 +169,7 @@ export default function FacilityAdminPage() {
                   </option>
                 ))}
               </select>
+              <p className="text-[11px] text-gray-500 dark:text-white/50 mt-1">Preview only - changes reporting scope displays, never your permissions.</p>
             </div>
             <div>
               <label htmlFor="tenant-facility" className="text-xs font-semibold text-gray-600 dark:text-white/60">Reporting Scope</label>
@@ -241,7 +259,8 @@ export default function FacilityAdminPage() {
           </div>
 
           <div className="nyx-panel p-5">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Permission Matrix</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Permission Matrix</h2>
+            <p className="text-[11px] text-gray-500 dark:text-white/50 mb-3">Shown for the role selected under Preview As Role - a preview, not your signed-in permission.</p>
             <div className="grid gap-3 text-sm mb-4">
               <div className={`rounded-lg border p-3 ${canManageUsers ? 'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30' : 'border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/5'}`}>
                 <div className="font-semibold">User Management</div>

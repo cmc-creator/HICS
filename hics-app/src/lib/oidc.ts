@@ -21,6 +21,11 @@ interface OidcExchangeResult {
   email: string;
   fullName: string;
   organization: string;
+  // Issued by the exchange from the user's store record (or the
+  // auto-provisioning defaults) - the frontend stores these in
+  // the auth session so admin gating uses the real role.
+  role: string;
+  facility: string;
 }
 
 const GOOGLE_AUTHORIZE_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';

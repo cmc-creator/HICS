@@ -34,6 +34,8 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
         email: string;
         fullName: string;
         organization: string;
+        role: string;
+        facility: string;
       }>('/auth/local-login', {
         method: 'POST',
         body: JSON.stringify({
@@ -50,6 +52,8 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
           organization: result.organization,
           mfaEnabled: true,
           plan: 'enterprise',
+          role: result.role,
+          facility: result.facility,
         },
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,

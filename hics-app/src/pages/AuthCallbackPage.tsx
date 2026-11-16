@@ -36,6 +36,8 @@ export default function AuthCallbackPage() {
             organization: result.organization,
             mfaEnabled: true,
             plan: 'enterprise',
+            role: result.role,
+            facility: result.facility,
           },
           accessToken: result.accessToken,
           refreshToken: result.refreshToken,

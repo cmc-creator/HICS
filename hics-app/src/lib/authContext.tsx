@@ -11,6 +11,24 @@ export interface AuthUser {
   organization: string;
   mfaEnabled: boolean;
   plan: 'enterprise' | 'trial';
+  // The real authorization role and facility scope, returned by
+  // both sign-in endpoints (local-login and the SSO exchange) and
+  // stored with the session. Optional because sessions persisted
+  // before this plumbing have neither - and a missing role is
+  // treated as non-admin everywhere (fail closed) until the user
+  // signs in again and the session is re-issued with them.
+  role?: string;
+  facility?: string;
+}
+
+// Roles allowed into the admin area. This mirrors the server-side
+// policy for the admin endpoints (api/_policy.js ADMIN_USERS);
+// the server still enforces it on every request - this gate only
+// keeps the UI honest about who is an admin.
+export const ADMIN_ROLES: ReadonlySet<string> = new Set(['enterprise-admin', 'facility-admin']);
+
+export function isAdminRole(role: string | undefined | null): boolean {
+  return typeof role === 'string' && ADMIN_ROLES.has(role);
 }
 
 interface AuthSession {
@@ -40,6 +58,11 @@ interface RefreshSessionResponse {
 interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  // True only when the auth session carries an admin role
+  // (facility-admin or enterprise-admin). Keyed off the session
+  // role from the sign-in response - never the tenant preview
+  // switcher - and false for role-less sessions (fail closed).
+  isAdmin: boolean;
   accessToken: string | null;
   expiresAt: number | null;
   sessionRemainingMs: number;
@@ -257,6 +280,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AuthContextValue>(() => ({
     user: session?.user ?? null,
     isAuthenticated,
+    isAdmin: isAdminRole(session?.user?.role),
     accessToken: session?.accessToken ?? null,
     expiresAt: session?.expiresAt ?? null,
     sessionRemainingMs,

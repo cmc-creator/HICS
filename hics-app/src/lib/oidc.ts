@@ -108,31 +108,14 @@ export async function exchangeOidcCode(provider: OidcProvider, code: string, red
   const verifier = sessionStorage.getItem(VERIFIER_KEY) ?? '';
   const config = getProviderConfig(provider);
 
-  const allowLocalFallback = (import.meta.env.VITE_ALLOW_LOCAL_AUTH_FALLBACK as string | undefined) === 'true';
-
+  // No local fallback: a session is only ever the server's answer
+  // to a verified exchange. An earlier branch fabricated a session
+  // with a hardcoded identity when the endpoint env was missing
+  // (gated on VITE_ALLOW_LOCAL_AUTH_FALLBACK); it is deleted
+  // (audit B3) - a missing endpoint is a configuration error and
+  // must surface as one.
   if (!config.tokenExchangeEndpoint) {
-    if (!allowLocalFallback) {
-      throw new Error('OIDC token exchange endpoint is not configured. Set VITE_AUTH_EXCHANGE_ENDPOINT.');
-    }
-
-    return {
-      accessToken: `oidc-${provider}-${randomString(24)}`,
-      refreshToken: randomString(32),
-      expiresIn: 3600,
-      email:
-        provider === 'okta'
-          ? 'admin@healthsystem.com'
-          : provider === 'google'
-            ? 'google.admin@healthsystem.com'
-            : 'it.admin@healthsystem.com',
-      fullName:
-        provider === 'okta'
-          ? 'Okta Administrator'
-          : provider === 'google'
-            ? 'Google Administrator'
-            : 'Entra Administrator',
-      organization: 'Enterprise Health System',
-    };
+    throw new Error('OIDC token exchange endpoint is not configured. Set VITE_AUTH_EXCHANGE_ENDPOINT.');
   }
 
   return publicApiRequest<OidcExchangeResult>(config.tokenExchangeEndpoint, {

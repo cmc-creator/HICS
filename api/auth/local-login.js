@@ -23,10 +23,11 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (process.env.ALLOW_LOCAL_AUTH_FALLBACK !== 'true') {
-    return json(res, 403, { error: 'Local credential login is disabled in this environment.' });
-  }
-
+  // Credential login stands on its own: a user with a stored
+  // password credential can sign in, period. It used to be gated
+  // on ALLOW_LOCAL_AUTH_FALLBACK - the same flag that armed the
+  // forgeable "pwd-" bearer-token fallback in _auth.js - so the
+  // two could not be separated (audit B3). The flag is gone.
   const body = parseJsonBody(req);
   if (!body || typeof body !== 'object') {
     return json(res, 400, { error: 'Invalid JSON payload' });
@@ -84,9 +85,8 @@ export default async function handler(req, res) {
     });
     refreshToken = refreshSession.refreshToken;
   } catch (error) {
-    return json(res, 500, {
-      error: error instanceof Error ? error.message : 'Unable to issue access token',
-    });
+    console.error('[NyxHICSlab] Failed to issue tokens for credential login:', error instanceof Error ? error.message : error);
+    return json(res, 500, { error: 'Unable to issue access token' });
   }
 
   return json(res, 200, {

@@ -110,31 +110,17 @@ function parseSignedToken(token) {
   return payload;
 }
 
-function parseDevFallbackToken(token) {
-  const allowFallback = process.env.ALLOW_LOCAL_AUTH_FALLBACK === 'true';
-  if (!allowFallback || !token.startsWith('pwd-')) {
-    return null;
-  }
-
-  // Never trust client-supplied role/facility headers — always issue least-privilege claims.
-  return {
-    sub: 'local-auth-user',
-    email: 'local-auth@nyxhicslab.local',
-    fullName: 'Local Auth User',
-    organization: process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System',
-    role: 'facility-admin',
-    facility: process.env.DEFAULT_USER_FACILITY || 'psychiatric-inpatient',
-    authMethod: 'password-local-fallback',
-    exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
-  };
-}
-
 export function getAuthContext(req) {
   const token = parseAuthHeader(req);
   if (!token) {
     return null;
   }
 
+  // Only server-signed tokens authenticate. There is deliberately
+  // no fallback token format: an earlier dev shortcut accepted any
+  // bearer token starting with "pwd-" as a facility admin whenever
+  // ALLOW_LOCAL_AUTH_FALLBACK was set, and that flag was live in
+  // production (audit B3). It is deleted, not gated.
   const signed = parseSignedToken(token);
   if (signed) {
     return {
@@ -143,15 +129,21 @@ export function getAuthContext(req) {
     };
   }
 
-  const fallback = parseDevFallbackToken(token);
-  if (fallback) {
-    return {
-      token,
-      claims: fallback,
-    };
-  }
-
   return null;
+}
+
+// Resolves the facility a write should land in: an explicitly
+// provided facility wins; a requester scoped to 'all' (enterprise)
+// falls back to the default facility; a facility-scoped requester
+// keeps their own. Written as an explicit helper because the
+// inline version - String(body.facility ?? requesterFacility ===
+// 'all' ? ... : ...) - parsed as (body.facility ?? boolean) ? ...
+// and silently discarded every provided facility (audit B5).
+export function resolveFacility(requestedFacility, requesterFacility) {
+  if (typeof requestedFacility === 'string' && requestedFacility) {
+    return requestedFacility;
+  }
+  return requesterFacility === 'all' ? 'psychiatric-inpatient' : requesterFacility;
 }
 
 export function requireAuth(req, res) {

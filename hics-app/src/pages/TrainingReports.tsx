@@ -41,7 +41,7 @@ function downloadCertificate(userName: string, attempt: ScenarioAttempt) {
 </head>
 <body>
   <div class="sheet">
-    <div class="muted">NyxCollective LLC · NyxHICSlab</div>
+    <div class="muted">Nyx Collective LLC · NyxHICSlab</div>
     <h1>Certificate of Completion</h1>
     <h2>Hospital Incident Command Simulation Training</h2>
     <p>This certifies that</p>

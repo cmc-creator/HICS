@@ -75,7 +75,7 @@ function downloadCertificate(userName: string, scenarioTitle: string, facility: 
 </head>
 <body>
   <div class="sheet">
-    <div class="muted">NyxCollective LLC · NyxHICSlab</div>
+    <div class="muted">Nyx Collective LLC · NyxHICSlab</div>
     <h1>Scenario Completion Certificate</h1>
     <h2>Hospital Incident Command Training</h2>
     <p>This certifies that</p>

@@ -143,8 +143,8 @@ VITE_BASE_PATH=/HICS/ npm run build
 
 ## Ownership and Marks
 
-NyxHICSlab is a product of NyxCollective LLC.
+NyxHICSlab is a product of Nyx Collective LLC.
 
-Copyright (c) 2026 NyxCollective LLC. All rights reserved.
+Copyright (c) 2026 Nyx Collective LLC. All rights reserved.
 
-NyxHICSlab, NyxCollective, and related names, logos, product marks, and design marks are trademarks of NyxCollective LLC.
+NyxHICSlab, NyxCollective, and related names, logos, product marks, and design marks are trademarks of Nyx Collective LLC.

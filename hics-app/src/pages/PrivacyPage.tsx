@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import EnterpriseFooter from '../components/EnterpriseFooter';
 
-const EFFECTIVE_DATE = 'January 1, 2026';
-const COMPANY = 'NyxCollective LLC';
+const EFFECTIVE_DATE = 'November 16, 2026';
+const COMPANY = 'Nyx Collective LLC';
 const PRODUCT = 'NyxHICSlab';
-const EMAIL = 'privacy@nyxcollective.io';
+const EMAIL = 'info@nyxcollectivellc.com';
 
 export default function PrivacyPage() {
   return (
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
             <div className="space-y-3">
               <div className="rounded-xl border border-gray-200 dark:border-white/10 p-4">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">Account and Identity Data</p>
-                <p className="text-xs text-gray-600 dark:text-white/60 mt-1">Name, work email, organization name, role, and authentication credentials. For SSO users, identity is provided by your employer's identity provider (Microsoft Entra or Okta) and we receive only what is included in the OIDC token (name, email, group claims).</p>
+                <p className="text-xs text-gray-600 dark:text-white/60 mt-1">Name, work email, organization name, role, and authentication credentials. Users sign in with an email address and password or, where enabled, with Google single sign-on (SSO). For SSO users, identity is provided by Google and we receive only what is included in the OIDC token (name, email, group claims).</p>
               </div>
               <div className="rounded-xl border border-gray-200 dark:border-white/10 p-4">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">Training Activity Data</p>
@@ -49,7 +49,7 @@ export default function PrivacyPage() {
               </div>
               <div className="rounded-xl border border-gray-200 dark:border-white/10 p-4">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">AI Chatbot Conversations</p>
-                <p className="text-xs text-gray-600 dark:text-white/60 mt-1">Messages sent to the NyxHICSlab AI Assistant are processed by our AI provider (OpenAI) under their data processing agreement. We do not use chatbot conversations to train AI models. Conversation history is session-scoped and not stored beyond your active session unless you explicitly save it.</p>
+                <p className="text-xs text-gray-600 dark:text-white/60 mt-1">Messages sent to the NyxHICSlab AI Assistant are processed by our AI providers, Anthropic (primary) and Google Gemini (fallback), under their data processing agreements. We do not use chatbot conversations to train AI models. Conversation history is session-scoped and not stored beyond your active session unless you explicitly save it.</p>
               </div>
               <div className="rounded-xl border border-gray-200 dark:border-white/10 p-4">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">Sales and Demo Inquiries</p>
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
             </p>
             <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-white/70">
               <li><strong>Your organization's administrators</strong> - who have access to facility-scoped training records and user management</li>
-              <li><strong>Service providers</strong> - including cloud infrastructure (Vercel), AI processing (OpenAI), and identity providers (Microsoft Entra, Okta) under data processing agreements</li>
+              <li><strong>Service providers</strong> - including cloud infrastructure (Vercel), AI processing (Anthropic and Google Gemini), and identity services (Google, for single sign-on where enabled) under data processing agreements</li>
               <li><strong>Legal authorities</strong> - when required by law, court order, or to protect our legal rights</li>
             </ul>
           </section>

@@ -56,6 +56,6 @@ This repository now includes an implementation scaffold at:
 
 ## 6. Legal and Product Branding
 
-- Landing page includes NyxCollective LLC product statement
+- Landing page includes Nyx Collective LLC product statement
 - Copyright and trademark notice displayed
 - Brand assets and logo are loaded and visible on desktop and mobile

@@ -4,7 +4,7 @@
 import { requireAuth } from './_auth.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from './_security.js';
 
-const SYSTEM_PROMPT = `You are NyxHICSlab Assistant, an expert HICS (Hospital Incident Command System) training AI embedded in NyxHICSlab by NyxCollective LLC.
+const SYSTEM_PROMPT = `You are NyxHICSlab Assistant, an expert HICS (Hospital Incident Command System) training AI embedded in NyxHICSlab by Nyx Collective LLC.
 
 You help healthcare staff learn HICS protocols, ICS structure, emergency procedures, triage methods, and disaster response best practices.
 

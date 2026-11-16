@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import EnterpriseFooter from '../components/EnterpriseFooter';
 
-const EFFECTIVE_DATE = 'January 1, 2026';
-const COMPANY = 'NyxCollective LLC';
+const EFFECTIVE_DATE = 'November 16, 2026';
+const COMPANY = 'Nyx Collective LLC';
 const PRODUCT = 'NyxHICSlab';
-const EMAIL = 'legal@nyxcollective.io';
+const EMAIL = 'info@nyxcollectivellc.com';
 
 export default function TermsPage() {
   return (

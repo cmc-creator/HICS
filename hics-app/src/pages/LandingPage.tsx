@@ -225,9 +225,10 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
         </section>
 
         <footer ref={footerRef} className="nyx-panel p-4 text-xs opacity-50 leading-relaxed">
-          <p>NyxHICSlab is a product of NyxCollective LLC.</p>
-          <p className="mt-1">Copyright (c) 2026 NyxCollective LLC. All rights reserved.</p>
-          <p className="mt-1">NyxHICSlab, NyxCollective, and related names, logos, product marks, and design marks are trademarks of NyxCollective LLC.</p>
+          <p>NyxHICSlab™ is a product of Nyx Collective LLC.</p>
+          <p className="mt-1">© 2026 Nyx Collective LLC. All rights reserved.</p>
+          <p className="mt-1">NyxHICSlab, NyxCollective, and related names, logos, product marks, and design marks are trademarks of Nyx Collective LLC.</p>
+          <p className="mt-1"><a href="https://nyxcollectivellc.com" target="_blank" rel="noreferrer" className="hover:underline">nyxcollectivellc.com</a></p>
         </footer>
       </main>
 

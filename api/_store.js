@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { hashPassword } from './_passwords.js';
 
 const STORE_KEY = '__nyx_hics_store__';
 const STORE_MODE_KEY = '__nyx_hics_store_mode__';
@@ -11,31 +12,43 @@ const STORE_FILE_PATH = process.env.HICS_STORE_FILE_PATH
 
 const FALLBACK_TMP_FILE_PATH = path.join(os.tmpdir(), 'nyx-hics-store.json');
 
+function createSeedUsers() {
+  // Demo users exist only for local demos (HICS_SEED_DEMO=true).
+  // They are passwordless, so they can never sign in with a
+  // password - production stores start with no users at all and
+  // get their first admin from the bootstrap env (see below).
+  if (process.env.HICS_SEED_DEMO !== 'true') {
+    return [];
+  }
+
+  return [
+    {
+      id: 'usr-1',
+      fullName: 'Alex Rivera',
+      email: 'alex.rivera@northcampus.org',
+      role: 'facility-admin',
+      facility: 'general-acute-care',
+      status: 'active',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'usr-2',
+      fullName: 'Jamie Patel',
+      email: 'jamie.patel@northcampus.org',
+      role: 'facilitator',
+      facility: 'community-hospital',
+      status: 'active',
+      createdAt: new Date().toISOString(),
+    },
+  ];
+}
+
 function createInitialStore() {
   return {
     attempts: [],
     events: [],
     progress: {},
-    users: [
-      {
-        id: 'usr-1',
-        fullName: 'Alex Rivera',
-        email: 'alex.rivera@northcampus.org',
-        role: 'facility-admin',
-        facility: 'general-acute-care',
-        status: 'active',
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 'usr-2',
-        fullName: 'Jamie Patel',
-        email: 'jamie.patel@northcampus.org',
-        role: 'facilitator',
-        facility: 'community-hospital',
-        status: 'active',
-        createdAt: new Date().toISOString(),
-      },
-    ],
+    users: createSeedUsers(),
     auditLogs: [],
     notifications: [],
     refreshTokens: [],
@@ -122,6 +135,63 @@ async function writeStoreToFile(targetPath, store) {
   await fs.writeFile(targetPath, JSON.stringify(store, null, 2), 'utf8');
 }
 
+function warnIfEphemeralStoreInProduction(mode) {
+  if (process.env.VERCEL_ENV !== 'production') {
+    return;
+  }
+  if (getRedisConfig()) {
+    return;
+  }
+  if (mode !== 'file' && mode !== 'tmp-file') {
+    return;
+  }
+  console.error(
+    `[NyxHICSlab] WARNING: the production API store is persisting to "${mode}" `
+    + 'because Upstash Redis is not configured (UPSTASH_REDIS_REST_URL / '
+    + 'UPSTASH_REDIS_REST_TOKEN are missing). Files on the serverless '
+    + 'filesystem are ephemeral: users, training records, and audit logs '
+    + 'WILL NOT persist reliably across invocations. Configure Upstash '
+    + 'Redis before relying on this deployment for real training data.',
+  );
+}
+
+// Creates the bootstrap enterprise admin from env on store load.
+// Runs for every load source (Redis, file, tmp, fresh) and is
+// idempotent: once a user with the bootstrap email exists, this
+// never creates a duplicate and never overwrites their password.
+async function ensureBootstrapAdmin(store) {
+  const email = String(process.env.HICS_BOOTSTRAP_ADMIN_EMAIL || '').trim().toLowerCase();
+  const password = String(process.env.HICS_BOOTSTRAP_ADMIN_PASSWORD || '');
+  if (!email || password.length < 10) {
+    return;
+  }
+
+  if (!Array.isArray(store.users)) {
+    store.users = [];
+  }
+
+  const exists = store.users.some(
+    (candidate) => String(candidate?.email || '').toLowerCase() === email,
+  );
+  if (exists) {
+    return;
+  }
+
+  store.users.unshift({
+    id: createId('usr'),
+    fullName: 'Bootstrap Admin',
+    email,
+    role: 'enterprise-admin',
+    facility: 'all',
+    organization: process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System',
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    passwordHash: hashPassword(password),
+  });
+
+  await saveStore(store);
+}
+
 export async function loadStore() {
   if (globalThis[STORE_KEY]) {
     if (!globalThis[STORE_MODE_KEY]) {
@@ -161,6 +231,8 @@ export async function loadStore() {
   }
 
   globalThis[STORE_KEY] = store;
+  warnIfEphemeralStoreInProduction(globalThis[STORE_MODE_KEY]);
+  await ensureBootstrapAdmin(store);
   return store;
 }
 
@@ -180,6 +252,7 @@ export async function saveStore(store) {
   try {
     await writeStoreToFile(STORE_FILE_PATH, store);
     globalThis[STORE_MODE_KEY] = 'file';
+    warnIfEphemeralStoreInProduction('file');
     return;
   } catch {
     // Try temporary path on restricted filesystems (e.g., serverless runtime).
@@ -188,6 +261,7 @@ export async function saveStore(store) {
   try {
     await writeStoreToFile(FALLBACK_TMP_FILE_PATH, store);
     globalThis[STORE_MODE_KEY] = 'tmp-file';
+    warnIfEphemeralStoreInProduction('tmp-file');
   } catch {
     // Final fallback is in-memory only for this runtime.
     globalThis[STORE_MODE_KEY] = 'memory';

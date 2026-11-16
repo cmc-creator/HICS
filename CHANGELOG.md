@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-11-16
+
+### Added
+- `api/_passwords.js`: scrypt password hashing/verification (node:crypto, per-password salt, timing-safe compare) plus single-use set-password tokens - only the sha256 hash and a 1-hour expiry are stored on the user record.
+- `api/_email.js`: transactional email helper backed by Resend (`RESEND_API_KEY` / `RESEND_FROM_EMAIL`). When email is not configured it records an `email_not_configured` store notification instead of throwing.
+- `api/auth/reset-password.js`: POST endpoint that consumes a set-password token, sets the password (min 10 chars), clears the token, and deletes the user's stored refresh sessions.
+- `hics-app/src/pages/ResetPasswordPage.tsx` and public route `/reset-password`: neutral "Set your password" page used by both password resets and admin invites.
+- Bootstrap admin: when `HICS_BOOTSTRAP_ADMIN_EMAIL` and `HICS_BOOTSTRAP_ADMIN_PASSWORD` are set, store load creates that enterprise admin (facility `all`) if no user with the email exists. Idempotent across loads and store backends.
+- `api/tests/auth-credentials-smoke.mjs`: credential auth smoke suite (hashing, real login, forgot/reset flow, token reuse and expiry, bootstrap admin, seed behavior).
+
+### Changed
+- `api/auth/local-login.js`: demo login replaced with real credential verification against the store. Users must exist, be `active`, and have a verifying `passwordHash`; token claims (email, fullName, organization, role, facility) come from the user record. All failures return the same generic 401 `Invalid email or password.` The email-string role/facility inference helpers were removed.
+- `api/auth/forgot-password.js`: stub replaced with a real flow - a matching active user gets a set-password token and a reset email linking to `${APP_BASE_URL}/reset-password?token=...` (new `APP_BASE_URL` env, default `https://www.nyxhicslab.com`). The always-200 anti-enumeration response, notification, and audit records are unchanged.
+- `api/admin/users.js`: inviting a user now creates a set-password token and sends an invite email with the set-password link; the response includes `inviteEmailSent` and email failure no longer fails the invite. User responses (GET and POST) no longer include credential fields (`passwordHash`, token hash/expiry).
+- `api/_store.js`: a fresh store seeds the two demo users only when `HICS_SEED_DEMO=true` (they remain passwordless). In production (`VERCEL_ENV=production`) without Redis configured, falling back to file/tmp persistence now logs a loud warning that training records will not persist.
+- `api/tests/auth-session-smoke.mjs`: seeds a real credential user for the login step now that demo login is gone.
+- `hics-app/src/lib/apiClient.ts`: `publicApiRequest` now surfaces the server's `error` message (e.g. the login 401) instead of only a bare status code.
+- `hics-app/.env.example`: documented `APP_BASE_URL`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `HICS_BOOTSTRAP_ADMIN_EMAIL`, `HICS_BOOTSTRAP_ADMIN_PASSWORD`, and `HICS_SEED_DEMO`.
+
 ## 2026-04-17
 
 ### Removed

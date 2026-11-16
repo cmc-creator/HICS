@@ -74,7 +74,19 @@ export async function publicApiRequest<T>(
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed with status ${response.status}`);
+    // Surface the server's own error message when it sends one
+    // (for example "Invalid email or password." from local login)
+    // instead of a bare status code.
+    let message = `API request failed with status ${response.status}`;
+    try {
+      const payload = await response.json();
+      if (payload && typeof payload.error === 'string' && payload.error) {
+        message = payload.error;
+      }
+    } catch {
+      // Keep the generic message when the body is not JSON.
+    }
+    throw new Error(message);
   }
 
   if (response.status === 204) {

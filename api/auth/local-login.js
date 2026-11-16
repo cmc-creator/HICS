@@ -1,26 +1,13 @@
 import { issueSignedAccessToken } from '../_auth.js';
+import { verifyPassword } from '../_passwords.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 import { issueRefreshSession } from '../_sessions.js';
+import { getStore } from '../_store.js';
 
 function json(res, status, body) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify(body));
-}
-
-function inferRole(email) {
-  const normalized = String(email || '').toLowerCase();
-  if (normalized.includes('it.admin') || normalized.includes('enterprise-admin')) {
-    return 'enterprise-admin';
-  }
-  if (normalized.includes('training')) {
-    return 'training-manager';
-  }
-  return 'facility-admin';
-}
-
-function inferFacility(role) {
-  return role === 'enterprise-admin' ? 'all' : (process.env.DEFAULT_USER_FACILITY || 'general-acute-care');
 }
 
 export default async function handler(req, res) {
@@ -56,35 +43,40 @@ export default async function handler(req, res) {
 
   const email = String(body.email || '').trim().toLowerCase();
   const password = String(body.password || '');
-  const organization = String(body.organization || process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System');
 
   if (!email.includes('@') || password.length < 8) {
     return json(res, 400, { error: 'Invalid credential format.' });
   }
 
-  const role = inferRole(email);
-  const facility = inferFacility(role);
+  // Real credential check: the user must exist in the store, be
+  // active, and have a passwordHash that verifies. Every failure
+  // mode returns the same generic 401 so responses never reveal
+  // whether an email is registered.
+  const store = await getStore();
+  const users = Array.isArray(store.users) ? store.users : [];
+  const user = users.find((candidate) => String(candidate?.email || '').toLowerCase() === email);
+
+  if (!user || user.status !== 'active' || !user.passwordHash || !verifyPassword(password, user.passwordHash)) {
+    return json(res, 401, { error: 'Invalid email or password.' });
+  }
+
+  // Claims always come from the user record, never from the email
+  // string or the request body.
+  const claims = {
+    email,
+    fullName: String(user.fullName || ''),
+    organization: String(user.organization || process.env.DEFAULT_ORGANIZATION_NAME || 'Enterprise Health System'),
+    role: String(user.role || 'facility-admin'),
+    facility: String(user.facility || process.env.DEFAULT_USER_FACILITY || 'general-acute-care'),
+    authMethod: 'password',
+  };
 
   let accessToken = '';
   let refreshToken = '';
   try {
-    accessToken = issueSignedAccessToken({
-      email,
-      fullName: email.split('@')[0].replace('.', ' '),
-      organization,
-      role,
-      facility,
-      authMethod: 'password',
-    });
+    accessToken = issueSignedAccessToken(claims);
 
-    const refreshSession = await issueRefreshSession({
-      email,
-      fullName: email.split('@')[0].replace('.', ' '),
-      organization,
-      role,
-      facility,
-      authMethod: 'password',
-    }, {
+    const refreshSession = await issueRefreshSession(claims, {
       ip: req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown',
       userAgent: req.headers?.['user-agent'] || 'unknown',
     });
@@ -99,10 +91,10 @@ export default async function handler(req, res) {
     accessToken,
     refreshToken,
     expiresIn: 3600,
-    email,
-    fullName: email.split('@')[0].replace('.', ' '),
-    organization,
-    role,
-    facility,
+    email: claims.email,
+    fullName: claims.fullName,
+    organization: claims.organization,
+    role: claims.role,
+    facility: claims.facility,
   });
 }

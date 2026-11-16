@@ -9,6 +9,26 @@ process.env.HICS_STORE_FILE_PATH = process.env.HICS_STORE_FILE_PATH || `${proces
 const { default: localLogin } = await import('../auth/local-login.js');
 const { default: refresh } = await import('../auth/refresh.js');
 const { default: logout } = await import('../auth/logout.js');
+const { getStore, saveStore } = await import('../_store.js');
+const { hashPassword } = await import('../_passwords.js');
+
+// Local login now verifies real store credentials (the old demo
+// login is gone), so seed the user this suite signs in as.
+const seedStore = await getStore();
+if (!seedStore.users.some((candidate) => String(candidate.email || '').toLowerCase() === 'training.manager@example.com')) {
+  seedStore.users.push({
+    id: 'usr-smoke-training-manager',
+    fullName: 'Training Manager',
+    email: 'training.manager@example.com',
+    role: 'training-manager',
+    facility: process.env.DEFAULT_USER_FACILITY,
+    organization: 'Nyx Test Health',
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    passwordHash: hashPassword('VeryStrongPassword123'),
+  });
+  await saveStore(seedStore);
+}
 
 function createMockRes() {
   let statusCode = 200;

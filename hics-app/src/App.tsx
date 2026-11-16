@@ -20,6 +20,7 @@ import AuthCallbackPage from './pages/AuthCallbackPage';
 import RequestDemoPage from './pages/RequestDemoPage';
 import HealthCheckPage from './pages/HealthCheckPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import { TenantProvider } from './lib/tenantContext';
@@ -92,6 +93,7 @@ function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggle
       <Route path="/request-demo" element={<RequestDemoPage />} />
       <Route path="/health" element={<HealthCheckPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/tos" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
 

@@ -1,4 +1,5 @@
-// TODO: wire to email provider (SendGrid, AWS SES, etc.)
+import { buildPasswordSetUrl, sendEmail } from '../_email.js';
+import { createPasswordToken } from '../_passwords.js';
 import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
 import { enforceRateLimit, parseJsonBody } from '../_security.js';
 
@@ -20,16 +21,14 @@ export default async function handler(req, res) {
     return json(res, 400, { error: 'A valid enterprise email is required.' });
   }
 
-  // TODO: look up user by email in your tenant database
-  // TODO: generate a secure, time-limited reset token (e.g., crypto.randomBytes(32).toString('hex'))
-  // TODO: store token hash with expiry (e.g., Redis or database)
-  // TODO: send email via provider — include link: https://app.nyxhicslab.com/reset-password?token=<token>
-
   const store = await getStore();
+  if (!Array.isArray(store.notifications)) {
+    store.notifications = [];
+  }
   store.notifications.unshift({
     id: createId('notify'),
     type: 'password_reset_requested',
-    recipient: email.toLowerCase(),
+    recipient: email,
     subject: 'NyxHICSlab Password Reset Request',
     message: 'A password reset was requested for this account.',
     sentAt: new Date().toISOString(),
@@ -37,7 +36,48 @@ export default async function handler(req, res) {
   store.notifications = store.notifications.slice(0, 1000);
 
   appendAuditLog(store, 'forgot_password_requested', {});
+
+  // Only a matching active user gets a token and an email. The
+  // response below is identical either way (anti-enumeration).
+  const users = Array.isArray(store.users) ? store.users : [];
+  const user = users.find((candidate) => (
+    String(candidate?.email || '').toLowerCase() === email && candidate.status === 'active'
+  ));
+
+  let resetUrl = '';
+  if (user) {
+    const rawToken = createPasswordToken(store, user);
+    resetUrl = buildPasswordSetUrl(rawToken);
+  }
+
   await saveStore(store);
+
+  if (user && resetUrl) {
+    await sendEmail({
+      to: email,
+      subject: 'Set your NyxHICSlab password',
+      text: [
+        'Hello,',
+        '',
+        'We received a request to reset the password for your NyxHICSlab account.',
+        'Use the link below to set a new password. The link expires in 1 hour.',
+        '',
+        resetUrl,
+        '',
+        'If you did not request this, you can ignore this email - your password will not change.',
+        '',
+        '- NyxHICSlab',
+      ].join('\n'),
+      html: [
+        '<p>Hello,</p>',
+        '<p>We received a request to reset the password for your NyxHICSlab account. ',
+        'Use the link below to set a new password. The link expires in 1 hour.</p>',
+        `<p><a href="${resetUrl}">Set your password</a></p>`,
+        '<p>If you did not request this, you can ignore this email - your password will not change.</p>',
+        '<p>- NyxHICSlab</p>',
+      ].join(''),
+    });
+  }
 
   // Always return success to prevent email enumeration.
   return json(res, 200, {

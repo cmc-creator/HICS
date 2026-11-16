@@ -1,7 +1,19 @@
 import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
 import { isEnterpriseAdmin, requireAuth, scopeByFacility } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
+import { buildPasswordSetUrl, sendEmail } from '../_email.js';
+import { createPasswordToken } from '../_passwords.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
+
+// Credential material (password hashes, set-password token hashes)
+// lives on the stored user record but must never leave the server.
+function toPublicUser(user) {
+  if (!user || typeof user !== 'object') {
+    return user;
+  }
+  const { passwordHash, passwordTokenHash, passwordTokenExpiresAt, ...publicUser } = user;
+  return publicUser;
+}
 
 export default async function handler(req, res) {
   if (!enforceRateLimit(req, res, {
@@ -26,7 +38,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     const scopedUsers = scopeByFacility(store.users, auth.claims);
-    return json(res, 200, { users: scopedUsers });
+    return json(res, 200, { users: scopedUsers.map(toPublicUser) });
   }
 
   if (req.method === 'POST') {
@@ -62,9 +74,44 @@ export default async function handler(req, res) {
     };
 
     store.users.unshift(user);
+
+    // The new user starts passwordless: they get a set-password
+    // token and an invite email with the link. The token is stored
+    // (hashed) on the record before saving so the link works as
+    // soon as the invite lands.
+    const rawToken = createPasswordToken(store, user);
     appendAuditLog(store, 'admin_user_created', { userId: user.id, role: user.role, facility: user.facility });
     await saveStore(store);
-    return json(res, 201, { user });
+
+    // Email failure must not fail the invite - the user record
+    // already exists and an admin can re-send access later.
+    const setPasswordUrl = buildPasswordSetUrl(rawToken);
+    const invite = await sendEmail({
+      to: user.email,
+      subject: 'You have been invited to NyxHICSlab',
+      text: [
+        `Hello ${user.fullName},`,
+        '',
+        'An administrator has created a NyxHICSlab account for you.',
+        'Use the link below to set your password and sign in. The link expires in 1 hour.',
+        '',
+        setPasswordUrl,
+        '',
+        'If you were not expecting this invitation, you can ignore this email.',
+        '',
+        '- NyxHICSlab',
+      ].join('\n'),
+      html: [
+        `<p>Hello ${user.fullName},</p>`,
+        '<p>An administrator has created a NyxHICSlab account for you. ',
+        'Use the link below to set your password and sign in. The link expires in 1 hour.</p>',
+        `<p><a href="${setPasswordUrl}">Set your password</a></p>`,
+        '<p>If you were not expecting this invitation, you can ignore this email.</p>',
+        '<p>- NyxHICSlab</p>',
+      ].join(''),
+    });
+
+    return json(res, 201, { user: toPublicUser(user), inviteEmailSent: invite.sent === true });
   }
 
   return json(res, 405, { error: 'Method not allowed' });

@@ -4,6 +4,7 @@ import { useTenant } from '../lib/tenantContext';
 import { useAuth } from '../lib/authContext';
 import { getScenarioAttempts, type ScenarioAttempt } from '../lib/trainingAnalytics';
 import { publicApiRequest } from '../lib/apiClient';
+import { resetAiAssistantEnabledCache } from '../lib/assistantSettings';
 import { writeAuditLog } from '../lib/notifications';
 
 interface AdminUser {
@@ -54,6 +55,49 @@ export default function FacilityAdminPage() {
   const [newUserFacility, setNewUserFacility] = useState<FacilityType>('general-acute-care');
   const [addUserError, setAddUserError] = useState<string | null>(null);
   const [addUserSuccess, setAddUserSuccess] = useState(false);
+
+  // Per-facility AI assistant switch (store setting, admin write).
+  // Null = still loading; the toggle renders once the value lands.
+  const [aiAssistantEnabled, setAiAssistantEnabled] = useState<boolean | null>(null);
+  const [aiToggleSaving, setAiToggleSaving] = useState(false);
+  const [aiToggleError, setAiToggleError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    publicApiRequest<{ aiAssistantEnabled?: boolean }>('/admin/settings', { method: 'GET' })
+      .then((result) => {
+        if (live) {
+          setAiAssistantEnabled(result?.aiAssistantEnabled !== false);
+        }
+      })
+      .catch(() => {
+        if (live) {
+          setAiToggleError('Could not load the AI assistant setting.');
+        }
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const handleAiToggle = async (next: boolean) => {
+    setAiToggleSaving(true);
+    setAiToggleError(null);
+    try {
+      const result = await publicApiRequest<{ aiAssistantEnabled?: boolean }>('/admin/settings', {
+        method: 'PUT',
+        body: JSON.stringify({ aiAssistantEnabled: next }),
+      });
+      setAiAssistantEnabled(result?.aiAssistantEnabled !== false);
+      // The assistant entry points cache the setting per page
+      // load; drop the cache so this browser reflects the change.
+      resetAiAssistantEnabledCache();
+    } catch (err) {
+      setAiToggleError(err instanceof Error ? err.message : 'Failed to update the AI assistant setting.');
+    } finally {
+      setAiToggleSaving(false);
+    }
+  };
 
   const loadAdminData = async () => {
     const nextAttempts = await getScenarioAttempts();
@@ -186,6 +230,33 @@ export default function FacilityAdminPage() {
                 ))}
               </select>
             </div>
+          </div>
+        </div>
+
+        <div className="nyx-panel p-5">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Facility Settings</h2>
+          <p className="text-xs text-gray-500 dark:text-white/50 mb-4">Settings apply to the whole facility and are enforced by the server, not just hidden in the interface.</p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-sm font-semibold text-gray-900 dark:text-white">AI Assistant</div>
+              <p className="text-xs text-gray-600 dark:text-white/60 mt-1 max-w-xl">
+                When off, the AI assistant is unavailable to every user in this facility: the assistant
+                entry points are hidden and the server refuses chat requests before any AI provider is contacted.
+              </p>
+              {aiToggleError && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-2">{aiToggleError}</p>
+              )}
+            </div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-800 dark:text-white shrink-0">
+              <input
+                type="checkbox"
+                checked={aiAssistantEnabled === true}
+                disabled={aiAssistantEnabled === null || aiToggleSaving}
+                onChange={(event) => void handleAiToggle(event.target.checked)}
+                aria-label="Enable the AI assistant for this facility"
+              />
+              {aiAssistantEnabled === null ? 'Loading...' : aiAssistantEnabled ? 'Enabled' : 'Disabled'}
+            </label>
           </div>
         </div>
 

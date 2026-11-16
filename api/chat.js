@@ -3,6 +3,7 @@
 
 import { requireAuth } from './_auth.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from './_security.js';
+import { getAiAssistantEnabled, getStore } from './_store.js';
 
 const SYSTEM_PROMPT = `You are NyxHICSlab Assistant, an expert HICS (Hospital Incident Command System) training AI embedded in NyxHICSlab by Nyx Collective LLC.
 
@@ -148,6 +149,15 @@ export default async function handler(req, res) {
   const auth = requireAuth(req, res);
   if (!auth) {
     return;
+  }
+
+  // Per-facility AI off-switch (admin toggle at /api/admin/settings,
+  // stored in store.settings). Enforced BEFORE any provider call:
+  // when a facility has disabled the assistant, no prompt ever
+  // reaches Anthropic or Gemini.
+  const store = await getStore();
+  if (!getAiAssistantEnabled(store)) {
+    return res.status(403).json({ error: 'The AI assistant is disabled for this facility' });
   }
 
   const body = parseJsonBody(req);

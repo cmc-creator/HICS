@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ChatMessage } from '../types';
 import { publicApiRequest } from '../lib/apiClient';
+import { fetchAiAssistantEnabled } from '../lib/assistantSettings';
 
 function getInitialMessage(): ChatMessage {
   return {
@@ -67,6 +68,22 @@ const suggestedQuestions = [
 ];
 
 export default function ChatbotPage() {
+  // Per-facility AI off-switch: when disabled, the page shows a
+  // notice instead of the chat UI. The server enforces the same
+  // switch on /api/chat; this keeps the page honest.
+  const [aiEnabled, setAiEnabled] = useState<boolean | null>(null);
+  useEffect(() => {
+    let live = true;
+    void fetchAiAssistantEnabled().then((enabled) => {
+      if (live) {
+        setAiEnabled(enabled);
+      }
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
   const [messages, setMessages] = useState<ChatMessage[]>([getInitialMessage()]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -179,6 +196,16 @@ export default function ChatbotPage() {
         </div>
       </div>
 
+      {aiEnabled === false ? (
+        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 py-6">
+          <div className="nyx-panel p-6 text-center" role="status">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">AI Assistant Disabled</h2>
+            <p className="text-sm text-gray-600 dark:text-white/60 mt-2">
+              The AI assistant is disabled for this facility. Contact your facility administrator if you need it turned back on.
+            </p>
+          </div>
+        </div>
+      ) : (
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
         {/* Suggested Questions */}
         <div className="nyx-panel border-b px-4 py-3 mt-3">
@@ -246,6 +273,7 @@ export default function ChatbotPage() {
           </p>
         </div>
       </div>
+      )}
     </div>
   );
 }

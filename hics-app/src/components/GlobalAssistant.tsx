@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { publicApiRequest } from '../lib/apiClient';
+import { fetchAiAssistantEnabled } from '../lib/assistantSettings';
 
 interface WidgetMessage {
   id: string;
@@ -15,6 +16,23 @@ const SUGGESTED_PROMPTS = [
 ];
 
 export default function GlobalAssistant() {
+  // Per-facility AI off-switch: when the facility has disabled the
+  // assistant, the launcher does not render at all. (The server
+  // enforces the same switch on /api/chat; this only keeps the UI
+  // honest.) Null = still reading the setting.
+  const [aiEnabled, setAiEnabled] = useState<boolean | null>(null);
+  useEffect(() => {
+    let live = true;
+    void fetchAiAssistantEnabled().then((enabled) => {
+      if (live) {
+        setAiEnabled(enabled);
+      }
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState('');
@@ -73,6 +91,10 @@ export default function GlobalAssistant() {
       setIsLoading(false);
     }
   };
+
+  if (aiEnabled !== true) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-4 right-4 z-[60]">

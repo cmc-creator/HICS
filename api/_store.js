@@ -56,7 +56,18 @@ function createInitialStore() {
     liveDrills: [],
     rapidChallengeScores: [],
     leads: [],
+    settings: { aiAssistantEnabled: true },
   };
+}
+
+// The per-facility AI assistant switch (sales readiness: hospital
+// reviewers ask for a facility-level AI off-switch by name). The
+// setting lives in the store so an admin can flip it without a
+// redeploy; it defaults to enabled, and only an explicit `false`
+// disables the assistant - a missing or malformed settings value
+// must never silently turn the feature off (or on) by accident.
+export function getAiAssistantEnabled(store) {
+  return store?.settings?.aiAssistantEnabled !== false;
 }
 
 function clone(value) {

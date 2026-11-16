@@ -5,6 +5,13 @@ const POLICY = {
     GET: ['enterprise-admin', 'facility-admin'],
     POST: ['enterprise-admin', 'facility-admin'],
   },
+  ADMIN_SETTINGS: {
+    // Every signed-in role may READ the settings: the frontend
+    // needs aiAssistantEnabled to decide whether to render the
+    // assistant at all. Only admins may WRITE.
+    GET: ['enterprise-admin', 'facility-admin', 'training-manager', 'facilitator', 'observer'],
+    PUT: ['enterprise-admin', 'facility-admin'],
+  },
   TRAINING_ATTEMPTS: {
     GET: ['enterprise-admin', 'facility-admin', 'training-manager', 'facilitator', 'observer'],
     POST: ['enterprise-admin', 'facility-admin', 'training-manager', 'facilitator', 'observer'],

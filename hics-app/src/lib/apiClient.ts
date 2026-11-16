@@ -10,6 +10,14 @@ function normalizePath(path: string): string {
 
   const left = base.endsWith('/') ? base.slice(0, -1) : base;
   const right = path.startsWith('/') ? path : `/${path}`;
+  // A caller may hand over a path that already includes the base:
+  // the OIDC exchange endpoint is configured with the full path
+  // '/api/auth/exchange'. Joining blindly produced
+  // '/api/api/auth/exchange' and a 404 on the sign-in callback -
+  // that is what broke Google sign-in until 2026-11-16.
+  if (right === left || right.startsWith(`${left}/`)) {
+    return right;
+  }
   return `${left}${right}`;
 }
 

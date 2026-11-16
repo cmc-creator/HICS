@@ -409,6 +409,174 @@ export function snapshotStore(store) {
   return clone(store);
 }
 
+/* ------------------------------------------------------------------
+   Store backups (sales readiness: tested backup/restore).
+
+   The whole application state is one Redis value, so a backup is
+   a verbatim copy of that value under a timestamped sibling key:
+     <STORE_REDIS_KEY>:backup:<ISO timestamp>
+   Restoring is the reverse copy back into the main key - byte
+   identical to the snapshot, no re-shaping or re-seeding, so a
+   restore provably returns the exact state that was backed up.
+   Backups require the Redis backing (a file/tmp store has no
+   second location worth copying to); callers get null/false and
+   surface a clear "not supported" instead.
+   ------------------------------------------------------------------ */
+
+export const STORE_BACKUP_PREFIX = `${STORE_REDIS_KEY}:backup:`;
+export const MAX_STORE_BACKUPS = 14;
+
+export function isBackupSupported() {
+  return Boolean(getRedisConfig());
+}
+
+async function redisRequest(pathname) {
+  const redis = getRedisConfig();
+  const response = await fetch(`${redis.url}${pathname}`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${redis.token}` },
+  });
+  if (!response.ok) {
+    throw new Error(`Redis request failed with status ${response.status}`);
+  }
+  return response.json();
+}
+
+async function redisGetRaw(key) {
+  const payload = await redisRequest(`/get/${encodeURIComponent(key)}`);
+  return typeof payload?.result === 'string' ? payload.result : null;
+}
+
+async function redisSetRaw(key, rawValue) {
+  const redis = getRedisConfig();
+  const response = await fetch(`${redis.url}/set/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${redis.token}`,
+      'Content-Type': 'application/json',
+    },
+    body: rawValue,
+  });
+  if (!response.ok) {
+    throw new Error(`Redis SET failed with status ${response.status}`);
+  }
+}
+
+async function redisListBackupKeys() {
+  const payload = await redisRequest(`/keys/${encodeURIComponent(`${STORE_BACKUP_PREFIX}*`)}`);
+  const keys = Array.isArray(payload?.result) ? payload.result : [];
+  // ISO timestamps sort chronologically as plain strings.
+  return keys.filter((key) => typeof key === 'string').sort();
+}
+
+async function pruneStoreBackups() {
+  const keys = await redisListBackupKeys();
+  const excess = keys.length - MAX_STORE_BACKUPS;
+  for (let index = 0; index < excess; index += 1) {
+    await redisRequest(`/del/${encodeURIComponent(keys[index])}`);
+  }
+}
+
+export async function listStoreBackups() {
+  if (!isBackupSupported()) {
+    return [];
+  }
+  const keys = await redisListBackupKeys();
+  const backups = [];
+  for (const key of keys) {
+    const payload = await redisRequest(`/strlen/${encodeURIComponent(key)}`);
+    backups.push({
+      key,
+      timestamp: key.slice(STORE_BACKUP_PREFIX.length),
+      bytes: Number(payload?.result) || 0,
+    });
+  }
+  // Newest first for display.
+  return backups.reverse();
+}
+
+export async function createStoreBackup() {
+  if (!isBackupSupported()) {
+    return null;
+  }
+  const store = await loadStore();
+  const raw = JSON.stringify(store);
+  const stamp = new Date().toISOString();
+  let key = `${STORE_BACKUP_PREFIX}${stamp}`;
+  // Two backups inside the same millisecond would collide on the
+  // timestamp key; suffix until the key is free.
+  let suffix = 1;
+  while ((await redisGetRaw(key)) !== null) {
+    suffix += 1;
+    key = `${STORE_BACKUP_PREFIX}${stamp}-${suffix}`;
+  }
+  await redisSetRaw(key, raw);
+  await pruneStoreBackups();
+  return { key, timestamp: stamp, bytes: Buffer.byteLength(raw) };
+}
+
+function parseBackupRaw(key, raw) {
+  let parsed = null;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    parsed = null;
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(`Backup ${key} does not contain a valid store object`);
+  }
+  return parsed;
+}
+
+// Read-only inspection of a snapshot: existence, size, and the
+// collection counts a restore would bring back. This backs the
+// restore script's --dry-run mode.
+export async function inspectStoreBackup(key) {
+  if (!isBackupSupported()) {
+    return null;
+  }
+  if (typeof key !== 'string' || !key.startsWith(STORE_BACKUP_PREFIX)) {
+    throw new Error(`Not a backup key for this store: ${key}`);
+  }
+  const raw = await redisGetRaw(key);
+  if (raw === null) {
+    return null;
+  }
+  const parsed = parseBackupRaw(key, raw);
+  const count = (value) => (Array.isArray(value) ? value.length : 0);
+  return {
+    key,
+    timestamp: key.slice(STORE_BACKUP_PREFIX.length),
+    bytes: Buffer.byteLength(raw),
+    counts: {
+      users: count(parsed.users),
+      attempts: count(parsed.attempts),
+      events: count(parsed.events),
+      auditLogs: count(parsed.auditLogs),
+      leads: count(parsed.leads),
+      refreshTokens: count(parsed.refreshTokens),
+      progressKeys: parsed.progress && typeof parsed.progress === 'object' ? Object.keys(parsed.progress).length : 0,
+    },
+  };
+}
+
+// Restores a snapshot into the main store key, byte identical to
+// what was backed up. Deliberately bypasses the load path's shape
+// healing and bootstrap-admin seeding: those run on the next
+// normal load, exactly as they do for any other stored value.
+export async function restoreStoreFromBackup(key) {
+  const inspection = await inspectStoreBackup(key);
+  if (!inspection) {
+    return null;
+  }
+  const raw = await redisGetRaw(key);
+  const parsed = parseBackupRaw(key, raw);
+  await redisSetRaw(STORE_REDIS_KEY, raw);
+  globalThis[STORE_KEY] = parsed;
+  globalThis[STORE_MODE_KEY] = 'redis';
+  return inspection;
+}
+
 export function getStoreHealth() {
   return {
     mode: globalThis[STORE_MODE_KEY] ?? 'unknown',

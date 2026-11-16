@@ -1,4 +1,4 @@
-import { getStore, getStoreHealth, json, snapshotStore } from '../_store.js';
+import { getStore, getStoreHealth, isBackupSupported, json, listStoreBackups, snapshotStore } from '../_store.js';
 import { requireAuth, isEnterpriseAdmin } from '../_auth.js';
 
 export default async function handler(req, res) {
@@ -19,10 +19,27 @@ export default async function handler(req, res) {
     ? health
     : { mode: health.mode, redisConfigured: health.redisConfigured };
 
+  // Backup visibility for the enterprise admin (count + most
+  // recent snapshot). Best-effort: a backup-listing failure must
+  // never take the health endpoint down with it.
+  let backups;
+  if (isEnterpriseAdmin(auth.claims) && isBackupSupported()) {
+    try {
+      const list = await listStoreBackups();
+      backups = {
+        count: list.length,
+        latestAt: list.length > 0 ? list[0].timestamp : null,
+      };
+    } catch (error) {
+      console.error('[NyxHICSlab] Backup listing for health failed:', error instanceof Error ? error.message : error);
+    }
+  }
+
   return json(res, 200, {
     ok: true,
     store: {
       ...fullHealth,
+      ...(backups ? { backups } : {}),
       counts: {
         attempts: Array.isArray(snap.attempts) ? snap.attempts.length : 0,
         events: Array.isArray(snap.events) ? snap.events.length : 0,

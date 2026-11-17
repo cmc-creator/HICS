@@ -11,6 +11,7 @@ import ChatbotPage from './pages/ChatbotPage';
 import TrainingReports from './pages/TrainingReports';
 import FacilitatorQuickStart from './pages/FacilitatorQuickStart';
 import FacilityAdminPage from './pages/FacilityAdminPage';
+import AccountPage from './pages/AccountPage';
 import LearningCenterPage from './pages/LearningCenterPage';
 import RapidChallengePage from './pages/RapidChallengePage';
 import LiveDrillControlPage from './pages/LiveDrillControlPage';
@@ -125,6 +126,7 @@ function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggle
         <Route path="/learning-center" element={<LearningCenterPage />} />
         <Route path="/rapid-challenge" element={<RapidChallengePage />} />
         <Route path="/live-drill" element={<LiveDrillControlPage />} />
+        <Route path="/account" element={<AccountPage />} />
         <Route path="/admin" element={<AdminRoute />} />
       </Route>
 

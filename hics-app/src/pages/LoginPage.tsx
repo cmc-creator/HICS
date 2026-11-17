@@ -18,6 +18,11 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState('');
+  // Set when the server answers a correct password with an MFA
+  // challenge (opt-in second factor): the sign-in completes only
+  // after the code step below.
+  const [mfaChallengeToken, setMfaChallengeToken] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
 
   const handleCredentialLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -36,12 +41,69 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
         organization: string;
         role: string;
         facility: string;
+        mfaRequired?: boolean;
+        challengeToken?: string;
       }>('/auth/local-login', {
         method: 'POST',
         body: JSON.stringify({
           email,
           password,
           organization,
+        }),
+      });
+
+      if (result.mfaRequired && result.challengeToken) {
+        setMfaChallengeToken(result.challengeToken);
+        setMfaCode('');
+        setError('');
+        return;
+      }
+
+      loginSession({
+        user: {
+          fullName: result.fullName,
+          email: result.email,
+          organization: result.organization,
+          mfaEnabled: true,
+          plan: 'enterprise',
+          role: result.role,
+          facility: result.facility,
+        },
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        authMethod: 'password',
+        expiresInSeconds: result.expiresIn,
+        remember,
+      });
+
+      navigate('/dashboard');
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : 'Credential sign in failed.');
+    }
+  };
+
+  const handleMfaVerify = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!mfaChallengeToken || mfaCode.trim().length < 6) {
+      setError('Enter the 6-digit code from your authenticator app, or one of your recovery codes.');
+      return;
+    }
+
+    try {
+      const result = await publicApiRequest<{
+        accessToken: string;
+        refreshToken?: string;
+        expiresIn: number;
+        email: string;
+        fullName: string;
+        organization: string;
+        role: string;
+        facility: string;
+      }>('/auth/mfa/verify', {
+        method: 'POST',
+        body: JSON.stringify({
+          challengeToken: mfaChallengeToken,
+          code: mfaCode.trim(),
         }),
       });
 
@@ -64,7 +126,7 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
 
       navigate('/dashboard');
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Credential sign in failed.');
+      setError(caughtError instanceof Error ? caughtError.message : 'Verification failed.');
     }
   };
 
@@ -105,7 +167,36 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
           </section>
 
           <section className="nyx-panel p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Login</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">{mfaChallengeToken ? 'Two-Factor Verification' : 'Login'}</h2>
+            {mfaChallengeToken ? (
+              <form onSubmit={handleMfaVerify} className="space-y-3">
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Your password was accepted. Enter the code from your authenticator app to finish signing in.
+                  You can also use one of your recovery codes.
+                </p>
+                <div>
+                  <label className="text-xs font-semibold text-gray-600" htmlFor="mfa-code">Authenticator or recovery code</label>
+                  <input
+                    id="mfa-code"
+                    type="text"
+                    autoComplete="one-time-code"
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value)}
+                    className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+                {error && <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert">{error}</p>}
+                <button type="submit" className="nyx-button-metal w-full py-2.5 rounded-lg text-sm font-semibold">Verify and Sign In</button>
+                <button
+                  type="button"
+                  onClick={() => { setMfaChallengeToken(null); setMfaCode(''); setError(''); }}
+                  className="w-full text-xs text-gray-600 hover:underline py-1"
+                >
+                  Back to sign in
+                </button>
+              </form>
+            ) : (
+            <>
             <div className="mb-4">
               <button type="button" onClick={handleGoogleLogin} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-gray-50">Continue with Google</button>
             </div>
@@ -130,9 +221,11 @@ export default function LoginPage({ theme, onToggleTheme }: LoginPageProps) {
                 <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
                 Keep me signed in on this device
               </label>
-              {error && <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+              {error && <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert">{error}</p>}
               <button type="submit" className="nyx-button-metal w-full py-2.5 rounded-lg text-sm font-semibold">Sign In Securely</button>
             </form>
+            </>
+            )}
           </section>
         </div>
       </main>

@@ -1,4 +1,5 @@
 import { issueSignedAccessToken } from '../_auth.js';
+import { issueMfaChallengeToken } from '../_mfa.js';
 import { verifyPassword } from '../_passwords.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
 import { issueRefreshSession } from '../_sessions.js';
@@ -61,6 +62,25 @@ export default async function handler(req, res) {
 
   if (!user || user.status !== 'active' || !user.passwordHash || !verifyPassword(password, user.passwordHash)) {
     return json(res, 401, { error: 'Invalid email or password.' });
+  }
+
+  // Opt-in MFA: when the user has enabled a second factor, the
+  // password alone does not earn a session. Return a short-lived
+  // challenge token instead; /api/auth/mfa/verify exchanges it
+  // plus a TOTP/recovery code for the real session. Users without
+  // MFA (including the bootstrap admin and every SSO account) are
+  // completely unaffected by this branch.
+  if (user.mfa?.enabled) {
+    try {
+      return json(res, 200, {
+        mfaRequired: true,
+        challengeToken: issueMfaChallengeToken(email),
+        challengeExpiresIn: 300,
+      });
+    } catch (error) {
+      console.error('[NyxHICSlab] Failed to issue MFA challenge:', error instanceof Error ? error.message : error);
+      return json(res, 500, { error: 'Unable to start MFA verification' });
+    }
   }
 
   // Claims always come from the user record, never from the email

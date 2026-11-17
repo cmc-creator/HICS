@@ -88,6 +88,13 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
               </span>
               <span className="hidden md:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
             </button>
+            <Link
+              to="/account"
+              className="touch-target px-2.5 sm:px-3 py-2 rounded-md text-sm font-medium text-stone-200 hover:bg-white/10 hover:text-white transition-colors lux-nav-link"
+              title="Account and security settings"
+            >
+              Account
+            </Link>
             <button
               type="button"
               onClick={logout}
@@ -142,6 +149,13 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
                 </Link>
               ))}
               <div className="border-t border-white/10 pt-2 mt-2 flex flex-col gap-1">
+                <Link
+                  to="/account"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-stone-200 hover:bg-white/10 hover:text-white transition-colors w-full text-left"
+                >
+                  Account &amp; Security
+                </Link>
                 <button
                   type="button"
                   onClick={() => { onToggleTheme(); setMobileOpen(false); }}

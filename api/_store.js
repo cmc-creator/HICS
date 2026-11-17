@@ -43,7 +43,10 @@ function createSeedUsers() {
   ];
 }
 
-function createInitialStore() {
+// Exported for the data-wipe endpoint (api/admin/data-wipe.js),
+// which resets a deployment to exactly these defaults at
+// contract end. Everything else should treat it as internal.
+export function createInitialStore() {
   return {
     attempts: [],
     events: [],

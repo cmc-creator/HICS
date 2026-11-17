@@ -1,0 +1,4 @@
+sha256 7ed12195c8d602258ff2dc3df68eef6929ab0c33fc6355217922fb3f1b78d004
+size 3881112
+parts 13
+file app-release.aab

@@ -18,15 +18,12 @@ export default function RolesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 lux-page">
-      <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
-        <div className="lux-grid-pattern" />
-        <div className="max-w-7xl mx-auto">
-          <div className="lux-hero-shell">
-            <h1 className="text-2xl font-bold lux-title">NyxHICSlab Roles &amp; Structure</h1>
-            <p className="text-blue-200 text-sm mt-1 lux-subtitle">
-              Explore the NyxHICSlab organizational chart and incident command role descriptions
-            </p>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="page-head">
+          <h1 className="text-xl md:text-2xl font-bold lux-title">NyxHICSlab Roles &amp; Structure</h1>
+          <p className="page-head-sub text-sm mt-1 lux-subtitle">
+            Explore the NyxHICSlab organizational chart and incident command role descriptions
+          </p>
         </div>
       </div>
 
@@ -36,11 +33,14 @@ export default function RolesPage() {
           <h2 className="text-lg font-bold text-gray-800 mb-6 text-center">
             HICS Organizational Chart
           </h2>
-          <p className="text-center text-xs text-gray-500 mb-4">
-            Scroll horizontally on smaller screens and select any role for full details.
+          <p className="hidden md:block text-center text-xs text-gray-500 dark:text-white/50 mb-4">
+            Select any role for full details.
+          </p>
+          <p className="md:hidden text-center text-xs text-gray-500 dark:text-white/50 mb-4">
+            Open a section, then tap a role for full details.
           </p>
 
-          <div className="overflow-x-auto pb-2">
+          <div className="hidden md:block overflow-x-auto pb-2">
             <div className="min-w-[980px]">
               {/* Incident Commander */}
               <div className="flex justify-center mb-3">
@@ -119,6 +119,44 @@ export default function RolesPage() {
               </div>
             </div>
           </div>
+
+          {/* Mobile accordion (UI review P7): the 980px chart is
+              unusable pinched on a phone, so small screens get one
+              expandable section per HICS category instead. */}
+          <div className="md:hidden space-y-2">
+            {hicsCategories.map((cat) => {
+              const catRoles = hicsRoles.filter((r) => r.category === cat.id);
+              return (
+                <details key={cat.id} className="rounded-lg border border-gray-200 dark:border-white/10">
+                  <summary
+                    className="flex items-center justify-between px-3 py-2.5 cursor-pointer font-semibold text-sm text-gray-800 dark:text-white"
+                    style={{ borderLeft: `4px solid ${cat.color}` }}
+                  >
+                    {cat.label}
+                    <span className="text-xs font-medium text-gray-500 dark:text-white/50">{catRoles.length} roles</span>
+                  </summary>
+                  <div className="p-2 space-y-1">
+                    {catRoles.map((role) => (
+                      <button
+                        key={role.id}
+                        onClick={() => {
+                          setSelectedRole(role);
+                          document.getElementById('role-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-3"
+                      >
+                        <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: role.color }} />
+                        <span>
+                          <span className="font-medium text-gray-900 dark:text-white block">{role.title}</span>
+                          <span className="text-xs text-gray-500 dark:text-white/50">{role.abbreviation}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </details>
+              );
+            })}
+          </div>
         </div>
 
         {/* Role List + Detail */}
@@ -131,7 +169,7 @@ export default function RolesPage() {
                 <button
                   onClick={() => setActiveCategory('all')}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                    activeCategory === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    activeCategory === 'all' ? 'nyx-button-metal' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   All
@@ -155,7 +193,7 @@ export default function RolesPage() {
                     key={role.id}
                     onClick={() => setSelectedRole(role)}
                     className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-3 ${
-                      selectedRole?.id === role.id ? 'bg-blue-50 border border-blue-200 role-selected-row' : 'hover:bg-gray-50'
+                      selectedRole?.id === role.id ? 'nyx-tint role-selected-row' : 'hover:bg-gray-50'
                     }`}
                   >
                     <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: role.color }} />
@@ -170,7 +208,7 @@ export default function RolesPage() {
           </div>
 
           {/* Role Detail */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-2" id="role-detail">
             {selectedRole ? (
               <div className="nyx-panel p-6">
                 <div className="flex items-start justify-between mb-4">
@@ -186,7 +224,7 @@ export default function RolesPage() {
                       <p className="text-sm text-gray-500 mt-1">
                         Reports to:{' '}
                         <button
-                          className="text-blue-600 hover:underline font-medium role-link-accent"
+                          className="hover:underline font-medium role-link-accent"
                           onClick={() => {
                             const parent = hicsRoles.find((r) => r.id === selectedRole.reportsTo);
                             if (parent) setSelectedRole(parent);

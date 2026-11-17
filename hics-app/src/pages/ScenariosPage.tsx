@@ -179,17 +179,12 @@ export default function ScenariosPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 lux-page">
-      <div className="nyx-hero text-white py-8 md:py-10 px-4 relative overflow-hidden">
-        <div className="lux-grid-pattern" />
-        <div className="lux-orb lux-orb-a" />
-        <div className="lux-orb lux-orb-b" />
-        <div className="max-w-7xl mx-auto">
-          <div className="lux-hero-shell">
-            <h1 className="text-2xl md:text-3xl font-bold lux-title">NyxHICSlab Scenarios</h1>
-            <p className="text-blue-200 text-sm md:text-base mt-2 lux-subtitle max-w-3xl">
-              Practice incident response with curated playlists, facility profiles, and realistic decision pressure.
-            </p>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="page-head">
+          <h1 className="text-xl md:text-2xl font-bold lux-title">NyxHICSlab Scenarios</h1>
+          <p className="page-head-sub text-sm mt-1 lux-subtitle max-w-3xl">
+            Practice incident response with curated playlists, facility profiles, and realistic decision pressure.
+          </p>
         </div>
       </div>
 

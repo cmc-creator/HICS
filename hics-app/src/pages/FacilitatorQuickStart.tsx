@@ -18,13 +18,10 @@ const debriefPrompts = [
 export default function FacilitatorQuickStart() {
   return (
     <div className="min-h-screen bg-gray-50 lux-page">
-      <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
-        <div className="lux-grid-pattern" />
-        <div className="max-w-5xl mx-auto">
-          <div className="lux-hero-shell">
-            <h1 className="text-2xl font-bold lux-title">Facilitator Quick Start</h1>
-            <p className="text-blue-200 text-sm mt-1 lux-subtitle">Run a high-quality drill in under 10 minutes of setup</p>
-          </div>
+      <div className="max-w-5xl mx-auto px-4 pt-6">
+        <div className="page-head">
+          <h1 className="text-xl md:text-2xl font-bold lux-title">Facilitator Quick Start</h1>
+          <p className="page-head-sub text-sm mt-1 lux-subtitle">Run a high-quality drill in under 10 minutes of setup</p>
         </div>
       </div>
 

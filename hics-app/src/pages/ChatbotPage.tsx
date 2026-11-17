@@ -172,10 +172,9 @@ export default function ChatbotPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lux-page">
       {/* Header */}
-      <div className="nyx-hero text-white py-4 px-4 relative overflow-hidden">
-        <div className="lux-grid-pattern" />
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3 lux-hero-shell py-2 px-3">
+      <div className="max-w-4xl mx-auto px-4 pt-4 w-full">
+        <div className="page-head flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 chat-avatar-user rounded-full flex items-center justify-center text-xs font-bold tracking-widest">
               NX
             </div>

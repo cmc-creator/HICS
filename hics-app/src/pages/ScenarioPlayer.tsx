@@ -562,17 +562,13 @@ export default function ScenarioPlayer() {
   if (completed) {
     return (
       <div className="min-h-screen bg-gray-50 lux-page">
-        <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
-          <div className="lux-grid-pattern" />
-          <div className="lux-orb lux-orb-a" />
-          <div className="max-w-4xl mx-auto">
-            <Link to={scenariosLink} className="text-blue-300 hover:text-white text-sm mb-2 inline-block">
+        <div className="max-w-4xl mx-auto px-4 pt-6">
+          <div className="page-head">
+            <Link to={scenariosLink} className="text-amber-200 hover:text-white text-sm mb-2 inline-block">
               ← Back to Scenarios
             </Link>
-            <div className="lux-hero-shell">
-              <h1 className="text-2xl font-bold lux-title">{adaptText(scenario.title)}</h1>
-              <p className="text-blue-200 text-xs mt-1 lux-subtitle">Facility Profile: {facilityContextLabel}</p>
-            </div>
+            <h1 className="text-xl md:text-2xl font-bold lux-title">{adaptText(scenario.title)}</h1>
+            <p className="page-head-sub text-xs mt-1 lux-subtitle">Facility Profile: {facilityContextLabel}</p>
           </div>
         </div>
 
@@ -679,14 +675,13 @@ export default function ScenarioPlayer() {
 
   return (
     <div className="min-h-screen bg-gray-50 lux-page">
-      <div className="nyx-hero text-white py-4 px-4 relative overflow-hidden">
-        <div className="lux-grid-pattern" />
-        <div className="max-w-4xl mx-auto">
-          <Link to={scenariosLink} className="text-blue-300 hover:text-white text-sm mb-1 inline-block">
+      <div className="max-w-4xl mx-auto px-4 pt-4">
+        <div className="page-head">
+          <Link to={scenariosLink} className="text-amber-200 hover:text-white text-sm mb-1 inline-block">
             ← Back to Scenarios
           </Link>
           <h1 className="text-xl font-bold">{adaptText(scenario.title)}</h1>
-          <p className="text-blue-200 text-xs mt-1">Facility Profile: {facilityContextLabel}</p>
+          <p className="page-head-sub text-xs mt-1">Facility Profile: {facilityContextLabel}</p>
         </div>
       </div>
 

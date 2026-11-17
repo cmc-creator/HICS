@@ -76,17 +76,12 @@ export default function QuizPage() {
   if (state === 'start') {
     return (
       <div className="min-h-screen bg-gray-50 lux-page">
-        <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
-          <div className="lux-grid-pattern" />
-          <div className="lux-orb lux-orb-a" />
-          <div className="lux-orb lux-orb-b" />
-          <div className="max-w-3xl mx-auto">
-            <div className="lux-hero-shell">
-              <h1 className="text-2xl font-bold lux-title">NyxHICSlab Knowledge Quiz</h1>
-              <p className="text-blue-200 text-sm mt-1 lux-subtitle">Test command decisions across hospital incident scenarios</p>
-            </div>
-          </div>
+        <div className="max-w-3xl mx-auto px-4 pt-6">
+        <div className="page-head">
+          <h1 className="text-xl md:text-2xl font-bold lux-title">NyxHICSlab Knowledge Quiz</h1>
+          <p className="page-head-sub text-sm mt-1 lux-subtitle">Test command decisions across hospital incident scenarios</p>
         </div>
+      </div>
 
         <div className="max-w-3xl mx-auto px-4 py-8">
           <div className="nyx-panel p-8 text-center mb-6 animate-fade-in">
@@ -147,14 +142,11 @@ export default function QuizPage() {
   if (state === 'complete') {
     return (
       <div className="min-h-screen bg-gray-50 lux-page">
-        <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
-          <div className="lux-grid-pattern" />
-          <div className="max-w-3xl mx-auto">
-            <div className="lux-hero-shell">
-              <h1 className="text-2xl font-bold lux-title">Quiz Results</h1>
-            </div>
-          </div>
+        <div className="max-w-3xl mx-auto px-4 pt-6">
+        <div className="page-head">
+          <h1 className="text-xl md:text-2xl font-bold lux-title">Quiz Results</h1>
         </div>
+      </div>
 
         <div className="max-w-3xl mx-auto px-4 py-8">
           {/* Score Card */}
@@ -251,13 +243,12 @@ export default function QuizPage() {
   // Playing state
   return (
     <div className="min-h-screen bg-gray-50 lux-page">
-      <div className="nyx-hero text-white py-4 px-4 relative overflow-hidden">
-        <div className="lux-grid-pattern" />
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold">NyxHICSlab Quiz</h1>
+      <div className="max-w-3xl mx-auto px-4 pt-4">
+        <div className="page-head flex items-center justify-between">
+          <h1 className="text-lg font-bold">NyxHICSlab Quiz</h1>
           <button
             onClick={handleRestart}
-            className="touch-target text-blue-300 hover:text-white text-sm px-2"
+            className="touch-target text-amber-200 hover:text-white text-sm px-2"
           >
             Exit
           </button>

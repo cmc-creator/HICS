@@ -201,13 +201,12 @@ export default function ContractsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 lux-page">
-      <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
-        <div className="lux-grid-pattern" />
-        <div className="max-w-7xl mx-auto">
-          <div className="lux-hero-shell flex flex-wrap items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="page-head">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold lux-title">Contracts</h1>
-              <p className="text-blue-200 text-sm mt-1 lux-subtitle">Owner portal - subscription agreements with built-in electronic signature</p>
+              <h1 className="text-xl md:text-2xl font-bold lux-title">Contracts</h1>
+              <p className="page-head-sub text-sm mt-1 lux-subtitle">Owner portal - subscription agreements with built-in electronic signature</p>
             </div>
             <button
               type="button"

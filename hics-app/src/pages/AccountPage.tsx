@@ -110,13 +110,10 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 lux-page">
-      <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
-        <div className="lux-grid-pattern" />
-        <div className="max-w-4xl mx-auto">
-          <div className="lux-hero-shell">
-            <h1 className="text-2xl font-bold lux-title">Account &amp; Security</h1>
-            <p className="text-blue-200 text-sm mt-1 lux-subtitle">Your profile and sign-in protection</p>
-          </div>
+      <div className="max-w-4xl mx-auto px-4 pt-6">
+        <div className="page-head">
+          <h1 className="text-xl md:text-2xl font-bold lux-title">Account &amp; Security</h1>
+          <p className="page-head-sub text-sm mt-1 lux-subtitle">Your profile and sign-in protection</p>
         </div>
       </div>
 

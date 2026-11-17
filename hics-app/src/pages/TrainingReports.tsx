@@ -160,13 +160,10 @@ export default function TrainingReports() {
 
   return (
     <div className="min-h-screen bg-gray-50 lux-page">
-      <div className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
-        <div className="lux-grid-pattern" />
-        <div className="max-w-7xl mx-auto">
-          <div className="lux-hero-shell">
-            <h1 className="text-2xl font-bold lux-title">Training Reports</h1>
-            <p className="text-blue-200 text-sm mt-1 lux-subtitle">Server-backed performance, audit logs, export tools, and completion certificates</p>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="page-head">
+          <h1 className="text-xl md:text-2xl font-bold lux-title">Training Reports</h1>
+          <p className="page-head-sub text-sm mt-1 lux-subtitle">Server-backed performance, audit logs, export tools, and completion certificates</p>
         </div>
       </div>
 
@@ -231,7 +228,7 @@ export default function TrainingReports() {
             <p className="text-sm text-gray-500 dark:text-white/50">No completed scenario attempts yet.</p>
           ) : (
             <div className="overflow-auto report-table-shell">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[720px] text-sm">
                 <thead>
                   <tr className="text-left border-b border-gray-200 text-gray-600 dark:text-white/60">
                     <th className="py-2 pr-4">Completed</th>
@@ -239,8 +236,8 @@ export default function TrainingReports() {
                     <th className="py-2 pr-4">Facility</th>
                     <th className="py-2 pr-4">Score</th>
                     <th className="py-2 pr-4">Timed</th>
-                    <th className="py-2 pr-4">Facilitator</th>
-                    <th className="py-2 pr-4">Duration</th>
+                    <th className="py-2 pr-4 hidden md:table-cell">Facilitator</th>
+                    <th className="py-2 pr-4 hidden md:table-cell">Duration</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -251,8 +248,8 @@ export default function TrainingReports() {
                       <td className="py-2 pr-4">{attempt.facility}</td>
                       <td className="py-2 pr-4 font-semibold">{attempt.scorePercent}%</td>
                       <td className="py-2 pr-4">{attempt.timedMode ? 'Yes' : 'No'}</td>
-                      <td className="py-2 pr-4">{attempt.facilitatorMode ? 'Yes' : 'No'}</td>
-                      <td className="py-2 pr-4">{Math.round(attempt.durationSeconds / 60)} min</td>
+                      <td className="py-2 pr-4 hidden md:table-cell">{attempt.facilitatorMode ? 'Yes' : 'No'}</td>
+                      <td className="py-2 pr-4 hidden md:table-cell">{Math.round(attempt.durationSeconds / 60)} min</td>
                     </tr>
                   ))}
                 </tbody>

@@ -83,15 +83,12 @@ export default function RequestDemoPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 lux-page">
-      <header className="nyx-hero text-white py-6 px-4 relative overflow-hidden">
-        <div className="lux-grid-pattern" />
-        <div className="max-w-5xl mx-auto">
-          <div className="lux-hero-shell">
-            <h1 className="text-3xl font-bold lux-title">Request Enterprise Demo</h1>
-            <p className="text-blue-200 text-sm mt-2 lux-subtitle">Tell us your goals and we will tailor a command training rollout plan.</p>
-          </div>
+      <div className="max-w-5xl mx-auto px-4 pt-6">
+        <div className="page-head">
+          <h1 className="text-2xl md:text-3xl font-bold lux-title">Request Enterprise Demo</h1>
+          <p className="page-head-sub text-sm mt-1 lux-subtitle">Tell us your goals and we will tailor a command training rollout plan.</p>
         </div>
-      </header>
+      </div>
 
       <main className="max-w-5xl mx-auto px-4 py-8">
         {!submitted ? (

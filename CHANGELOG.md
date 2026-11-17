@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-16 - Beef-up step 4: Situation Briefing videos (player support + batch 1)
+
+### Added
+- **Situation Briefing panel in the ScenarioPlayer:** for scenarios that have a briefing video, a fresh run now opens with a short ambient video of the scenario scene before the first decision. The panel sits where step 1 will appear (team setup and mode toggles stay available above it), with the scenario still as its poster, native video controls, and one clear path forward: the button reads "Skip briefing" while the video plays and becomes "Begin Step 1" when it ends. Resumed runs (progress past step 1, or any answer recorded) never see the panel, and the per-step timer in Timed Mode waits behind the gate instead of counting down during the briefing.
+- **Motion rules:** the briefing never autoplays with sound (autoplay is muted), and when the visitor prefers reduced motion it does not autoplay at all - the poster waits behind a large gold "Play briefing" button.
+- **Graceful fallback, same as scenario imagery:** the new `ScenarioBriefing` component hides itself and releases the run if the video file is missing or fails to load, so a scenario whose video has not been uploaded yet starts exactly as it did before briefings shipped - no empty frame, no error.
+- **One briefing map:** `scenarioBriefings` in `src/data/scenarioImages.ts` is the single place that maps scenario ids to `public/briefings/<id>.mp4` paths, beside the existing image map. Adding a briefing later is one map entry plus one uploaded file.
+- **Batch 1 videos (six flagship scenarios):** mass-casualty, hospital-fire, hazmat, cyber-attack, active-shooter-lockdown, severe-weather. Each is a 10-second animation of that scenario's still (slow cinematic push-in with scene-true atmosphere: blinking emergency lights and rain, drifting smoke, flowing decon water, a pulsing lockdown alarm, storm rain), compressed for the web at 720p with no audio track, 0.8-2.5 MB each. The mp4 files are uploaded to the repository separately from this code change (the connector cannot carry binaries); the player support works whether or not a given file has landed yet.
+
 ## 2026-11-16 - Beef-up steps 2 and 3: After-Action Reports and designed certificates
 
 ### Added

@@ -1,5 +1,11 @@
 {
   "framework": "vite",
+  "crons": [
+    {
+      "path": "/api/cron/backup",
+      "schedule": "0 6 * * *"
+    }
+  ],
   "installCommand": "npm install && cd hics-app && npm install",
   "buildCommand": "cd hics-app && npm run build",
   "outputDirectory": "hics-app/dist",

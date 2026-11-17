@@ -58,6 +58,7 @@ globalThis.fetch = async (url, options = {}) => {
 
 const storeModule = await import('../_store.js');
 const { default: backupHandler } = await import('../admin/backup.js');
+const { default: cronBackupHandler } = await import('../cron/backup.js');
 const { default: storeHealth } = await import('../health/store.js');
 const { issueSignedAccessToken } = await import('../_auth.js');
 
@@ -228,6 +229,60 @@ assert.ok(
   !afterPrune.some((backup) => backup.key === backupKey),
   'the oldest backup was pruned first',
 );
+
+/* ---- scheduled backups: the Vercel Cron endpoint ---- */
+function createCronReq(method, authorization = null) {
+  return {
+    method,
+    body: {},
+    headers: {
+      'user-agent': 'vercel-cron/1.0',
+      'x-forwarded-for': '127.0.0.1',
+      ...(authorization ? { authorization } : {}),
+    },
+    socket: { remoteAddress: '127.0.0.1' },
+  };
+}
+
+// CRON_SECRET unset: the endpoint refuses everything with 501
+// rather than running unauthenticated - even a request carrying
+// the (not yet configured) secret value.
+delete process.env.CRON_SECRET;
+const cronUnconfigured = await call(cronBackupHandler, createCronReq('GET', 'Bearer test-cron-secret'));
+assert.equal(cronUnconfigured.status, 501, 'cron endpoint without CRON_SECRET returns 501');
+assert.match(cronUnconfigured.body.error, /CRON_SECRET/, 'the 501 names the missing variable');
+
+process.env.CRON_SECRET = 'test-cron-secret';
+
+const cronNoHeader = await call(cronBackupHandler, createCronReq('GET'));
+assert.equal(cronNoHeader.status, 401, 'cron endpoint without the Authorization header returns 401');
+
+const cronWrongSecret = await call(cronBackupHandler, createCronReq('GET', 'Bearer wrong-secret-value'));
+assert.equal(cronWrongSecret.status, 401, 'cron endpoint with a wrong secret returns 401');
+
+const cronSameLengthWrong = await call(cronBackupHandler, createCronReq('GET', 'Bearer test-cron-secreX'));
+assert.equal(cronSameLengthWrong.status, 401, 'cron endpoint with a same-length wrong secret returns 401');
+
+const cronSessionToken = await call(cronBackupHandler, createCronReq('GET', `Bearer ${enterpriseToken}`));
+assert.equal(cronSessionToken.status, 401, 'a user session token never authorizes the cron endpoint');
+
+const cronWrongMethod = await call(cronBackupHandler, createCronReq('POST', 'Bearer test-cron-secret'));
+assert.equal(cronWrongMethod.status, 405, 'cron endpoint only accepts GET');
+
+const cronCreated = await call(cronBackupHandler, createCronReq('GET', 'Bearer test-cron-secret'));
+assert.equal(cronCreated.status, 201, 'cron endpoint with the right secret creates a backup');
+assert.ok(cronCreated.body.backup.key.startsWith(storeModule.STORE_BACKUP_PREFIX), 'cron backup uses the shared snapshot helper');
+const afterCron = await storeModule.listStoreBackups();
+assert.equal(afterCron.length, storeModule.MAX_STORE_BACKUPS, 'cron backup is pruned to the same retention as manual backups');
+assert.equal(afterCron[0].key, cronCreated.body.backup.key, 'the cron backup is the newest snapshot');
+const cronAuditStore = await storeModule.getStore();
+assert.ok(
+  cronAuditStore.auditLogs.some(
+    (entry) => entry.action === 'store_backup_created' && entry.data?.by === 'vercel-cron' && entry.data?.key === cronCreated.body.backup.key,
+  ),
+  'cron backup is audit-logged as vercel-cron',
+);
+delete process.env.CRON_SECRET;
 
 /* ---- no Redis configured -> clear 501 (separate process) ---- */
 const childScript = [

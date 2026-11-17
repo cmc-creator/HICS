@@ -342,6 +342,70 @@ const inactive = await call(exchange, createBaseReq('POST', { ...exchangeBody, p
 assert.equal(inactive.status, 403, 'inactive store user should still be refused');
 assert.equal(inactive.body.accessToken, undefined, 'no access token for inactive user');
 
+// 10. SSO domain allowlist (HICS_SSO_ALLOWED_DOMAINS): when set,
+// first-time sign-ins auto-provision only for listed domains.
+// The list deliberately names NEITHER example.com (the domain of
+// every seeded/provisioned user above) NOR gmail.com, and mixes
+// case to prove matching is case-insensitive.
+process.env.HICS_SSO_ALLOWED_DOMAINS = 'Hospital.ORG, partner-health.net';
+
+// 10a. An EXISTING store user signs in exactly as today even
+// though their domain is not allowlisted - the gate restricts
+// account creation, never sign-in.
+currentIdToken = mintIdToken();
+const existingUnderAllowlist = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
+assert.equal(existingUnderAllowlist.status, 200, `existing user must not be gated by the allowlist (got ${existingUnderAllowlist.status})`);
+assert.equal(existingUnderAllowlist.body.role, 'facility-admin', 'existing user keeps the store-record role under the allowlist');
+
+// 10b. An OWNER email (second.owner is in HICS_OWNER_EMAILS)
+// outside the allowlist still auto-provisions as enterprise
+// admin: owners are never locked out of their own deployment.
+currentIdToken = mintIdToken({ email: 'second.owner@example.com', name: 'Second Owner' });
+const ownerUnderAllowlist = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
+assert.equal(ownerUnderAllowlist.status, 200, `owner first sign-in must bypass the allowlist (got ${ownerUnderAllowlist.status}: ${JSON.stringify(ownerUnderAllowlist.body)})`);
+assert.equal(ownerUnderAllowlist.body.role, 'enterprise-admin', 'owner under allowlist still auto-provisions as enterprise-admin');
+
+// 10c. A NEW identity on an allowlisted domain auto-provisions
+// as observer, exactly as it would with no list at all.
+currentIdToken = mintIdToken({ email: 'new.doc@hospital.org', name: 'New Doc' });
+const allowedFirstTimer = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
+assert.equal(allowedFirstTimer.status, 200, `allowlisted first sign-in should be provisioned (got ${allowedFirstTimer.status}: ${JSON.stringify(allowedFirstTimer.body)})`);
+assert.equal(allowedFirstTimer.body.role, 'observer', 'allowlisted first-timer gets the observer role');
+const storeAfterAllowed = await getStore();
+assert.ok(
+  storeAfterAllowed.users.some((candidate) => String(candidate.email || '').toLowerCase() === 'new.doc@hospital.org'),
+  'allowlisted first-timer record is created',
+);
+
+// 10d. A NEW identity outside the allowlist is refused: clean
+// 403 in the "not provisioned" style, no tokens, NO record
+// created, and the rejection is audit-logged distinctly.
+currentIdToken = mintIdToken({ email: 'random.person@gmail.com', name: 'Random Person' });
+const rejectedByAllowlist = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
+assert.equal(rejectedByAllowlist.status, 403, `non-allowlisted first sign-in should be refused (got ${rejectedByAllowlist.status})`);
+assert.match(String(rejectedByAllowlist.body.error), /not provisioned/i, 'rejection uses the not-provisioned message');
+assert.equal(rejectedByAllowlist.body.accessToken, undefined, 'no access token for an allowlist rejection');
+const storeAfterRejection = await getStore();
+assert.ok(
+  !storeAfterRejection.users.some((candidate) => String(candidate.email || '').toLowerCase() === 'random.person@gmail.com'),
+  'allowlist rejection must not create a store record',
+);
+assert.ok(
+  storeAfterRejection.auditLogs.some(
+    (entry) => entry.action === 'sso_sign_in_rejected_domain' && entry.data?.email === 'random.person@gmail.com',
+  ),
+  'allowlist rejection is audit-logged under its own action',
+);
+
+// 10e. With the variable removed again, the open self-serve
+// posture is untouched: a brand-new identity from an unlisted
+// domain auto-provisions as observer.
+delete process.env.HICS_SSO_ALLOWED_DOMAINS;
+currentIdToken = mintIdToken({ email: 'walk.in@elsewhere.net', name: 'Walk In' });
+const unsetBehavior = await call(exchange, createBaseReq('POST', { ...exchangeBody, provider: 'google' }));
+assert.equal(unsetBehavior.status, 200, `unset allowlist must keep open provisioning (got ${unsetBehavior.status})`);
+assert.equal(unsetBehavior.body.role, 'observer', 'unset allowlist still provisions observers');
+
 globalThis.fetch = originalFetch;
 
 console.log('auth-exchange-google-smoke: PASS');

@@ -160,6 +160,29 @@ function getOwnerEmails() {
   return owners;
 }
 
+// Optional SSO sign-up allowlist for enterprise deployments:
+// HICS_SSO_ALLOWED_DOMAINS is a comma-separated list of email
+// domains (case-insensitive). When it is SET, a first-time SSO
+// identity auto-provisions only if its email domain is listed;
+// owners (above) are exempt, and existing store users are never
+// gated - the list restricts NEW account creation, not sign-in.
+// When it is UNSET (the public demo), first sign-ins keep the
+// open self-serve posture. Returns null when unset or empty.
+function getSsoAllowedDomains() {
+  const raw = String(process.env.HICS_SSO_ALLOWED_DOMAINS || '').trim();
+  if (!raw) {
+    return null;
+  }
+  const domains = new Set();
+  for (const entry of raw.split(',')) {
+    const normalized = entry.trim().toLowerCase().replace(/^@/, '');
+    if (normalized) {
+      domains.add(normalized);
+    }
+  }
+  return domains.size > 0 ? domains : null;
+}
+
 // Creates the store record for a first-time SSO sign-in and
 // persists it before any token is issued. The record is SSO-only:
 // it deliberately has no passwordHash, so credential login rejects
@@ -343,6 +366,24 @@ export default async function handler(req, res) {
   }
 
   if (!user) {
+    // Enterprise deployments can restrict NEW sign-ups to their
+    // own email domains (HICS_SSO_ALLOWED_DOMAINS). The gate sits
+    // only on the provisioning path: existing users (handled
+    // above) and owner emails are never blocked by it. A rejected
+    // first sign-in creates no record and issues no tokens, and
+    // is audit-logged under its own action so an admin can see
+    // who was turned away.
+    const allowedDomains = getSsoAllowedDomains();
+    if (allowedDomains && !getOwnerEmails().has(email)) {
+      const domain = email.slice(email.lastIndexOf('@') + 1);
+      if (!allowedDomains.has(domain)) {
+        appendAuditLog(store, 'sso_sign_in_rejected_domain', { email, domain, provider });
+        await saveStore(store);
+        return json(res, 403, {
+          error: 'This account is not provisioned. Contact your administrator to request access.',
+        });
+      }
+    }
     user = await provisionSsoUser(store, { email, fullName: identity.fullName, provider });
   }
 

@@ -202,7 +202,7 @@ export default function FacilityAdminPage() {
               <div className="mt-1 w-full border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm bg-gray-50 dark:bg-white/5 text-gray-800 dark:text-white">
                 {signedInRoleLabel}
               </div>
-              <p className="text-[11px] text-gray-500 dark:text-white/50 mt-1">Your actual permission, from your account. It cannot be changed here.</p>
+              <p className="text-xs text-gray-500 dark:text-white/50 mt-1">Your actual permission, from your account. It cannot be changed here.</p>
             </div>
             <div>
               <label htmlFor="tenant-role" className="text-xs font-semibold text-gray-600 dark:text-white/60">Preview As Role</label>
@@ -218,7 +218,7 @@ export default function FacilityAdminPage() {
                   </option>
                 ))}
               </select>
-              <p className="text-[11px] text-gray-500 dark:text-white/50 mt-1">Preview only - changes reporting scope displays, never your permissions.</p>
+              <p className="text-xs text-gray-500 dark:text-white/50 mt-1">Preview only - changes reporting scope displays, never your permissions.</p>
             </div>
             <div>
               <label htmlFor="tenant-facility" className="text-xs font-semibold text-gray-600 dark:text-white/60">Reporting Scope</label>
@@ -332,7 +332,7 @@ export default function FacilityAdminPage() {
                 <div key={u.id} className="rounded-lg border border-gray-200 dark:border-white/10 p-3 flex items-center justify-between text-sm">
                   <div>
                     <div className="font-semibold text-gray-900 dark:text-white">{u.fullName}</div>
-                    <div className="text-xs text-gray-500 dark:text-white/50">{u.email} · {u.facility}</div>
+                    <div className="text-[13px] text-gray-500 dark:text-white/50">{u.email} · {u.facility}</div>
                   </div>
                   <span className="nyx-chip">{u.role}</span>
                 </div>
@@ -342,22 +342,22 @@ export default function FacilityAdminPage() {
 
           <div className="nyx-panel p-5">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Permission Matrix</h2>
-            <p className="text-[11px] text-gray-500 dark:text-white/50 mb-3">Shown for the role selected under Preview As Role - a preview, not your signed-in permission.</p>
+            <p className="text-xs text-gray-500 dark:text-white/50 mb-3">Shown for the role selected under Preview As Role - a preview, not your signed-in permission.</p>
             <div className="grid gap-3 text-sm mb-4">
               <div className={`rounded-lg border p-3 ${canManageUsers ? 'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30' : 'border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/5'}`}>
                 <div className="font-semibold">User Management</div>
                 <div className="text-xs mt-1 text-gray-600 dark:text-white/60">Create users, assign roles, and maintain access</div>
-                <div className="text-xs font-bold mt-2">{canManageUsers ? 'ENABLED' : 'READ-ONLY'}</div>
+                <div className="text-[13px] font-bold mt-2">{canManageUsers ? 'ENABLED' : 'READ-ONLY'}</div>
               </div>
               <div className={`rounded-lg border p-3 ${canManageData ? 'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30' : 'border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/5'}`}>
                 <div className="font-semibold">Data Governance</div>
                 <div className="text-xs mt-1 text-gray-600 dark:text-white/60">Clear telemetry/attempt data and manage retention actions</div>
-                <div className="text-xs font-bold mt-2">{canManageData ? 'ENABLED' : 'RESTRICTED'}</div>
+                <div className="text-[13px] font-bold mt-2">{canManageData ? 'ENABLED' : 'RESTRICTED'}</div>
               </div>
               <div className="rounded-lg nyx-tint p-3 role-selected-row">
                 <div className="font-semibold">Report Export</div>
                 <div className="text-xs mt-1 text-gray-600 dark:text-white/60">CSV export for audit and training compliance records</div>
-                <div className="text-xs font-bold mt-2">{role === 'observer' ? 'DISABLED' : 'ENABLED'}</div>
+                <div className="text-[13px] font-bold mt-2">{role === 'observer' ? 'DISABLED' : 'ENABLED'}</div>
               </div>
             </div>
 
@@ -372,7 +372,7 @@ export default function FacilityAdminPage() {
               ) : (
                 auditLogs.map((log) => (
                   <div key={log.id} className="rounded-lg border border-gray-200 dark:border-white/10 p-3">
-                    <div className="text-xs text-gray-500 dark:text-white/50">{new Date(log.at).toLocaleString()}</div>
+                    <div className="text-[13px] text-gray-500 dark:text-white/50">{new Date(log.at).toLocaleString()}</div>
                     <div className="text-sm font-semibold text-gray-900 dark:text-white">{log.action}</div>
                   </div>
                 ))

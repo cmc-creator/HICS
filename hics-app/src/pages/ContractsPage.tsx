@@ -321,17 +321,17 @@ export default function ContractsPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="text-base font-bold text-gray-900 dark:text-white">{contract.customer.organization}</div>
-                    <div className="text-xs text-gray-500 dark:text-white/50 mt-1">
+                    <div className="text-[13px] text-gray-500 dark:text-white/50 mt-1">
                       {contract.customer.contactName} · {contract.customer.contactEmail}
                       {contract.customer.facility ? ` · ${contract.customer.facility}` : ''}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-white/50 mt-1">
+                    <div className="text-[13px] text-gray-500 dark:text-white/50 mt-1">
                       {planTierLabel(contract.fields.planTier)} · {formatMoney(contract.fields.annualFee)}/yr · starts {contract.fields.startDate}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <StatusChip status={contract.status} />
-                    <span className="text-[11px] text-gray-400 dark:text-white/40">
+                    <span className="text-[13px] text-gray-400 dark:text-white/40">
                       Updated {new Date(contract.updatedAt).toLocaleString()}
                     </span>
                   </div>
@@ -521,7 +521,7 @@ export function ContractDetailPage() {
             <h2 className="text-base font-bold text-gray-900 dark:text-white mb-1">
               {contract.status === 'completed' ? 'Executed Agreement' : contract.status === 'signed' ? 'Customer-Signed Agreement' : 'Agreement Document'}
             </h2>
-            <p className="text-[11px] text-gray-500 dark:text-white/50 mb-4">
+            <p className="text-[13px] text-gray-500 dark:text-white/50 mb-4">
               Template version {contract.templateVersion}
               {contract.documentHash ? (
                 <> · SHA-256: <span className="font-mono break-all">{contract.documentHash}</span></>
@@ -557,10 +557,10 @@ export function ContractDetailPage() {
                   {contract.signatures.map((signature, index) => (
                     <div key={index} className="rounded-lg border border-gray-200 dark:border-white/10 p-3">
                       <div className="signature-script text-xl text-gray-900 dark:text-white">{signature.name}</div>
-                      <div className="text-xs text-gray-600 dark:text-white/60 mt-1">
+                      <div className="text-[13px] text-gray-600 dark:text-white/60 mt-1">
                         {signature.name} · {signature.title}
                       </div>
-                      <div className="text-[11px] text-gray-500 dark:text-white/50 mt-1">
+                      <div className="text-[13px] text-gray-500 dark:text-white/50 mt-1">
                         {signature.party === 'nyx' ? 'Nyx Collective LLC' : contract.customer.organization} · {new Date(signature.signedAt).toLocaleString()} · typed e-signature
                       </div>
                     </div>
@@ -599,7 +599,7 @@ export function ContractDetailPage() {
               <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-3">History</h2>
               <ol className="space-y-2">
                 {contract.events.map((event, index) => (
-                  <li key={index} className="flex gap-3 text-xs">
+                  <li key={index} className="flex gap-3 text-[13px]">
                     <span className="mt-0.5 h-2 w-2 rounded-full bg-amber-500 shrink-0" aria-hidden="true" />
                     <span>
                       <span className="font-semibold capitalize text-gray-800 dark:text-white">{event.type}</span>
@@ -609,7 +609,7 @@ export function ContractDetailPage() {
                   </li>
                 ))}
               </ol>
-              <p className="text-[11px] text-gray-400 dark:text-white/40 mt-3">Created by {contract.createdBy} · Template v{contract.templateVersion}</p>
+              <p className="text-xs text-gray-400 dark:text-white/40 mt-3">Created by {contract.createdBy} · Template v{contract.templateVersion}</p>
             </div>
           </div>
         </div>

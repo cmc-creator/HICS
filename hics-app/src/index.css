@@ -1063,21 +1063,12 @@ html.dark textarea[aria-invalid="true"] {
 	box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.35);
 }
 
-/* Scenario player progress: a soft light sweep rides the bar so
-   progress feels alive without moving anything else. */
+/* Scenario player progress: the bar itself carries no sweep -
+   the infinite light sweep that rode it is gone (UI review T3);
+   the width transition when the step changes is the motion. */
 .training-progress-bar {
 	position: relative;
 	overflow: hidden;
-}
-
-.training-progress-bar::after {
-	content: "";
-	position: absolute;
-	inset: 0;
-	background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-	transform: translateX(-130%);
-	animation: sheenSweep 2.8s ease-in-out infinite;
-	pointer-events: none;
 }
 
 /* ---- Print: signed-copy view prints the document alone ---- */

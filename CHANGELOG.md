@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-11-16 - UI review fix-all: theme split-brain, header rebuild, brand consolidation
+
+All 27 findings from the 2026-11-16 UI/UX visual review (8 broken, 16 polish, 3 taste) are fixed. The full per-finding record is appended to `hics-ui-review-2026-11-16.md` in the workspace. All ten API suites pass; the frontend build is green with customer-deployment mode both unset and set.
+
+### Fixed
+- **Theme split-brain (B1):** Tailwind v4's `dark:` variant followed the OS while the app toggle flips a class on the html element, so the two halves of the theme system disagreed whenever the OS and the app setting differed (dark-on-dark or white-on-white for a buyer whose machine was set the other way). `index.css` now binds the variant to the app class with `@custom-variant dark`, verified in the compiled CSS: zero `prefers-color-scheme` gates remain.
+- **Header (B2, B3, B4, B5, P2, P13):** the sticky mega-header (about 220px: 120px logo stack, metal gradient shell, pill rail, hamburger slide-down) is replaced by a slim two-row header of about 100px - a compact brand row (32px logo tile, wordmark, theme toggle, Account, full "Sign Out" label at every width) over the nav rail as a slim second row. The shell is a solid theme surface in both themes (ivory in light, deep plum-black in dark), so nav labels now sit at roughly 10:1 or better instead of 2.0-2.9:1 on brushed metal. The active pill is one flat gold with near-black text (about 7.8:1) instead of a gold-to-teal gradient with white text. The rail paints a right-edge fade while it can scroll sideways, and the duplicate hamburger menu is deleted - one navigation system. The longest-matching-path `aria-current` behavior is unchanged.
+- **Toasts vs the AI launcher (B6):** the toast stack moves to the bottom-left; the bottom-right corner belongs to the Ask AI launcher alone. Pages also reserve bottom padding (`pb-24` on the app wrapper) so the launcher never covers the last content or the footer (P3).
+- **Link contrast (B7):** links use the new `nyx-link` class (plum, about 7.7:1 on light surfaces, light lavender on dark) and the gold role-link accent is darkened to clear AA, with a light-gold dark-theme variant.
+- **Landing legal footer (B8):** the trademark/copyright footer renders at full opacity instead of 50 percent, and the faintest secondary text on the page (40 percent) is raised to 70 percent.
+
+### Changed
+- **Dashboard (P1, P4, P5, P16):** the hero drops its duplicate logo tile and leads with the value proposition - hospital incident command training for every facility type, with behavioral health and psychiatric inpatient depth named as a specialty strength instead of the whole pitch. The four stat icon chips share one plum-family treatment (no raw green/red/purple/blue), and the nine module cards share one gold edge instead of nine border hues. `adaptScenarioText` now gives the default "All Facilities" view the general-acute-care wording; psychiatric wording appears only when that profile is explicitly selected.
+- **Page heads (P12):** every interior page trades the full hero band for a compact brand band (title plus one-line subtitle, about 64-72px). The Dashboard keeps the tall hero; the public landing is unchanged.
+- **Blue retired from chrome (P6, T1):** the global CSS overrides that silently repainted every blue utility (blue-600 became a gold gradient, blue-50 a teal wash, blue text became teal or cream) are deleted, and components migrated to named brand classes: `nyx-button-metal` for primary buttons, `nyx-link` for links, `nyx-tint` for info and selected boxes, `stat-chip`, `page-head`, and the plum chat bubble. Blue survives only as deliberate functional color coding (scenario-type badges, contract status chips, one focus ring). Teal is out of the chrome entirely: the progress bar is gold into plum, panel borders are a static gold-family light, and the assistant avatar is plum.
+- **Roles on phones (P7):** below the md breakpoint the 980px org chart is replaced by a per-category accordion (tap a section, tap a role, land on its details); the desktop chart is unchanged.
+- **Reports table (P8):** the attempts table has a 720px minimum width so the wrapper scrolls instead of compressing, and Facilitator/Duration columns hide below md.
+- **Assistant tap targets (P9):** suggested-prompt chips are text-xs with py-2 padding; the panel close button gets real hit padding.
+- **Card edges (P10):** light-theme card borders are a gray hairline (`rgba(15,23,42,0.12)`) instead of white-on-white; white borders remain on dark surfaces only.
+- **Admin text floor (P11):** Facility Admin and Contracts have no text under 12px; timestamps, statuses, and list/table data are 13px. Form labels stay 12px.
+- **Scenario setup on phones (P15):** the drill setup fields stack full-width below sm instead of forcing 220px minimums, with the step/score progress strip directly above them.
+- **Logo lockup (T2):** one spec everywhere - the mark in a flat white tile with a thin gold ring (no white-to-black gradient disc), at 32px in the header, 48px on auth and signing pages, 80px on marketing.
+- **Motion (T3):** the infinite animations are gone - nav sheen, panel border flow, card-head sheen, progress-bar sweep, orb drift, ambient glow drift. What remains is first-paint fades, state-change motion (progress width, toasts, hover), and loading indicators; the prefers-reduced-motion stand-down still disables everything.
+
+### Added
+- **Brand fonts (P14):** Inter (body) and Libre Franklin (display headings) are self-hosted via Fontsource and bundled by Vite, replacing the "Aptos Display" stack that only existed on some Windows machines and silently fell back everywhere else. Self-hosting keeps the CSP `font-src 'self'` policy intact.
+
 ## 2026-11-16 - Hardening round 2: SSO domain allowlist, scheduled backups, customer-deployment mode, data export + wipe
 
 Closes the remaining engineering gaps the sales pack and the deployment runbook flagged. New suite: `api/tests/data-export-wipe.mjs`; the exchange, store-backup, and audit-regressions suites gained the new cases. All ten suites pass; the frontend build is green in both deployment modes. **One operator action is required for the backup schedule to run live: add `CRON_SECRET` (a long random value) to the Vercel project's Production environment** - without it the cron endpoint answers 501 and only manual backups run.

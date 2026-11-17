@@ -26,6 +26,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
+import DeleteAccountPage from './pages/DeleteAccountPage';
 import { TenantProvider } from './lib/tenantContext';
 import { IS_CUSTOMER_DEPLOYMENT } from './lib/deployment';
 import { AuthProvider, useAuth } from './lib/authContext';
@@ -136,6 +137,7 @@ function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggle
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/tos" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/delete-account" element={<DeleteAccountPage />} />
       <Route path="/sign/:token" element={<SignContractPage />} />
 
       <Route element={<ProtectedLayout theme={theme} onToggleTheme={onToggleTheme} />}>

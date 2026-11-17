@@ -12,6 +12,8 @@ export default function EnterpriseFooter() {
           <span aria-hidden>·</span>
           <Link to="/privacy" className="hover:underline text-gray-400">Privacy Policy</Link>
           <span aria-hidden>·</span>
+          <Link to="/delete-account" className="hover:underline text-gray-400">Delete Account</Link>
+          <span aria-hidden>·</span>
           <a href="https://nyxcollectivellc.com" target="_blank" rel="noreferrer" className="hover:underline text-gray-400">nyxcollectivellc.com</a>
         </p>
       </div>

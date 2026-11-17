@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-17 - Store readiness: public account deletion page and webview print fallback
+
+### Added
+- **Public /delete-account page** (store requirement for Google Play and the Apple App Store): reachable signed-out, it explains how to request account deletion by verified email to info@nyxcollectivellc.com, what gets deleted, the organization-record retention exception from the Privacy Policy, the 30-day completion window, and how organization administrators close a whole account at contract end. There is no in-app self-serve delete button; the email-request process on this page is the deletion route. Linked from the shared footer (every page), the landing page footer (which previously had no legal links), and the Privacy Policy and Terms of Service cross-link rows.
+
+### Fixed
+- **Certificates and After-Action Reports now print inside app webviews:** the shared print helper silently did nothing when `window.open` returned null, which is the normal case in mobile app shells and popup blockers. It now falls back to printing from a hidden iframe in the current document, so Print Certificate and After-Action Report work in the store shells as well as in desktop browsers.
+
 ## 2026-11-16 - Beef-up step 4, close-out: the final Situation Briefing video (20 of 20)
 
 ### Added

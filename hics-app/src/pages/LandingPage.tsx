@@ -228,6 +228,13 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
           <p>NyxHICSlab™ is a product of Nyx Collective LLC.</p>
           <p className="mt-1">© 2026 Nyx Collective LLC. All rights reserved.</p>
           <p className="mt-1">NyxHICSlab, NyxCollective, and related names, logos, product marks, and design marks are trademarks of Nyx Collective LLC.</p>
+          <p className="mt-2 flex gap-3">
+            <Link to="/tos" className="hover:underline">Terms of Service</Link>
+            <span aria-hidden>·</span>
+            <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
+            <span aria-hidden>·</span>
+            <Link to="/delete-account" className="hover:underline">Delete Account</Link>
+          </p>
           <p className="mt-1"><a href="https://nyxcollectivellc.com" target="_blank" rel="noreferrer" className="hover:underline">nyxcollectivellc.com</a></p>
         </footer>
       </main>

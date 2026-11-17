@@ -38,15 +38,53 @@ function logoUrl(): string {
 
 function openPrintDocument(html: string) {
   const printWindow = window.open('', '_blank', 'width=1100,height=850');
-  if (!printWindow) {
+  if (printWindow) {
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
     return;
   }
 
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  printWindow.print();
+  // window.open returned null: popups are blocked, or the page is
+  // running inside a mobile app webview (the store shells), where
+  // a new window cannot be created. Fall back to a hidden iframe
+  // in this document so certificates and After-Action Reports
+  // still print instead of silently doing nothing.
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
+
+  const frameWindow = iframe.contentWindow;
+  if (!frameWindow) {
+    iframe.remove();
+    return;
+  }
+
+  frameWindow.document.open();
+  frameWindow.document.write(html);
+  frameWindow.document.close();
+
+  let cleanedUp = false;
+  const cleanup = () => {
+    if (cleanedUp) {
+      return;
+    }
+    cleanedUp = true;
+    window.setTimeout(() => iframe.remove(), 500);
+  };
+  frameWindow.addEventListener('afterprint', cleanup, { once: true });
+  window.setTimeout(cleanup, 60000);
+
+  frameWindow.focus();
+  frameWindow.print();
 }
 
 function formatDateTime(iso: string): string {

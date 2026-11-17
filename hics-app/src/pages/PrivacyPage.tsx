@@ -149,6 +149,8 @@ export default function PrivacyPage() {
           <div className="border-t border-gray-200 dark:border-white/10 pt-4 flex gap-4 text-xs text-gray-500 dark:text-white/40">
             <Link to="/tos" className="hover:underline text-amber-700 dark:text-amber-400">Terms of Service</Link>
             <span>·</span>
+            <Link to="/delete-account" className="hover:underline text-amber-700 dark:text-amber-400">Delete Account</Link>
+            <span>·</span>
             <Link to="/" className="hover:underline">Home</Link>
           </div>
         </div>

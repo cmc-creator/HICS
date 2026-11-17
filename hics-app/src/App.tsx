@@ -72,7 +72,10 @@ function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; on
   }
 
   return (
-    <div className="nyx-app flex flex-col min-h-screen">
+    // pb-24 reserves room at the very end of every page so the
+    // fixed Ask AI launcher (bottom-right) never covers the last
+    // content or the footer (UI review P3).
+    <div className="nyx-app flex flex-col min-h-screen pb-24">
       <Navbar theme={theme} onToggleTheme={onToggleTheme} />
       {sessionRemainingMs > 0 && sessionRemainingMs <= 5 * 60 * 1000 && (
         <div className="mx-4 mt-3 nyx-panel border border-amber-300 bg-amber-50/90 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-900 dark:text-amber-300">

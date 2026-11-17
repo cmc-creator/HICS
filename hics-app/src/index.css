@@ -857,81 +857,21 @@ html.dark .nyx-button-metal {
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
+/* Solid header chrome (UI review B2/T3): labels used to sit on a
+   brushed-metal gradient with an animated sheen sweeping across
+   them. The shell is now a flat theme surface in both themes. */
 .lux-nav-shell {
 	position: relative;
-	overflow: hidden;
-	background:
-		linear-gradient(120deg,
-			rgba(7, 9, 12, 0.98) 0%,
-			rgba(70, 75, 82, 0.94) 16%,
-			rgba(236, 241, 247, 0.36) 28%,
-			rgba(110, 116, 124, 0.94) 41%,
-			rgba(249, 252, 255, 0.42) 52%,
-			rgba(94, 100, 108, 0.95) 64%,
-			rgba(235, 239, 244, 0.28) 74%,
-			rgba(56, 61, 68, 0.95) 86%,
-			rgba(10, 12, 15, 0.98) 100%),
-		linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.02) 45%, rgba(0, 0, 0, 0.18));
-	backdrop-filter: blur(18px);
-	-webkit-backdrop-filter: blur(18px);
-	box-shadow: 0 20px 45px rgba(3, 8, 16, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.lux-nav-shell::before {
-	content: "";
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-	background:
-		radial-gradient(160% 85% at 50% -28%, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.02) 52%),
-		radial-gradient(95% 70% at 12% 115%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 70%),
-		linear-gradient(100deg, rgba(255, 255, 255, 0.22) 2%, rgba(255, 255, 255, 0.02) 36%, rgba(255, 255, 255, 0.28) 51%, rgba(255, 255, 255, 0.02) 70%, rgba(255, 255, 255, 0.2) 92%);
-	opacity: 0.82;
-}
-
-.lux-nav-shell::after {
-	content: "";
-	position: absolute;
-	top: 0;
-	left: -32%;
-	width: 52%;
-	height: 100%;
-	background: linear-gradient(98deg, transparent 12%, rgba(255, 255, 255, 0.62) 44%, rgba(255, 255, 255, 0.08) 68%, transparent 84%);
-	filter: blur(10px);
-	animation: sheenSweep 6.5s ease-in-out infinite;
-	pointer-events: none;
-}
-
-/* One logo lockup everywhere (UI review T2): the mark sits in a
-   flat white tile with a thin gold ring - no white-to-black disc
-   gradient. Sizes: 32px header, 48px auth, 80px marketing. */
-.lux-logo-frame {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 0.75rem;
-	padding: 0.3rem;
-	background: #ffffff;
-	box-shadow: 0 0 0 1px rgba(196, 166, 99, 0.55), 0 2px 8px rgba(20, 16, 27, 0.14);
-	position: relative;
-}
-
-.lux-logo-img {
-	border-radius: 0.5rem;
-	object-fit: contain;
-}
-
-.lux-nav-top {
-	border-bottom: 1px solid rgba(255, 244, 217, 0.16);
-	padding-bottom: 0.85rem;
+	background: var(--nav-bg);
+	border-bottom: 1px solid var(--nav-border);
+	box-shadow: 0 10px 28px rgba(24, 14, 30, 0.12);
 }
 
 .lux-nav-rail {
-	border-radius: 1rem;
-	background: linear-gradient(135deg, rgba(255, 250, 236, 0.08), rgba(89, 190, 181, 0.08));
-	border: 1px solid rgba(255, 236, 196, 0.18);
-	backdrop-filter: blur(9px);
-	-webkit-backdrop-filter: blur(9px);
+	scrollbar-width: none;
+	background: color-mix(in srgb, var(--nav-bg) 82%, rgba(90, 70, 40, 0.14));
+	border: 1px solid var(--nav-border);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .lux-nav-scroll {
@@ -956,9 +896,12 @@ html.dark .nyx-button-metal {
 }
 
 .lux-nav-active {
-	border-color: rgba(241, 214, 151, 0.82) !important;
-	background: linear-gradient(130deg, rgba(159, 128, 74, 0.95), rgba(76, 159, 150, 0.92)) !important;
-	box-shadow: 0 12px 22px rgba(7, 12, 23, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+	/* One flat gold pill (UI review B3/T1) with near-black text at
+	   about 7.8:1 - the old gold-to-teal gradient pill carried
+	   white text at about 2.9:1. */
+	background: #c9a45c;
+	color: #1c1503;
+	box-shadow: 0 4px 12px rgba(120, 92, 40, 0.35);
 }
 
 .no-scrollbar {

@@ -1,7 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/authContext';
 import { publicAsset } from '../lib/publicAsset';
-import { useState } from 'react';
 
 const baseNavItems = [
   { path: '/dashboard', label: 'Dashboard', icon: publicAsset('lux-icons/dashboard.svg') },
@@ -21,9 +20,14 @@ interface NavbarProps {
   onToggleTheme: () => void;
 }
 
+// Slim sticky header (UI review B2/B4/B5/P2/P13): a compact brand
+// row over the nav rail as a slim second row, on a solid theme
+// surface - replacing the centered 80-120px logo stack (about
+// 220px of sticky chrome), the white-on-metal labels that failed
+// contrast in light theme, the "Out" abbreviation for Sign Out on
+// phones, and the hamburger slide-down that duplicated the rail.
 export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   const location = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
   // The Admin link follows the AUTH session role, not the tenant
   // preview switcher: only facility-admin / enterprise-admin
   // sessions ever see it (matching the /admin route gate).
@@ -41,49 +45,34 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
     .filter((item) => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`))
     .sort((a, b) => b.path.length - a.path.length)[0]?.path;
 
+  const quietLink =
+    'text-stone-600 hover:bg-black/5 hover:text-stone-900 dark:text-stone-200 dark:hover:bg-white/10 dark:hover:text-white';
+
   return (
-    <nav className="sticky top-0 z-50 text-white shadow-lg border-b border-white/10 backdrop-blur-xl lux-nav-shell" aria-label="Primary">
+    <header className="sticky top-0 z-50 lux-nav-shell">
       <div className="max-w-7xl mx-auto px-3 sm:px-4">
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center py-2.5 md:py-3 gap-2 md:gap-4 lux-nav-top">
-          <div className="justify-self-start flex items-center gap-2">
-            <button
-              type="button"
-              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={mobileOpen}
-              onClick={() => setMobileOpen((prev) => !prev)}
-              className="md:hidden touch-target p-2 rounded-md text-stone-200 hover:bg-white/10 hover:text-white transition-colors"
-            >
-              {mobileOpen ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5"><path d="M6 18L18 6M6 6l12 12" /></svg>
-              ) : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
-              )}
-            </button>
-            <span className="hidden lg:inline-flex text-[10px] tracking-[0.2em] uppercase text-amber-100/80 border border-amber-100/25 rounded-full px-2.5 py-1">Command Ready</span>
-          </div>
+        {/* Brand row */}
+        <div className="flex items-center gap-2.5 py-2">
+          <Link to="/dashboard" className="flex items-center gap-2.5 min-w-0" aria-label="NyxHICSlab - go to dashboard">
+            <span className="lux-logo-frame shrink-0">
+              <img src={publicAsset('hicslogo.png')} alt="" className="h-8 w-8 rounded-md object-contain lux-logo-img" />
+            </span>
+            <span className="min-w-0">
+              <span className="text-lg leading-tight font-bold tracking-wide block truncate lux-brand-title text-stone-900 dark:text-white">NyxHICSlab</span>
+              <span className="hidden md:block text-[11px] leading-tight tracking-wide truncate text-stone-500 dark:text-stone-300">Hospital Incident Command Training</span>
+            </span>
+          </Link>
 
-          <div className="flex flex-col items-center text-center min-w-0">
-            <div className="lux-logo-frame">
-              <img
-                src={publicAsset('hicslogo.png')}
-                alt="HICS logo"
-                className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 lg:h-[120px] lg:w-[120px] rounded-lg object-contain lux-logo-img"
-              />
-            </div>
-            <span className="text-2xl md:text-3xl font-bold tracking-wide block truncate lux-brand-title">NyxHICSlab</span>
-            <span className="hidden sm:block text-xs md:text-sm text-amber-100/80 truncate">Nyx Collective LLC · Enterprise Hospital Incident Command System Training</span>
-          </div>
-
-          <div className="flex items-center justify-self-end gap-2">
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2 shrink-0">
             {user && (
-              <span className="hidden xl:inline-flex text-[10px] tracking-[0.12em] uppercase text-amber-100/85 border border-amber-100/25 rounded-full px-2.5 py-1">
+              <span className="hidden xl:inline-flex text-[10px] tracking-[0.12em] uppercase text-stone-500 dark:text-stone-300 border border-stone-900/15 dark:border-white/20 rounded-full px-2.5 py-1">
                 {user.organization} · {sessionMinutes}m session
               </span>
             )}
             <button
               type="button"
               onClick={onToggleTheme}
-              className="touch-target px-2.5 sm:px-3 py-2 rounded-md text-sm font-medium text-stone-200 hover:bg-white/10 hover:text-white transition-colors lux-nav-link lux-theme-toggle"
+              className={`touch-target flex items-center px-2.5 sm:px-3 py-2 rounded-full text-sm font-medium transition-colors ${quietLink}`}
               aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
               title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
             >
@@ -98,7 +87,8 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
             </button>
             <Link
               to="/account"
-              className="touch-target px-2.5 sm:px-3 py-2 rounded-md text-sm font-medium text-stone-200 hover:bg-white/10 hover:text-white transition-colors lux-nav-link"
+              aria-current={location.pathname === '/account' ? 'page' : undefined}
+              className={`touch-target px-2.5 sm:px-3 py-2 rounded-full text-sm font-medium transition-colors ${quietLink}`}
               title="Account and security settings"
             >
               Account
@@ -106,85 +96,37 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
             <button
               type="button"
               onClick={logout}
-              className="touch-target px-2.5 sm:px-3 py-2 rounded-md text-sm font-medium text-stone-200 hover:bg-white/10 hover:text-white transition-colors lux-nav-link"
+              className="touch-target px-3 sm:px-3.5 py-2 rounded-full text-sm font-semibold whitespace-nowrap border border-red-800/30 text-red-800 transition-colors hover:bg-red-700 hover:text-white dark:border-red-300/40 dark:text-red-200 dark:hover:bg-red-500/25"
               title="Sign out"
             >
-              <span className="hidden md:inline">Sign Out</span>
-              <span className="md:hidden">Out</span>
+              Sign Out
             </button>
           </div>
         </div>
 
-        <div className="pb-3">
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar lux-nav-rail lux-nav-scroll px-1 py-1.5">
+        {/* Nav rail: slim second row inside the sticky header. The
+            wrap paints a right-edge fade while the rail can scroll
+            sideways, so the scroll affordance is visible (P2). */}
+        <div className="lux-nav-rail-wrap pb-2">
+          <nav aria-label="Primary" className="flex items-center gap-1 overflow-x-auto no-scrollbar lux-nav-rail px-1 py-1">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 aria-current={activeNavPath === item.path ? 'page' : undefined}
-                className={`touch-target flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap lux-nav-link lux-nav-item ${
-                  activeNavPath === item.path
-                    ? 'text-white lux-nav-active'
-                    : 'text-stone-200 hover:bg-white/10 hover:text-white'
+                className={`touch-target flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-[13px] sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeNavPath === item.path ? 'lux-nav-active' : quietLink
                 }`}
               >
-                <span className="opacity-95 rounded-md overflow-hidden border border-white/20 bg-black/20 p-0.5">
+                <span className="opacity-95 rounded-md overflow-hidden border border-stone-900/10 bg-white/60 dark:border-white/20 dark:bg-white/10 p-0.5">
                   <img src={item.icon} alt="" className="h-4 w-4 object-contain" />
                 </span>
-                <span className="inline text-[11px] sm:text-xs md:text-sm tracking-tight">{item.label}</span>
+                <span className="tracking-tight">{item.label}</span>
               </Link>
             ))}
-          </div>
+          </nav>
         </div>
-        {/* Mobile slide-down menu */}
-        {mobileOpen && (
-          <div className="md:hidden border-t border-white/10 bg-black/60 backdrop-blur-xl">
-            <div className="px-4 py-3 space-y-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setMobileOpen(false)}
-                  aria-current={activeNavPath === item.path ? 'page' : undefined}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    activeNavPath === item.path
-                      ? 'text-white lux-nav-active'
-                      : 'text-stone-200 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <span className="opacity-95 rounded-md overflow-hidden border border-white/20 bg-black/20 p-0.5">
-                    <img src={item.icon} alt="" className="h-4 w-4 object-contain" />
-                  </span>
-                  {item.label}
-                </Link>
-              ))}
-              <div className="border-t border-white/10 pt-2 mt-2 flex flex-col gap-1">
-                <Link
-                  to="/account"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-stone-200 hover:bg-white/10 hover:text-white transition-colors w-full text-left"
-                >
-                  Account &amp; Security
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => { onToggleTheme(); setMobileOpen(false); }}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-stone-200 hover:bg-white/10 hover:text-white transition-colors w-full text-left"
-                >
-                  {theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { logout(); setMobileOpen(false); }}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-300 hover:bg-red-500/10 hover:text-red-200 transition-colors w-full text-left"
-                >
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </nav>
+    </header>
   );
 }

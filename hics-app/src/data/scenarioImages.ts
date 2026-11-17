@@ -38,12 +38,12 @@ export function getScenarioImage(id: string): string | undefined {
 /**
  * Situation Briefing videos (beef-up step 4, 2026-11-16). Short ambient
  * animations of the scenario still, served from public/briefings/<id>.mp4.
- * Batches 1-4 cover nineteen of the twenty scenarios; only
- * resource-rationing-crisis is still missing (its batch-4 generation
- * failed in the media pipeline and was not retried in that run).
- * ScenarioPlayer shows the briefing panel only for ids present here, and
- * the ScenarioBriefing component hides itself if the file fails to load,
- * so a missing video never changes the run.
+ * Coverage is now 20 of 20 scenarios: batches 1-4 covered nineteen, and
+ * resource-rationing-crisis - whose batch-4 generation failed in the
+ * media pipeline - was generated on a fresh retry run later the same
+ * night. ScenarioPlayer shows the briefing panel only for ids present
+ * here, and the ScenarioBriefing component hides itself if the file
+ * fails to load, so a missing video never changes the run.
  */
 export const scenarioBriefings: Record<string, string> = {
   'mass-casualty': publicAsset('briefings/mass-casualty.mp4'),
@@ -65,6 +65,7 @@ export const scenarioBriefings: Record<string, string> = {
   'workplace-violence-staff': publicAsset('briefings/workplace-violence-staff.mp4'),
   'psychiatric-emergency-transport': publicAsset('briefings/psychiatric-emergency-transport.mp4'),
   'mass-fatality-planning': publicAsset('briefings/mass-fatality-planning.mp4'),
+  'resource-rationing-crisis': publicAsset('briefings/resource-rationing-crisis.mp4'),
 };
 
 export function getScenarioBriefing(id: string): string | undefined {

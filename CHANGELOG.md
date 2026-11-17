@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-16 - Beef-up step 4, close-out: the final Situation Briefing video (20 of 20)
+
+### Added
+- **Briefing video for resource-rationing-crisis**, the last scenario without one. Its batch-4 generation had failed in the media pipeline; a fresh retry generated it cleanly. Same recipe as the other nineteen: a 10-second animation of the scenario's still (slow cinematic push-in on the command center leadership at the situation board, subtle atmospheric motion only), no audio track, ~2.5 MB. One entry added to the `scenarioBriefings` map in `src/data/scenarioImages.ts`, whose header comment now records full 20-of-20 coverage; no other code change. The mp4 file is uploaded to the repository separately from this code change (the connector cannot carry binaries); the player hides the briefing panel gracefully until the file lands. **All 20 scenarios now have Situation Briefings.**
+
 ## 2026-11-16 - Beef-up step 4, batch 4 (final): two more Situation Briefing videos
 
 ### Added

@@ -447,7 +447,7 @@ export function ContractDetailPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="nyx-panel p-6 text-sm text-red-700 dark:text-red-300" role="alert">{loadError}</div>
-        <Link to="/admin/contracts" className="text-sm font-semibold text-blue-700 dark:text-blue-300 underline mt-4 inline-block">Back to contracts</Link>
+        <Link to="/admin/contracts" className="nyx-link text-sm underline mt-4 inline-block">Back to contracts</Link>
       </div>
     );
   }
@@ -470,7 +470,7 @@ export function ContractDetailPage() {
     <div className="min-h-screen bg-gray-50 lux-page">
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         <div className="no-print">
-          <Link to="/admin/contracts" className="text-sm font-semibold text-blue-700 dark:text-blue-300 underline">Back to contracts</Link>
+          <Link to="/admin/contracts" className="nyx-link text-sm underline">Back to contracts</Link>
           <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{contract.customer.organization}</h1>

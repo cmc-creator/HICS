@@ -156,7 +156,7 @@ export default function RapidChallengePage() {
                 const isSelected = selected === idx;
                 const isCorrect = idx === question.correctAnswer;
                 const className = selected === null
-                  ? 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                  ? 'border-gray-200 hover:border-amber-700/40 hover:bg-amber-50 dark:border-white/10 dark:hover:border-amber-300/40 dark:hover:bg-white/5'
                   : isCorrect
                     ? 'border-green-400 bg-green-50'
                     : isSelected
@@ -183,7 +183,7 @@ export default function RapidChallengePage() {
                 <button
                   type="button"
                   onClick={next}
-                  className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                  className="nyx-button-metal mt-3 rounded-lg px-4 py-2 text-sm font-semibold"
                 >
                   Next Question
                 </button>
@@ -199,7 +199,7 @@ export default function RapidChallengePage() {
             <button
               type="button"
               onClick={restart}
-              className="mt-4 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+              className="nyx-button-metal mt-4 rounded-lg px-5 py-2.5 text-sm font-semibold"
             >
               Play Another Round
             </button>

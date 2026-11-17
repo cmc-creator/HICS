@@ -334,7 +334,7 @@ export default function FacilityAdminPage() {
                     <div className="font-semibold text-gray-900 dark:text-white">{u.fullName}</div>
                     <div className="text-xs text-gray-500 dark:text-white/50">{u.email} · {u.facility}</div>
                   </div>
-                  <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">{u.role}</span>
+                  <span className="nyx-chip">{u.role}</span>
                 </div>
               ))}
             </div>
@@ -354,7 +354,7 @@ export default function FacilityAdminPage() {
                 <div className="text-xs mt-1 text-gray-600 dark:text-white/60">Clear telemetry/attempt data and manage retention actions</div>
                 <div className="text-xs font-bold mt-2">{canManageData ? 'ENABLED' : 'RESTRICTED'}</div>
               </div>
-              <div className="rounded-lg border border-blue-200 dark:border-blue-700/50 bg-blue-50 dark:bg-blue-900/20 p-3 role-selected-row">
+              <div className="rounded-lg nyx-tint p-3 role-selected-row">
                 <div className="font-semibold">Report Export</div>
                 <div className="text-xs mt-1 text-gray-600 dark:text-white/60">CSV export for audit and training compliance records</div>
                 <div className="text-xs font-bold mt-2">{role === 'observer' ? 'DISABLED' : 'ENABLED'}</div>

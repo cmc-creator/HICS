@@ -227,7 +227,7 @@ export default function ScenariosPage() {
                   onClick={() => setSelectedPlaylist(playlist)}
                   className={`touch-target px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                     selectedPlaylist === playlist
-                      ? 'bg-blue-600 text-white shadow-sm'
+                      ? 'nyx-button-metal shadow-sm'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-white/40'
                   }`}
                 >
@@ -287,9 +287,9 @@ export default function ScenariosPage() {
           </div>
 
           {adaptiveProfile && (
-            <div className="rounded-lg border border-blue-200 bg-blue-50/80 p-3">
+            <div className="rounded-lg nyx-tint p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-blue-900">
+                <p className="text-xs font-semibold">
                   Adaptive recommendation: <span className="uppercase">{adaptiveProfile.recommended}</span> ({Math.round(adaptiveProfile.confidence * 100)}% confidence)
                 </p>
                 <button
@@ -298,12 +298,12 @@ export default function ScenariosPage() {
                     setDifficultyTouched(true);
                     setSelectedDifficulty(adaptiveProfile.recommended);
                   }}
-                  className="touch-target rounded-full bg-blue-600 text-white px-3 py-1 text-xs font-semibold"
+                  className="nyx-button-metal touch-target rounded-full px-3 py-1 text-xs font-semibold"
                 >
                   Apply Recommendation
                 </button>
               </div>
-              <p className="mt-1 text-xs text-blue-800">{adaptiveProfile.rationale}</p>
+              <p className="mt-1 text-xs opacity-80">{adaptiveProfile.rationale}</p>
             </div>
           )}
 
@@ -361,7 +361,7 @@ export default function ScenariosPage() {
                     <ul className="space-y-1">
                       {scenario.objectives.slice(0, 3).map((obj, i) => (
                         <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
-                          <span className="text-blue-500 mt-0.5 flex-shrink-0">•</span>
+                          <span className="role-link-accent mt-0.5 flex-shrink-0">•</span>
                           {obj}
                         </li>
                       ))}
@@ -387,7 +387,7 @@ export default function ScenariosPage() {
                           playlist: selectedPlaylist,
                         });
                       }}
-                      className="touch-target bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+                      className="nyx-button-metal touch-target px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm"
                     >
                       Start Scenario →
                     </Link>
@@ -406,7 +406,7 @@ export default function ScenariosPage() {
             </p>
             <button
               type="button"
-              className="mt-3 touch-target bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+              className="nyx-button-metal mt-3 touch-target px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm"
               onClick={() => {
                 setSelectedDifficulty('all');
                 setSelectedType('all');
@@ -419,12 +419,12 @@ export default function ScenariosPage() {
           </div>
         )}
 
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-5">
+        <div className="mt-6 nyx-tint rounded-xl p-5">
           <div className="flex items-start gap-3">
-            <span className="text-xs font-bold tracking-[0.2em] text-blue-700">TIP</span>
+            <span className="text-xs font-bold tracking-[0.2em]">TIP</span>
             <div>
-              <h3 className="font-bold text-blue-900">Facilitator Tip</h3>
-              <p className="text-blue-700 text-sm mt-1">
+              <h3 className="font-bold">Facilitator Tip</h3>
+              <p className="text-sm mt-1 opacity-90">
                 Use playlists to structure sessions by training objective, then switch facility profiles to quickly
                 adapt scenarios for different care environments.
               </p>

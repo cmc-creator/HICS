@@ -31,7 +31,7 @@ export default function FacilitatorQuickStart() {
           <ol className="space-y-2 text-sm text-gray-700 dark:text-white/70">
             {checklist.map((item, index) => (
               <li key={item} className="flex gap-2">
-                <span className="font-semibold text-blue-700 role-link-accent">{index + 1}.</span>
+                <span className="font-semibold role-link-accent">{index + 1}.</span>
                 <span>{item}</span>
               </li>
             ))}
@@ -62,7 +62,7 @@ export default function FacilitatorQuickStart() {
             <ul className="space-y-2 text-sm text-gray-700 dark:text-white/70">
               {debriefPrompts.map((prompt) => (
                 <li key={prompt} className="flex gap-2">
-                  <span className="text-blue-600 role-link-accent">•</span>
+                  <span className="role-link-accent">•</span>
                   <span>{prompt}</span>
                 </li>
               ))}

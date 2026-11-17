@@ -214,7 +214,7 @@ export default function LearningCenterPage() {
             Each storyboard simulates a short training video sequence even when local media files are not bundled.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <span className="rounded-full border border-blue-300 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800">
+            <span className="rounded-full nyx-tint px-3 py-1 text-xs font-semibold">
               Completion: {completionPercent}%
             </span>
             <button
@@ -243,7 +243,7 @@ export default function LearningCenterPage() {
                       setFrameIndex(0);
                     }}
                     className={`w-full text-left rounded-lg border px-3 py-3 transition ${
-                      selected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'
+                      selected ? 'border-[#6a5578] bg-[#6a5578]/10 dark:border-[#a392bc] dark:bg-white/10' : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
                     }`}
                   >
                     <p className="text-xs text-gray-500">{module.roleTrack}</p>
@@ -272,7 +272,7 @@ export default function LearningCenterPage() {
               <button
                 type="button"
                 onClick={markComplete}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                className="nyx-button-metal rounded-lg px-4 py-2 text-sm font-semibold"
               >
                 Mark Module Complete
               </button>
@@ -351,7 +351,7 @@ export default function LearningCenterPage() {
                   type="button"
                   disabled={busy}
                   onClick={uploadStream}
-                  className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                  className="nyx-button-metal rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-60"
                 >
                   Save Stream Source
                 </button>

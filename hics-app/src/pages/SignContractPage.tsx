@@ -114,16 +114,17 @@ export default function SignContractPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 lux-page">
-      <header className="nyx-hero text-white py-5 px-4 relative overflow-hidden">
-        <div className="lux-grid-pattern" />
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <img src={publicAsset('hicslogo.png')} alt="NyxHICSlab logo" className="h-14 w-14 rounded-lg object-contain bg-white/90 p-1" />
+      <div className="max-w-4xl mx-auto px-4 pt-6">
+        <header className="page-head flex items-center gap-4">
+          <span className="lux-logo-frame shrink-0">
+            <img src={publicAsset('hicslogo.png')} alt="NyxHICSlab logo" className="lux-logo-img h-12 w-12" />
+          </span>
           <div>
             <div className="text-xl font-bold lux-title">NyxHICSlab Subscription Agreement</div>
-            <p className="text-blue-200 text-sm lux-subtitle">Nyx Collective LLC · Electronic signature</p>
+            <p className="page-head-sub text-sm lux-subtitle">Nyx Collective LLC · Electronic signature</p>
           </div>
-        </div>
-      </header>
+        </header>
+      </div>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         {load.kind === 'loading' && (

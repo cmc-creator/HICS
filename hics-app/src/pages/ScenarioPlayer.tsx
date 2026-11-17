@@ -438,7 +438,7 @@ export default function ScenarioPlayer() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center nyx-panel p-8">
           <p className="text-gray-600 mb-4">Scenario not found.</p>
-          <Link to={scenariosLink} className="text-blue-600 hover:underline">← Back to Scenarios</Link>
+          <Link to={scenariosLink} className="nyx-link hover:underline">← Back to Scenarios</Link>
         </div>
       </div>
     );
@@ -663,7 +663,7 @@ export default function ScenarioPlayer() {
             </Link>
             <Link
               to="/reports"
-              className="touch-target border border-blue-300 text-blue-700 px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+              className="touch-target border border-[#6a5578]/50 text-[#5f4390] px-5 py-2.5 rounded-lg font-semibold hover:bg-[#6a5578]/10 dark:border-[#a392bc]/50 dark:text-[#d3c2f0] dark:hover:bg-white/10 transition-colors"
             >
               View Reports
             </Link>
@@ -717,8 +717,8 @@ export default function ScenarioPlayer() {
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="nyx-panel p-4 mb-4">
-          <div className="flex flex-wrap items-center gap-3 mb-3">
-            <div className="flex-1 min-w-[220px]">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 mb-3">
+            <div className="w-full sm:flex-1 sm:min-w-[200px]">
               <label className="text-xs font-semibold text-gray-600" htmlFor="team-name">Team Drill Name</label>
               <input
                 id="team-name"
@@ -727,7 +727,7 @@ export default function ScenarioPlayer() {
                 className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
               />
             </div>
-            <div className="min-w-[220px]">
+            <div className="w-full sm:w-auto sm:min-w-[200px]">
               <label className="text-xs font-semibold text-gray-600" htmlFor="assigned-role">Your Assigned Role</label>
               <select
                 id="assigned-role"
@@ -765,7 +765,7 @@ export default function ScenarioPlayer() {
               <button
                 type="button"
                 onClick={addTeamParticipant}
-                className="touch-target rounded-lg bg-blue-600 text-white px-3 py-2 text-sm font-semibold"
+                className="nyx-button-metal touch-target rounded-lg px-3 py-2 text-sm font-semibold"
               >
                 Add
               </button>
@@ -796,7 +796,7 @@ export default function ScenarioPlayer() {
               type="button"
               aria-pressed={facilitatorMode}
               onClick={() => setFacilitatorMode((prev) => !prev)}
-              className={`touch-target px-3 py-1.5 rounded-lg text-xs font-semibold ${facilitatorMode ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}
+              className={`touch-target px-3 py-1.5 rounded-lg text-xs font-semibold ${facilitatorMode ? 'nyx-button-metal' : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-white/80'}`}
             >
               Facilitator Mode: {facilitatorMode ? 'On' : 'Off'}
             </button>
@@ -804,7 +804,7 @@ export default function ScenarioPlayer() {
               type="button"
               aria-pressed={timedMode}
               onClick={() => setTimedMode((prev) => !prev)}
-              className={`touch-target px-3 py-1.5 rounded-lg text-xs font-semibold ${timedMode ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}
+              className={`touch-target px-3 py-1.5 rounded-lg text-xs font-semibold ${timedMode ? 'nyx-button-metal' : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-white/80'}`}
             >
               Timed Mode: {timedMode ? 'On' : 'Off'}
             </button>
@@ -847,7 +847,7 @@ export default function ScenarioPlayer() {
             )}
           </div>
           {showCorrectReveal && correctOption && (
-            <div className="mt-3 p-3 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-900">
+            <div className="mt-3 p-3 rounded-lg nyx-tint text-sm">
               <div className="font-semibold mb-1">Facilitator Reveal</div>
               <div>{correctOption.text}</div>
             </div>
@@ -860,7 +860,7 @@ export default function ScenarioPlayer() {
         </div>
 
         <div className="nyx-hero text-white rounded-xl p-5 mb-4">
-          <div className="text-xs text-blue-300 mb-1 font-medium uppercase tracking-wide">
+          <div className="text-xs text-amber-100/80 mb-1 font-medium uppercase tracking-wide">
             Step {currentStepIndex + 1} | {adaptedStep.title}
           </div>
           <h2 className="text-base font-semibold leading-relaxed">{adaptedStep.situation}</h2>
@@ -943,7 +943,7 @@ export default function ScenarioPlayer() {
                   }
                   setShowHint((prev) => !prev);
                 }}
-                className="touch-target text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 px-2"
+                className="nyx-link touch-target text-sm font-medium flex items-center gap-1 px-2"
               >
                 Hint: {showHint ? 'Hide' : 'Show'}
               </button>

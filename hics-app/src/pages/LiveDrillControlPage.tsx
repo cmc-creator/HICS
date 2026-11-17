@@ -231,7 +231,7 @@ export default function LiveDrillControlPage() {
           {status && <p className="mt-2 text-xs text-gray-600">{status}</p>}
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <button type="button" onClick={toggleRunning} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+            <button type="button" onClick={toggleRunning} className="nyx-button-metal rounded-lg px-4 py-2 text-sm font-semibold">
               {state.running ? 'Pause Drill' : 'Start Drill'}
             </button>
             <button type="button" onClick={nextPhase} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100">

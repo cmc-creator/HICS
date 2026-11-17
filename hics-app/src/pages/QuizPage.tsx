@@ -276,7 +276,7 @@ export default function QuizPage() {
       <div className="max-w-3xl mx-auto px-4 py-6">
         <div className="nyx-panel p-6 animate-fade-in">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-medium text-blue-700 nyx-chip px-3 py-1 rounded-full">
+            <span className="text-xs font-medium nyx-chip px-3 py-1 rounded-full">
               {currentQuestion.category}
             </span>
           </div>

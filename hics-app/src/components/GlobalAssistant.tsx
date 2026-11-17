@@ -108,7 +108,7 @@ export default function GlobalAssistant() {
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="text-white/70 hover:text-white text-lg leading-none"
+              className="text-white/70 hover:text-white text-lg leading-none p-2 -m-1 rounded-full"
               aria-label="Close assistant"
             >
               ×
@@ -117,7 +117,7 @@ export default function GlobalAssistant() {
 
           <div className="max-h-72 overflow-y-auto px-3 py-3 space-y-2 bg-white/70 dark:bg-black/20">
             {messages.map((m) => (
-              <div key={m.id} className={`text-sm rounded-xl px-3 py-2 ${m.role === 'user' ? 'bg-blue-600 text-white ml-8' : 'bg-gray-100 dark:bg-white/10 text-gray-800 dark:text-white/90 mr-8'}`}>
+              <div key={m.id} className={`text-sm rounded-xl px-3 py-2 ${m.role === 'user' ? 'chat-user-bubble text-white ml-8' : 'bg-gray-100 dark:bg-white/10 text-gray-800 dark:text-white/90 mr-8'}`}>
                 {m.content}
               </div>
             ))}
@@ -133,7 +133,7 @@ export default function GlobalAssistant() {
                   key={prompt}
                   type="button"
                   onClick={() => void sendMessage(prompt)}
-                  className="text-[11px] rounded-full px-2.5 py-1 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/10"
+                  className="text-xs rounded-full px-3 py-2 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/10"
                 >
                   {prompt}
                 </button>

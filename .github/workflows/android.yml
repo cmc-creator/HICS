@@ -1,0 +1,176 @@
+# Builds the NyxHICSlab Android app (store-android/) and produces the
+# signed .aab to upload to Google Play. Modeled on NyxEcho's proven
+# Android workflow (same Capacitor 8.5.3, Node 22, Temurin JDK 21,
+# env-var signing).
+#
+# NyxHICSlab is a server.url shell (like NyxEcho / Feed the Bear): the
+# repo does NOT contain store-android/native/android - this workflow
+# regenerates it with `npx cap add android`, re-applies the launcher
+# icons and splash from store-android/assets/, injects the release
+# signing config, verifies the signing key decodes and unlocks BEFORE
+# building, syncs, and builds.
+#
+# First release: the generated project starts at versionCode 1 /
+# versionName "1.0", which is exactly right for the first Play upload,
+# so there is no version-bump step yet.
+#
+# Required GitHub secrets (Settings -> Secrets and variables -> Actions):
+#   ANDROID_KEYSTORE_BASE64  upload keystore file, base64-encoded (1 line)
+#   KEYSTORE_PASSWORD        keystore password
+#   KEY_ALIAS                nyxhicslab-upload
+#   KEY_PASSWORD             key password (same value as KEYSTORE_PASSWORD:
+#                            the keystore is PKCS12, which has one password)
+# Download the bundle from the run's "Artifacts" section (nyxhicslab-aab),
+# or from the aab-drop branch this workflow force-pushes (text pieces +
+# manifest.txt with the sha256 to verify the reassembly against).
+name: Android app (NyxHICSlab)
+
+on:
+  push:
+    paths:
+      - 'store-android/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: store-android/native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Install Capacitor
+        run: npm ci
+      - name: Generate the Android project (not kept in the repo)
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+      - name: Apply the launcher icons and splash
+        working-directory: ${{ github.workspace }}
+        run: |
+          # Per-density foregrounds are resizes of
+          # store-android/assets/icons/icon-foreground.png, and the legacy
+          # ic_launcher / ic_launcher_round PNGs are resizes of the
+          # full-bleed store-android/assets/icons/icon-1024.png. The
+          # adaptive background is set to the app's deep plum (#241D2B)
+          # so any mask letterboxing blends invisibly. The splash source
+          # (plum with the logo) replaces the template splash drawable.
+          set -e
+          res=store-android/native/android/app/src/main/res
+          for spec in "mdpi 108 48" "hdpi 162 72" "xhdpi 216 96" "xxhdpi 324 144" "xxxhdpi 432 192"; do
+            set -- $spec
+            convert store-android/assets/icons/icon-foreground.png -resize ${2}x${2} "$res/mipmap-$1/ic_launcher_foreground.png"
+            convert store-android/assets/icons/icon-1024.png -resize ${3}x${3} "$res/mipmap-$1/ic_launcher.png"
+            convert store-android/assets/icons/icon-1024.png -resize ${3}x${3} "$res/mipmap-$1/ic_launcher_round.png"
+          done
+          sed -i 's|#FFFFFF|#241D2B|' "$res/values/ic_launcher_background.xml"
+          if [ -f "$res/drawable/splash.png" ]; then
+            cp store-android/assets/splash.png "$res/drawable/splash.png"
+          fi
+      - name: Inject the release signing config
+        working-directory: ${{ github.workspace }}
+        run: |
+          # The generated app/build.gradle has no signing config, so insert
+          # one that reads the keystore path and passwords from environment
+          # variables - the same approach as NyxEcho's build.gradle.
+          python3 - <<'PYEOF'
+          path = "store-android/native/android/app/build.gradle"
+          src = open(path).read()
+          if "NYXHICSLAB_KEYSTORE_PATH" in src:
+              print("signing config already present")
+              raise SystemExit(0)
+          block = '''
+              signingConfigs {
+                  release {
+                      def ks = System.getenv("NYXHICSLAB_KEYSTORE_PATH")
+                      if (ks) {
+                          storeFile file(ks)
+                          storePassword System.getenv("KEYSTORE_PASSWORD")
+                          keyAlias System.getenv("KEY_ALIAS")
+                          keyPassword System.getenv("KEY_PASSWORD")
+                      }
+                  }
+              }
+          '''
+          anchor = "    buildTypes {\n"
+          assert anchor in src, "buildTypes anchor not found in build.gradle"
+          src = src.replace(anchor, block + anchor, 1)
+          old = "        release {\n            minifyEnabled false"
+          new = ("        release {\n"
+                 "            if (System.getenv(\"NYXHICSLAB_KEYSTORE_PATH\")) signingConfig signingConfigs.release\n"
+                 "            minifyEnabled false")
+          assert old in src, "release buildType anchor not found in build.gradle"
+          src = src.replace(old, new, 1)
+          open(path, "w").write(src)
+          print("signing config injected")
+          PYEOF
+      - name: Verify the signing key before building
+        working-directory: store-android/native/android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          # Decode the keystore secret and prove it is intact and unlocks
+          # BEFORE spending a build on it: the decoded file must parse
+          # under the store password and hold exactly one PrivateKeyEntry
+          # under the expected alias. (A base64 secret corrupted in
+          # transit fails HERE with a clear message, not at signing time.)
+          set -e
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > upload-keystore.jks
+          echo "decoded keystore: $(stat -c%s upload-keystore.jks) bytes, sha256 $(sha256sum upload-keystore.jks | cut -d' ' -f1)"
+          keytool -list -keystore upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" > keylist.txt
+          grep -q "PrivateKeyEntry" keylist.txt
+          grep -q "$KEY_ALIAS" keylist.txt
+          echo "keystore verified: 1 PrivateKeyEntry under alias $KEY_ALIAS"
+      - name: Sync web shell and plugins
+        run: npx cap sync android
+      - name: Build the signed bundle for Google Play
+        working-directory: store-android/native/android
+        env:
+          NYXHICSLAB_KEYSTORE_PATH: ${{ github.workspace }}/store-android/native/android/upload-keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon bundleRelease
+          rm -f upload-keystore.jks
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nyxhicslab-aab
+          path: store-android/native/android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Drop the bundle as text pieces for Muse
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -e
+          AAB=store-android/native/android/app/build/outputs/bundle/release/app-release.aab
+          SHA=$(sha256sum "$AAB" | cut -d' ' -f1)
+          SIZE=$(stat -c%s "$AAB")
+          rm -rf aab-drop
+          mkdir -p aab-drop
+          base64 -w 0 "$AAB" | split -b 400000 -d -a 3 - aab-drop/part-
+          COUNT=$(ls aab-drop/part-* | wc -l)
+          printf 'sha256 %s\nsize %s\nparts %s\nfile app-release.aab\n' "$SHA" "$SIZE" "$COUNT" > aab-drop/manifest.txt
+          echo "AAB-DROP sha256=$SHA size=$SIZE parts=$COUNT"
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git checkout -B aab-drop
+          git add aab-drop
+          git commit -m "AAB drop from run ${{ github.run_number }} (sha256 $SHA)"
+          git push -f origin aab-drop

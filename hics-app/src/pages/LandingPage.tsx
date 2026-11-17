@@ -179,7 +179,7 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
               >
                 <h3 className="text-sm font-semibold tracking-widest uppercase opacity-60">{tier.name}</h3>
                 <p className="text-3xl font-extrabold mt-1">{tier.price}</p>
-                <p className="text-xs opacity-40 mb-2">{tier.cadence}</p>
+                <p className="text-xs opacity-70 mb-2">{tier.cadence}</p>
                 <ul className="mt-1 space-y-2">
                   {tier.points.map((point) => (
                     <li key={point} className="flex items-start gap-2 text-sm">
@@ -201,7 +201,7 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
                 <p className="text-sm leading-relaxed opacity-80">"{t.quote}"</p>
                 <footer className="mt-auto pt-3 border-t border-white/10">
                   <p className="text-xs font-semibold opacity-70">{t.name}</p>
-                  <p className="text-xs opacity-40 mt-0.5">{t.org}</p>
+                  <p className="text-xs opacity-70 mt-0.5">{t.org}</p>
                 </footer>
               </blockquote>
             ))}
@@ -224,7 +224,7 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
           </div>
         </section>
 
-        <footer ref={footerRef} className="nyx-panel p-4 text-xs opacity-50 leading-relaxed">
+        <footer ref={footerRef} className="nyx-panel p-4 text-xs leading-relaxed">
           <p>NyxHICSlab™ is a product of Nyx Collective LLC.</p>
           <p className="mt-1">© 2026 Nyx Collective LLC. All rights reserved.</p>
           <p className="mt-1">NyxHICSlab, NyxCollective, and related names, logos, product marks, and design marks are trademarks of Nyx Collective LLC.</p>

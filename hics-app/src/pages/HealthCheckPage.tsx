@@ -134,7 +134,7 @@ export default function HealthCheckPage() {
       <main className="flex-1 flex flex-col items-center justify-start p-8 pt-16 gap-8">
         <div className="w-full max-w-xl">
           <div className="flex items-center gap-3 mb-6">
-            <img src={publicAsset('hicslogo.png')} alt="NyxHICSlab" className="h-8 w-auto" />
+            <span className="lux-logo-frame"><img src={publicAsset('hicslogo.png')} alt="NyxHICSlab" className="lux-logo-img h-8 w-8" /></span>
             <span className="text-xl font-bold tracking-tight">NyxHICSlab</span>
             <span className="text-sm opacity-50 ml-auto">System Health</span>
           </div>

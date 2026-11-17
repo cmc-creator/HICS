@@ -13,6 +13,11 @@ export interface ScenarioAttempt {
   facilitatorMode: boolean;
   durationSeconds: number;
   completedAt: string;
+  // Stored server-side (api/training/attempts.js) and returned by
+  // GET /training/attempts, even though earlier records may omit them.
+  learnerName?: string;
+  learnerEmail?: string;
+  organization?: string;
   teamName?: string;
   assignedRole?: string;
   multiplierApplied?: number;

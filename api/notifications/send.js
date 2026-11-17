@@ -1,4 +1,4 @@
-import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, createId, json, reloadStore, saveStore } from '../_store.js';
 import { requireAuth } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
@@ -36,7 +36,11 @@ export default async function handler(req, res) {
     return json(res, 400, { error: validationError });
   }
 
-  const store = await getStore();
+  // Reloaded, never the warm cache: the scenario completion
+  // flow sends this between recording the attempt and clearing
+  // progress, and a whole-blob save from a stale instance would
+  // erase that attempt (the invite bug's mechanism, c368e8d).
+  const store = await reloadStore();
   const notification = {
     id: createId('notify'),
     type: body.type,

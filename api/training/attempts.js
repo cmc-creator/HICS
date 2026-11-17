@@ -1,4 +1,4 @@
-import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, createId, json, reloadStore, saveStore } from '../_store.js';
 import { canManageData, isEnterpriseAdmin, requireAuth, resolveFacility, scopeByFacility } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
@@ -21,7 +21,13 @@ export default async function handler(req, res) {
     return;
   }
 
-  const store = await getStore();
+  // Every method of this handler works on a freshly reloaded
+  // store, never the warm instance's cache: the Reports page is
+  // the read-after-write surface for scenario completion, and a
+  // cached copy that predates another instance's writes would
+  // report zero attempts (and a whole-blob save from it would
+  // erase them - the invite bug's mechanism, c368e8d).
+  const store = await reloadStore();
   const requesterFacility = String(auth.claims.facility || 'all');
 
   if (req.method === 'GET') {
@@ -50,7 +56,20 @@ export default async function handler(req, res) {
       id: createId('attempt'),
       scenarioId: String(body.scenarioId),
       scenarioTitle: String(body.scenarioTitle),
-      facility: resolveFacility(body.facility, requesterFacility),
+      // The client's `facility` is a browsing context - the
+      // facility profile the player was opened under ('all' on
+      // the default path), not a scope claim. Like the events,
+      // rapid-challenge and live-drills endpoints, a facility-
+      // bound requester's attempt is stamped with their account
+      // facility server-side; resolving it from the client value
+      // and 403-ing on mismatch silently dropped EVERY completed
+      // scenario for facility-bound users browsing under any
+      // other profile (2026-11-17). Only enterprise admins and
+      // org-wide ('all') requesters may record under an
+      // explicitly requested facility.
+      facility: (isEnterpriseAdmin(auth.claims) || requesterFacility === 'all')
+        ? resolveFacility(body.facility, requesterFacility)
+        : requesterFacility,
       correctAnswers: Math.max(0, Math.min(1000, Number(body.correctAnswers ?? 0))),
       totalSteps: Math.max(0, Math.min(1000, Number(body.totalSteps ?? 0))),
       scorePercent: Math.max(0, Math.min(100, Number(body.scorePercent ?? 0))),
@@ -69,10 +88,6 @@ export default async function handler(req, res) {
         : [],
       organization: String(auth.claims.organization || 'Enterprise Health System'),
     };
-
-    if (!isEnterpriseAdmin(auth.claims) && requesterFacility !== 'all' && entry.facility !== requesterFacility) {
-      return json(res, 403, { error: 'Attempt facility outside requester scope' });
-    }
 
     if (!canManageData(auth.claims)) {
       entry.learnerEmail = String(auth.claims.email || entry.learnerEmail || '');

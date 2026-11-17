@@ -1,4 +1,4 @@
-import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, createId, json, reloadStore, saveStore } from '../_store.js';
 import { canManageData, isEnterpriseAdmin, requireAuth, scopeByFacility } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
@@ -21,7 +21,11 @@ export default async function handler(req, res) {
     return;
   }
 
-  const store = await getStore();
+  // Reloaded, never the warm cache: this endpoint is written by
+  // the scenario completion chain (a save from a stale instance
+  // would erase the attempt recorded seconds earlier) and read
+  // by the Reports page right after those writes.
+  const store = await reloadStore();
   const requesterFacility = String(auth.claims.facility || 'all');
 
   if (req.method === 'GET') {

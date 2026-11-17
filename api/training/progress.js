@@ -1,4 +1,4 @@
-import { appendAuditLog, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, json, reloadStore, saveStore } from '../_store.js';
 import { isEnterpriseAdmin, requireAuth } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { enforceRateLimit, parseJsonBody, validateBodyFields } from '../_security.js';
@@ -52,7 +52,11 @@ export default async function handler(req, res) {
     return;
   }
 
-  const store = await getStore();
+  // Reloaded, never the warm cache: the completion flow clears
+  // progress immediately after recording the attempt, and a
+  // whole-blob save from a stale instance here would erase that
+  // attempt (the invite bug's mechanism, c368e8d).
+  const store = await reloadStore();
   const requesterFacility = String(auth.claims.facility || 'all');
   if (!store.progress || typeof store.progress !== 'object' || Array.isArray(store.progress)) {
     store.progress = {};

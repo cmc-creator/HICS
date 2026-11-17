@@ -13,6 +13,7 @@ import { getScenarioAttempts } from '../lib/trainingAnalytics';
 import { getAdaptiveDifficultyProfile, type AdaptiveDifficultyProfile } from '../lib/gamification';
 import { useTenant } from '../lib/tenantContext';
 import { publicAsset } from '../lib/publicAsset';
+import ScenarioImage from '../components/ScenarioImage';
 
 const difficultyColors = {
   beginner: 'bg-emerald-100 text-emerald-800 border border-emerald-300',
@@ -318,6 +319,7 @@ export default function ScenariosPage() {
 
             return (
               <div key={scenario.id} className="scenario-list-card overflow-hidden card-lift scenario-card-shell">
+                <ScenarioImage scenarioId={scenario.id} title={scenario.title} className="scenario-card-thumb" />
                 <div className="scenario-card-head text-white p-5">
                   <div className="flex items-start justify-between">
                     <div>

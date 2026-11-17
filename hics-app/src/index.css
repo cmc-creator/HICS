@@ -563,6 +563,32 @@ html.dark .shadow-lg {
 /* The card head's infinite sheen sweep is gone (UI review T3):
    motion is reserved for state change and first paint. */
 
+/* Scenario artwork (beef-up step 1): fixed aspect ratios reserve the
+   space before the image loads, so cards and the player never jump. */
+.scenario-card-thumb {
+	display: block;
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+	border-bottom: 1px solid var(--surface-border);
+}
+
+.scenario-hero {
+	display: block;
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+	border: 1px solid var(--surface-border);
+	border-radius: 1rem;
+	box-shadow: 0 16px 30px rgba(18, 10, 24, 0.16);
+}
+
+@media (min-width: 768px) {
+	.scenario-hero {
+		aspect-ratio: 21 / 9;
+	}
+}
+
 .training-progress-shell {
 	overflow: hidden;
 }

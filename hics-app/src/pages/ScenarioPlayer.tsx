@@ -15,6 +15,7 @@ import {
 import { getAdaptiveDifficultyProfile } from '../lib/gamification';
 import { sendNotification } from '../lib/notifications';
 import { useAuth } from '../lib/authContext';
+import ScenarioImage from '../components/ScenarioImage';
 
 const FACILITATOR_KEY = 'nyx-facilitator-mode';
 const TIMED_KEY = 'nyx-timed-mode';
@@ -683,6 +684,10 @@ export default function ScenarioPlayer() {
           <h1 className="text-xl font-bold">{adaptText(scenario.title)}</h1>
           <p className="page-head-sub text-xs mt-1">Facility Profile: {facilityContextLabel}</p>
         </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 pt-4">
+        <ScenarioImage scenarioId={scenario.id} title={adaptText(scenario.title)} className="scenario-hero" eager />
       </div>
 
       <div className="nyx-panel training-progress-shell border-b">

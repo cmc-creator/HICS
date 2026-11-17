@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-16 - Beef-up step 1: cinematic scenario imagery
+
+Every one of the 20 training scenarios now has a photorealistic cinematic header image (hospital emergency response and incident command scenes, one consistent plum-and-amber grade, no text or logos in frame, no graphic medical content). Images are 1600px JPEGs in `hics-app/public/scenarios/<scenario-id>.jpg`, about 150 KB each, about 2.9 MB total.
+
+### Added
+- **Catalog thumbnails:** the Scenarios list renders each scenario's image as a 16:9 thumbnail band on its card.
+- **Player hero:** the ScenarioPlayer opens with the scenario's image as a hero band (16:9 on phones, 21:9 on desktop) above the first step.
+- **One image map:** `src/data/scenarioImages.ts` is the single place that maps scenario ids to image paths, resolved through `publicAsset`.
+- **Graceful fallback:** the new `ScenarioImage` component hides itself if an image is missing or fails to load, so cards and the player render exactly as they did before imagery shipped - no broken-image icon, no empty frame. Fixed aspect ratios reserve the space up front, so layout never jumps; catalog images lazy-load, the player hero loads eager.
+
 ## 2026-11-16 - UI review fix-all: theme split-brain, header rebuild, brand consolidation
 
 All 27 findings from the 2026-11-16 UI/UX visual review (8 broken, 16 polish, 3 taste) are fixed. The full per-finding record is appended to `hics-ui-review-2026-11-16.md` in the workspace. All ten API suites pass; the frontend build is green with customer-deployment mode both unset and set.

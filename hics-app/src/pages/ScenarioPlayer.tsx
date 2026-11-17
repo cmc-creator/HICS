@@ -746,11 +746,13 @@ export default function ScenarioPlayer() {
                 value={participantName}
                 onChange={(e) => setParticipantName(e.target.value)}
                 placeholder="Participant name"
+                aria-label="Participant name"
                 className="nyx-input border border-gray-300 rounded-lg px-3 py-2 text-sm"
               />
               <select
                 value={participantRoleId}
                 onChange={(e) => setParticipantRoleId(e.target.value)}
+                aria-label="Participant role"
                 className="select-comfort border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-800"
               >
                 {hicsRoles.map((role) => (
@@ -760,7 +762,7 @@ export default function ScenarioPlayer() {
               <button
                 type="button"
                 onClick={addTeamParticipant}
-                className="touch-target rounded-lg bg-blue-600 text-slate-900 px-3 py-2 text-sm font-semibold"
+                className="touch-target rounded-lg bg-blue-600 text-white px-3 py-2 text-sm font-semibold"
               >
                 Add
               </button>
@@ -789,21 +791,24 @@ export default function ScenarioPlayer() {
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
+              aria-pressed={facilitatorMode}
               onClick={() => setFacilitatorMode((prev) => !prev)}
-              className={`touch-target px-3 py-1.5 rounded-lg text-xs font-semibold ${facilitatorMode ? 'bg-blue-600 text-slate-900' : 'bg-slate-100 text-slate-700'}`}
+              className={`touch-target px-3 py-1.5 rounded-lg text-xs font-semibold ${facilitatorMode ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}
             >
               Facilitator Mode: {facilitatorMode ? 'On' : 'Off'}
             </button>
             <button
               type="button"
+              aria-pressed={timedMode}
               onClick={() => setTimedMode((prev) => !prev)}
-              className={`touch-target px-3 py-1.5 rounded-lg text-xs font-semibold ${timedMode ? 'bg-blue-600 text-slate-900' : 'bg-slate-100 text-slate-700'}`}
+              className={`touch-target px-3 py-1.5 rounded-lg text-xs font-semibold ${timedMode ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}
             >
               Timed Mode: {timedMode ? 'On' : 'Off'}
             </button>
             {timedMode && (
               <select
                 value={stepSeconds}
+                aria-label="Seconds per step"
                 onChange={(e) => {
                   const nextSeconds = Number.parseInt(e.target.value, 10);
                   setStepSeconds(nextSeconds);

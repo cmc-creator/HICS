@@ -34,7 +34,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
     : baseNavItems;
 
   return (
-    <nav className="sticky top-0 z-50 text-white shadow-lg border-b border-white/10 backdrop-blur-xl lux-nav-shell">
+    <nav className="sticky top-0 z-50 text-white shadow-lg border-b border-white/10 backdrop-blur-xl lux-nav-shell" aria-label="Primary">
       <div className="max-w-7xl mx-auto px-3 sm:px-4">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center py-2.5 md:py-3 gap-2 md:gap-4 lux-nav-top">
           <div className="justify-self-start flex items-center gap-2">
@@ -130,7 +130,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
         {/* Mobile slide-down menu */}
         {mobileOpen && (
           <div className="md:hidden border-t border-white/10 bg-black/60 backdrop-blur-xl">
-            <nav className="px-4 py-3 space-y-1">
+            <div className="px-4 py-3 space-y-1">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
@@ -171,7 +171,7 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
                   Sign Out
                 </button>
               </div>
-            </nav>
+            </div>
           </div>
         )}
       </div>

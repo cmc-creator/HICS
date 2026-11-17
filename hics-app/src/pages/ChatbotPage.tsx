@@ -256,6 +256,7 @@ export default function ChatbotPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about HICS protocols, triage, emergency procedures..."
+              aria-label="Ask about HICS protocols, triage, emergency procedures"
               className="nyx-input flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
               disabled={isTyping}
             />

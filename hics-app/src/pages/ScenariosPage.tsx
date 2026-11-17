@@ -228,10 +228,11 @@ export default function ScenariosPage() {
                 <button
                   key={playlist}
                   type="button"
+                  aria-pressed={selectedPlaylist === playlist}
                   onClick={() => setSelectedPlaylist(playlist)}
                   className={`touch-target px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                     selectedPlaylist === playlist
-                      ? 'bg-blue-600 text-slate-900 shadow-sm'
+                      ? 'bg-blue-600 text-white shadow-sm'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-white/40'
                   }`}
                 >
@@ -302,7 +303,7 @@ export default function ScenariosPage() {
                     setDifficultyTouched(true);
                     setSelectedDifficulty(adaptiveProfile.recommended);
                   }}
-                  className="touch-target rounded-full bg-blue-600 text-slate-900 px-3 py-1 text-xs font-semibold"
+                  className="touch-target rounded-full bg-blue-600 text-white px-3 py-1 text-xs font-semibold"
                 >
                   Apply Recommendation
                 </button>

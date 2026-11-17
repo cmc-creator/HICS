@@ -99,7 +99,7 @@ export default function GlobalAssistant() {
   return (
     <div className="fixed bottom-4 right-4 z-[60]">
       {isOpen && (
-        <div className="mb-3 w-[min(92vw,360px)] nyx-panel border border-white/20 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="mb-3 w-[min(92vw,360px)] nyx-panel border border-white/20 rounded-2xl overflow-hidden shadow-2xl" role="dialog" aria-label="AI Assistant">
           <div className="nyx-hero text-white px-4 py-3 flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold">AI Assistant</p>
@@ -151,6 +151,7 @@ export default function GlobalAssistant() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask the assistant..."
+                aria-label="Ask the AI assistant"
                 className="nyx-input flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2"
               />
               <button

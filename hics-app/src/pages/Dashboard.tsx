@@ -120,9 +120,9 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 lux-page">
       {showOnboarding && (
         <div className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
-          <div className="nyx-panel w-full max-w-2xl p-6">
+          <div className="nyx-panel w-full max-w-2xl p-6" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
             <p className="text-xs font-bold tracking-[0.2em] text-gray-500 dark:text-white/50">WELCOME</p>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">First-Run Command Briefing</h2>
+            <h2 id="onboarding-title" className="text-2xl font-bold text-gray-900 dark:text-white mt-2">First-Run Command Briefing</h2>
             <div className="mt-4 space-y-3 text-sm text-gray-700 dark:text-white/70">
               <p><strong>1.</strong> Start with one scenario to baseline response behavior.</p>
               <p><strong>2.</strong> Use the AI assistant for protocol clarifications during drills.</p>

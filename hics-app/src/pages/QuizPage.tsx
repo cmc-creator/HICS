@@ -97,11 +97,13 @@ export default function QuizPage() {
             </p>
 
             <div className="mb-6">
-              <label className="text-sm font-medium text-gray-700 block mb-2">Filter by Category:</label>
-              <div className="flex flex-wrap justify-center gap-2">
+              <p className="text-sm font-medium text-gray-700 block mb-2" id="quiz-category-label">Filter by Category:</p>
+              <div className="flex flex-wrap justify-center gap-2" role="group" aria-labelledby="quiz-category-label">
                 {categories.map((cat) => (
                   <button
                     key={cat}
+                    type="button"
+                    aria-pressed={filterCategory === cat}
                     onClick={() => setFilterCategory(cat)}
                     className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                       filterCategory === cat

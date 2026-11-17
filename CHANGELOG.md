@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-16 - Beef-up step 4, batch 4 (final): two more Situation Briefing videos
+
+### Added
+- **Briefing videos for two more scenarios:** psychiatric-emergency-transport, mass-fatality-planning. Same recipe as batches 1-3: each is a 10-second animation of that scenario's still (slow cinematic push-in with scene-true atmosphere - soft-pulsing ambulance lights at the dusk transfer bay, maps stirring faintly in the command tent), compressed for the web at 720p with no audio track, 0.9-1.7 MB each. The mass-fatality briefing stays a dignified planning scene (command tent, planning table, staging trailer) with nothing graphic. Two entries added to the `scenarioBriefings` map in `src/data/scenarioImages.ts`; no other code change. The mp4 files are uploaded to the repository separately from this code change (the connector cannot carry binaries); the player hides the briefing panel gracefully until a file lands.
+- **Batch 4 note:** resource-rationing-crisis's video generation failed in the media pipeline and produced no file, so it has no map entry and was not retried in this run. 19 of 20 scenarios now have briefings; resource-rationing-crisis is the only one left, and it needs just one successful generation plus one map entry and one file upload.
+
 ## 2026-11-16 - Beef-up step 4, batch 3: six more Situation Briefing videos
 
 ### Added

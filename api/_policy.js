@@ -5,8 +5,15 @@ const POLICY = {
     GET: ['enterprise-admin', 'facility-admin'],
     POST: ['enterprise-admin', 'facility-admin'],
   },
-  ADMIN_SETTINGS: {
-    // Every signed-in role may READ the settings: the frontend
+  ADMIN_CONTRACTS: {
+    // Contracts are the OWNER portal surface: Nyx Collective
+    // issues and countersigns its own sales agreements, so every
+    // method is enterprise-admin only. Facility admins run their
+    // facility; they do not see Nyx's customer agreements.
+    GET: ['enterprise-admin'],
+    POST: ['enterprise-admin'],
+  },
+  ADMIN_SETTINGS: {    // Every signed-in role may READ the settings: the frontend
     // needs aiAssistantEnabled to decide whether to render the
     // assistant at all. Only admins may WRITE.
     GET: ['enterprise-admin', 'facility-admin', 'training-manager', 'facilitator', 'observer'],

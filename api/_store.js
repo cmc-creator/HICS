@@ -56,6 +56,7 @@ function createInitialStore() {
     liveDrills: [],
     rapidChallengeScores: [],
     leads: [],
+    contracts: [],
     settings: { aiAssistantEnabled: true },
   };
 }

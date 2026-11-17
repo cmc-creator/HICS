@@ -27,11 +27,13 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   // The Admin link follows the AUTH session role, not the tenant
   // preview switcher: only facility-admin / enterprise-admin
   // sessions ever see it (matching the /admin route gate).
-  const { user, logout, sessionRemainingMs, isAdmin } = useAuth();
+  const { user, logout, sessionRemainingMs, isAdmin, isEnterpriseAdmin } = useAuth();
   const sessionMinutes = Math.max(1, Math.floor(sessionRemainingMs / 60000));
-  const navItems = isAdmin
-    ? [...baseNavItems, { path: '/admin', label: 'Admin', icon: publicAsset('lux-icons/admin.svg') }]
-    : baseNavItems;
+  const navItems = [
+    ...baseNavItems,
+    ...(isAdmin ? [{ path: '/admin', label: 'Admin', icon: publicAsset('lux-icons/admin.svg') }] : []),
+    ...(isEnterpriseAdmin ? [{ path: '/admin/contracts', label: 'Contracts', icon: publicAsset('lux-icons/reports.svg') }] : []),
+  ];
 
   return (
     <nav className="sticky top-0 z-50 text-white shadow-lg border-b border-white/10 backdrop-blur-xl lux-nav-shell" aria-label="Primary">

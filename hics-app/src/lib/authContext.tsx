@@ -63,6 +63,10 @@ interface AuthContextValue {
   // role from the sign-in response - never the tenant preview
   // switcher - and false for role-less sessions (fail closed).
   isAdmin: boolean;
+  // True only for enterprise-admin sessions. The owner portal
+  // surfaces (contracts) gate on this; the server enforces the
+  // same rule on every contracts request.
+  isEnterpriseAdmin: boolean;
   accessToken: string | null;
   expiresAt: number | null;
   sessionRemainingMs: number;
@@ -281,6 +285,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user: session?.user ?? null,
     isAuthenticated,
     isAdmin: isAdminRole(session?.user?.role),
+    isEnterpriseAdmin: session?.user?.role === 'enterprise-admin',
     accessToken: session?.accessToken ?? null,
     expiresAt: session?.expiresAt ?? null,
     sessionRemainingMs,

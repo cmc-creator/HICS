@@ -903,3 +903,142 @@ html.dark .nyx-input {
 	border-color: rgba(142, 124, 164, 0.4);
 	color: #f0ebf7;
 }
+
+/* ---- Toasts (lib/toast.tsx) ---- */
+.toast-stack {
+	position: fixed;
+	right: 1rem;
+	bottom: 1rem;
+	z-index: 90;
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	max-width: min(92vw, 26rem);
+}
+
+.toast-card {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.6rem;
+	padding: 0.8rem 0.9rem;
+	border-radius: 0.9rem;
+	border: 1px solid var(--surface-border);
+	background: var(--card-bg);
+	backdrop-filter: blur(18px);
+	-webkit-backdrop-filter: blur(18px);
+	box-shadow: var(--surface-shadow);
+	color: var(--text-main);
+	font-size: 0.875rem;
+	animation: toastIn 320ms cubic-bezier(0.21, 1.02, 0.55, 1.2) both;
+}
+
+.toast-success .toast-icon { color: #15803d; }
+.toast-error .toast-icon { color: #b91c1c; }
+.toast-info .toast-icon { color: #a8842f; }
+
+html.dark .toast-success .toast-icon { color: #4ade80; }
+html.dark .toast-error .toast-icon { color: #fca5a5; }
+html.dark .toast-info .toast-icon { color: #e7cf8f; }
+
+.toast-icon {
+	display: inline-flex;
+	margin-top: 0.1rem;
+	flex-shrink: 0;
+}
+
+.toast-message {
+	flex: 1;
+	line-height: 1.45;
+}
+
+.toast-close {
+	flex-shrink: 0;
+	padding: 0.2rem;
+	border-radius: 0.4rem;
+	color: var(--text-muted);
+	transition: color 160ms ease, background-color 160ms ease;
+}
+
+.toast-close:hover {
+	color: var(--text-main);
+	background: rgba(127, 127, 127, 0.14);
+}
+
+@keyframes toastIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px) scale(0.97);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* ---- Loading skeletons ---- */
+.skeleton-block {
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(120deg, rgba(148, 163, 184, 0.16), rgba(148, 163, 184, 0.3), rgba(148, 163, 184, 0.16));
+	background-size: 200% 100%;
+	animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmer {
+	0% { background-position: 120% 0; }
+	100% { background-position: -80% 0; }
+}
+
+/* ---- Contracts: document + signature presentation ---- */
+.document-body {
+	font-family: Georgia, "Times New Roman", "Nimbus Roman", serif;
+	font-size: 0.95rem;
+	line-height: 1.75;
+	color: var(--text-main);
+	max-width: 72ch;
+}
+
+.signature-script {
+	font-family: "Segoe Script", "Bradley Hand", "Brush Script MT", Georgia, serif;
+	font-style: italic;
+	letter-spacing: 0.01em;
+}
+
+/* ---- Print: signed-copy view prints the document alone ---- */
+@media print {
+	body {
+		background: #ffffff !important;
+	}
+
+	body * {
+		visibility: hidden;
+	}
+
+	.print-document,
+	.print-document * {
+		visibility: visible;
+	}
+
+	.print-document {
+		position: absolute;
+		inset: 0;
+		box-shadow: none !important;
+		border: none !important;
+		background: #ffffff !important;
+		backdrop-filter: none !important;
+	}
+
+	.print-document::before,
+	.print-document::after {
+		display: none !important;
+	}
+
+	.document-body {
+		color: #111827 !important;
+		max-width: none;
+	}
+
+	.no-print {
+		display: none !important;
+	}
+}

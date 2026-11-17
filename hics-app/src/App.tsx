@@ -11,6 +11,8 @@ import ChatbotPage from './pages/ChatbotPage';
 import TrainingReports from './pages/TrainingReports';
 import FacilitatorQuickStart from './pages/FacilitatorQuickStart';
 import FacilityAdminPage from './pages/FacilityAdminPage';
+import ContractsPage, { ContractDetailPage } from './pages/ContractsPage';
+import SignContractPage from './pages/SignContractPage';
 import AccountPage from './pages/AccountPage';
 import LearningCenterPage from './pages/LearningCenterPage';
 import RapidChallengePage from './pages/RapidChallengePage';
@@ -26,6 +28,7 @@ import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import { TenantProvider } from './lib/tenantContext';
 import { AuthProvider, useAuth } from './lib/authContext';
+import { ToastProvider } from './lib/toast';
 import { sendNotification } from './lib/notifications';
 import GlobalAssistant from './components/GlobalAssistant';
 
@@ -99,6 +102,17 @@ function AdminRoute() {
   return <FacilityAdminPage />;
 }
 
+// Contracts are the OWNER portal: enterprise-admin sessions only
+// (Nyx Collective issues its own sales agreements there). The
+// server enforces the same rule on every contracts endpoint.
+function EnterpriseAdminRoute({ children }: { children: React.ReactNode }) {
+  const { isEnterpriseAdmin } = useAuth();
+  if (!isEnterpriseAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <>{children}</>;
+}
+
 function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggleTheme: () => void }) {
   const { isAuthenticated } = useAuth();
 
@@ -113,6 +127,7 @@ function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggle
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/tos" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/sign/:token" element={<SignContractPage />} />
 
       <Route element={<ProtectedLayout theme={theme} onToggleTheme={onToggleTheme} />}>
         <Route path="/dashboard" element={<Dashboard />} />
@@ -128,6 +143,8 @@ function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggle
         <Route path="/live-drill" element={<LiveDrillControlPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/admin" element={<AdminRoute />} />
+        <Route path="/admin/contracts" element={<EnterpriseAdminRoute><ContractsPage /></EnterpriseAdminRoute>} />
+        <Route path="/admin/contracts/:id" element={<EnterpriseAdminRoute><ContractDetailPage /></EnterpriseAdminRoute>} />
       </Route>
 
       <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/'} replace />} />
@@ -154,9 +171,11 @@ export default function App() {
   return (
     <AuthProvider>
       <TenantProvider>
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <AppRoutes theme={theme} onToggleTheme={toggleTheme} />
-        </BrowserRouter>
+        <ToastProvider>
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <AppRoutes theme={theme} onToggleTheme={toggleTheme} />
+          </BrowserRouter>
+        </ToastProvider>
       </TenantProvider>
     </AuthProvider>
   );

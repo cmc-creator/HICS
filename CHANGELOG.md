@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-16 - Beef-up step 4, batch 3: six more Situation Briefing videos
+
+### Added
+- **Briefing videos for six more scenarios:** patient-elopement, code-gray-escalation, contraband-overdose, med-error-psych, bomb-threat-campus, workplace-violence-staff. Same recipe as batches 1 and 2: each is a 10-second animation of that scenario's still (slow cinematic push-in with scene-true atmosphere - a drifting flashlight beam during the elopement search, a calm staff member's gentle gestures in the de-escalation scene, deliberate hands preparing the naloxone kit at the response cart, cordon tape fluttering at the campus muster point), compressed for the web at 720p with no audio track, 0.5-1.3 MB each. The code-gray briefing keeps the scene's calm, dignified tone - minimal movement, security standing back. Six entries added to the `scenarioBriefings` map in `src/data/scenarioImages.ts`; no other code change. The mp4 files are uploaded to the repository separately from this code change (the connector cannot carry binaries); the player hides the briefing panel gracefully until a file lands.
+- **Batch 3 note:** patient-elopement is the scenario whose generation failed in batch 2; it generated cleanly this time and now has its briefing. 17 of 20 scenarios now have briefings; the remaining three (psychiatric-emergency-transport, mass-fatality-planning, resource-rationing-crisis) can follow in a final batch with one map entry and one file each.
+
 ## 2026-11-16 - Beef-up step 4, batch 2: five more Situation Briefing videos
 
 ### Added

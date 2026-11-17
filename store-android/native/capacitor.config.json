@@ -1,0 +1,13 @@
+{
+  "appId": "com.nyxcollective.nyxhicslab",
+  "appName": "NyxHICSlab",
+  "webDir": "www",
+  "server": {
+    "url": "https://www.nyxhicslab.com",
+    "androidScheme": "https",
+    "allowNavigation": ["nyxhicslab.com", "www.nyxhicslab.com", "accounts.google.com"]
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

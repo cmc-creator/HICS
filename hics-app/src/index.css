@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* The app theme toggle flips the .dark class on <html>; Tailwind
+   v4's dark: variant would otherwise follow the OS
+   prefers-color-scheme instead, splitting every dark: utility
+   from the hand-written html.dark CSS whenever the two disagree
+   (UI review B1). Bind the variant to the app class. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
 	--app-bg: #f2f4f8;
 	--card-bg: rgba(255, 255, 255, 0.74);

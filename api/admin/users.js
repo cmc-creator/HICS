@@ -1,4 +1,4 @@
-import { appendAuditLog, createId, getStore, json, saveStore } from '../_store.js';
+import { appendAuditLog, createId, getStore, json, reloadStore, saveStore } from '../_store.js';
 import { isEnterpriseAdmin, requireAuth, resolveFacility, scopeByFacility } from '../_auth.js';
 import { authorizeEndpoint } from '../_policy.js';
 import { buildPasswordSetUrl, sendEmail } from '../_email.js';
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const store = await getStore();
+  let store = await getStore();
   const requesterFacility = String(auth.claims.facility || 'all');
 
   if (req.method === 'GET') {
@@ -48,6 +48,14 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    // Reload before mutating: this write replaces the whole
+    // store blob on save, so starting from this warm instance's
+    // cache could erase another instance's newer writes (and
+    // trusting the cache for the duplicate check could let a
+    // second invite through for an email another instance just
+    // created). Same discipline as the auth handlers (f727d0a).
+    store = await reloadStore();
+
     const body = parseJsonBody(req);
     if (!body || typeof body !== 'object') {
       return json(res, 400, { error: 'Invalid JSON payload' });

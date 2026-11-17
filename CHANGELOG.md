@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-17 - Fix: invite set-password links died within minutes of being sent
+
+### Fixed
+- **Invite links no longer get wiped by the admin page's own follow-up write:** creating a user in Facility Admin writes the new record and its 1-hour set-password token in one whole-store save, and the page then immediately posts an `admin_user_invite_submitted` entry to `POST /api/audit/logs`. That endpoint (and the user-creation endpoint itself) loaded the store from the warm instance's in-memory cache instead of reloading from the backing store, so when the audit write landed on an instance whose cache predated the invite, its whole-store save erased the just-created user and token - the emailed link reported "invalid or has expired" on first use, minutes after it was sent. Both `POST /api/admin/users` and `POST /api/audit/logs` now reload the store before mutating, the same discipline the auth handlers adopted in f727d0a. This also removes the audit endpoint as a stale-overwrite risk for every other flow that fires it (dashboard onboarding, report exports, certificates, After-Action Reports) and for anything another instance wrote in the meantime, including fresh password-reset tokens.
+- **Tests:** new suite `api/tests/invite-set-password.mjs` replays the exact two-instance sequence - invite on one instance, the chained audit write on a stale-cache instance, then the invitee sets a password from the emailed link and signs in. It failed against the pre-fix code at the survival assertion and passes now. All eleven suites pass; no frontend change.
+
 ## 2026-11-17 - Store readiness: public account deletion page and webview print fallback
 
 ### Added

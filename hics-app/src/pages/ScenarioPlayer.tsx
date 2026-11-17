@@ -13,6 +13,11 @@ import {
   trackEvent,
 } from '../lib/trainingAnalytics';
 import { getAdaptiveDifficultyProfile } from '../lib/gamification';
+import {
+  deriveDecisionFindings,
+  printAfterActionReport,
+  printCertificate,
+} from '../lib/printDocuments';
 import { sendNotification } from '../lib/notifications';
 import { useAuth } from '../lib/authContext';
 import ScenarioImage from '../components/ScenarioImage';
@@ -56,53 +61,6 @@ const timeoutQuips = [
   'Timer said no mercy, just like real surge ops.',
   'The clock sprinted, but you can still recover next step.',
 ];
-
-function downloadCertificate(userName: string, scenarioTitle: string, facility: string, scorePercent: number) {
-  const certificateHtml = `<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>NyxHICSlab Scenario Certificate</title>
-  <style>
-    body { font-family: Georgia, serif; background: #f5f1e8; margin: 0; padding: 32px; }
-    .sheet { max-width: 900px; margin: 0 auto; background: #fffdf7; border: 10px solid #baa06a; padding: 42px; }
-    .muted { color: #6f5b32; letter-spacing: 0.18em; font-size: 11px; text-transform: uppercase; }
-    h1 { margin: 8px 0; font-size: 44px; color: #2d2211; }
-    h2 { margin: 8px 0 20px; font-size: 22px; color: #4a3a1c; }
-    .name { font-size: 34px; margin: 28px 0 10px; color: #2c2111; font-weight: bold; }
-    .meta { margin-top: 20px; font-size: 15px; color: #3f341f; }
-    .score { display: inline-block; margin-top: 16px; padding: 10px 16px; border-radius: 999px; background: #ede3cb; color: #352a16; font-weight: 700; }
-  </style>
-</head>
-<body>
-  <div class="sheet">
-    <div class="muted">Nyx Collective LLC · NyxHICSlab</div>
-    <h1>Scenario Completion Certificate</h1>
-    <h2>Hospital Incident Command Training</h2>
-    <p>This certifies that</p>
-    <div class="name">${userName}</div>
-    <p>completed the scenario:</p>
-    <h2>${scenarioTitle}</h2>
-    <div class="score">Score: ${scorePercent}%</div>
-    <div class="meta">
-      Facility: ${facility}<br/>
-      Completed: ${new Date().toLocaleString()}
-    </div>
-  </div>
-</body>
-</html>`;
-
-  const printWindow = window.open('', '_blank', 'width=1100,height=850');
-  if (!printWindow) {
-    return;
-  }
-
-  printWindow.document.open();
-  printWindow.document.write(certificateHtml);
-  printWindow.document.close();
-  printWindow.focus();
-  printWindow.print();
-}
 
 export default function ScenarioPlayer() {
   const { id } = useParams<{ id: string }>();
@@ -558,6 +516,84 @@ export default function ScenarioPlayer() {
         ? 'Solid work. A quick refresher and you are even sharper for the next incident.'
         : 'Great practice run. Every replay builds faster, safer decision-making.';
 
+  const handlePrintCertificate = () => {
+    printCertificate({
+      recipientName: user?.fullName ?? 'HICS Learner',
+      scenarioTitle: adaptText(scenario.title),
+      facility: selectedFacility,
+      scorePercent,
+      completedAt: new Date().toISOString(),
+      durationSeconds: Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000)),
+    });
+  };
+
+  const handleAfterActionReport = () => {
+    const decisions = answers.map(({ step, option }) => ({
+      stepTitle: adaptText(step.title),
+      choiceText: adaptText(option.text),
+      isCorrect: option.isCorrect,
+      feedback: adaptText(option.feedback),
+    }));
+    const findings = deriveDecisionFindings(decisions);
+    const strengths = [...findings.strengths];
+    if (hintUsedCount === 0) {
+      strengths.push('Completed the run without using any hints.');
+    }
+    if (revealUsedCount === 0) {
+      strengths.push('Completed the run without revealing a correct answer.');
+    }
+    const improvements = [...findings.improvements];
+    if (hintUsedCount > 0) {
+      improvements.push(
+        `Hints were used on ${hintUsedCount} step${hintUsedCount === 1 ? '' : 's'} - revisit those decision points in a repeat run to lock in the protocol.`,
+      );
+    }
+    if (revealUsedCount > 0) {
+      improvements.push(
+        `The correct answer was revealed on ${revealUsedCount} step${revealUsedCount === 1 ? '' : 's'} - treat those steps as priority review items.`,
+      );
+    }
+
+    printAfterActionReport({
+      documentLabel: 'Scenario After-Action Report',
+      exerciseTitle: adaptText(scenario.title),
+      facility: selectedFacility,
+      organization: user?.organization,
+      exerciseAt: new Date().toISOString(),
+      teamName,
+      facilitatorName: facilitatorMode ? user?.fullName : undefined,
+      participants: [
+        {
+          name: user?.fullName ?? 'HICS Learner',
+          role: hicsRoles.find((role) => role.id === assignedRole)?.title ?? assignedRole,
+        },
+        ...teamAssignments.map((member) => ({
+          name: member.name,
+          role: hicsRoles.find((role) => role.id === member.roleId)?.title ?? member.roleId,
+        })),
+      ],
+      modeLine: `${facilitatorMode ? 'Facilitator-led' : 'Self-paced'} · Timed mode ${timedMode ? 'on' : 'off'}`,
+      durationSeconds: Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000)),
+      scorePercent,
+      correctAnswers: score,
+      totalSteps: scenario.steps.length,
+      branchOutcome,
+      multiplierApplied: Number(currentMultiplier.toFixed(2)),
+      earnedBadges: runBadges,
+      objectives: scenario.objectives.map(adaptText),
+      decisions,
+      strengths,
+      improvements,
+      notesLines: true,
+    });
+
+    trackEvent('after_action_report_generated', {
+      scenarioId: scenario.id,
+      scorePercent,
+      facility: selectedFacility,
+    });
+  };
+
   const correctOption = adaptedStep.options.find((option) => option.isCorrect);
 
   if (completed) {
@@ -651,10 +687,16 @@ export default function ScenarioPlayer() {
               Replay Branch Challenge (+0.2x cap)
             </button>
             <button
-              onClick={() => downloadCertificate(user?.fullName ?? 'HICS Learner', adaptText(scenario.title), selectedFacility, scorePercent)}
+              onClick={handlePrintCertificate}
               className="touch-target border border-amber-300 text-amber-800 px-5 py-2.5 rounded-lg font-semibold hover:bg-amber-50 transition-colors"
             >
               Print Certificate
+            </button>
+            <button
+              onClick={handleAfterActionReport}
+              className="touch-target border border-[#6a5578]/50 text-[#5f4390] px-5 py-2.5 rounded-lg font-semibold hover:bg-[#6a5578]/10 dark:border-[#a392bc]/50 dark:text-[#d3c2f0] dark:hover:bg-white/10 transition-colors"
+            >
+              After-Action Report
             </button>
             <Link
               to={scenariosLink}

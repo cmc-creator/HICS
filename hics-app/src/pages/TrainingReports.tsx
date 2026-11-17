@@ -13,6 +13,11 @@ import { useTenant } from '../lib/tenantContext';
 import { useAuth } from '../lib/authContext';
 import { publicApiRequest } from '../lib/apiClient';
 import { getAchievementSummary, getFacilityLeaderboard } from '../lib/gamification';
+import {
+  branchOutcomeLabel,
+  printAfterActionReport,
+  printCertificate,
+} from '../lib/printDocuments';
 import { writeAuditLog } from '../lib/notifications';
 import { useToast } from '../lib/toast';
 
@@ -21,54 +26,6 @@ interface AuditLogEntry {
   action: string;
   at: string;
   data?: Record<string, string | number | boolean>;
-}
-
-function downloadCertificate(userName: string, attempt: ScenarioAttempt) {
-  const certificateHtml = `<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>NyxHICSlab Certificate</title>
-  <style>
-    body { font-family: Georgia, serif; background: #f5f1e8; margin: 0; padding: 32px; }
-    .sheet { max-width: 900px; margin: 0 auto; background: #fffdf7; border: 10px solid #baa06a; padding: 42px; }
-    .muted { color: #6f5b32; letter-spacing: 0.18em; font-size: 11px; text-transform: uppercase; }
-    h1 { margin: 8px 0; font-size: 44px; color: #2d2211; }
-    h2 { margin: 8px 0 20px; font-size: 22px; color: #4a3a1c; }
-    .name { font-size: 34px; margin: 28px 0 10px; color: #2c2111; font-weight: bold; }
-    .meta { margin-top: 20px; font-size: 15px; color: #3f341f; }
-    .score { display: inline-block; margin-top: 16px; padding: 10px 16px; border-radius: 999px; background: #ede3cb; color: #352a16; font-weight: 700; }
-  </style>
-</head>
-<body>
-  <div class="sheet">
-    <div class="muted">Nyx Collective LLC · NyxHICSlab</div>
-    <h1>Certificate of Completion</h1>
-    <h2>Hospital Incident Command Simulation Training</h2>
-    <p>This certifies that</p>
-    <div class="name">${userName}</div>
-    <p>successfully completed the scenario:</p>
-    <h2>${attempt.scenarioTitle}</h2>
-    <div class="score">Score: ${attempt.scorePercent}%</div>
-    <div class="meta">
-      Facility: ${attempt.facility}<br/>
-      Completed: ${new Date(attempt.completedAt).toLocaleString()}<br/>
-      Duration: ${Math.round(attempt.durationSeconds / 60)} minutes
-    </div>
-  </div>
-</body>
-</html>`;
-
-  const printWindow = window.open('', '_blank', 'width=1100,height=850');
-  if (!printWindow) {
-    return;
-  }
-
-  printWindow.document.open();
-  printWindow.document.write(certificateHtml);
-  printWindow.document.close();
-  printWindow.focus();
-  printWindow.print();
 }
 
 export default function TrainingReports() {
@@ -150,11 +107,86 @@ export default function TrainingReports() {
     }
 
     const bestAttempt = [...scopedAttempts].sort((a, b) => b.scorePercent - a.scorePercent)[0];
-    downloadCertificate(user?.fullName ?? 'HICS Learner', bestAttempt);
+    printCertificate({
+      recipientName: user?.fullName ?? 'HICS Learner',
+      scenarioTitle: bestAttempt.scenarioTitle,
+      facility: bestAttempt.facility,
+      scorePercent: bestAttempt.scorePercent,
+      completedAt: bestAttempt.completedAt,
+      durationSeconds: bestAttempt.durationSeconds,
+    });
     toast.success('Certificate downloaded.');
     await writeAuditLog('certificate_generated', {
       scenarioId: bestAttempt.scenarioId,
       scorePercent: bestAttempt.scorePercent,
+    });
+  };
+
+  const handleAttemptAar = async (attempt: ScenarioAttempt) => {
+    const missed = Math.max(0, attempt.totalSteps - attempt.correctAnswers);
+    const strengths: string[] = [
+      `${attempt.correctAnswers} of ${attempt.totalSteps} decisions matched the recommended action.`,
+    ];
+    if (attempt.branchOutcome) {
+      strengths.push(`The run finished with a ${branchOutcomeLabel(attempt.branchOutcome).toLowerCase()} branch outcome.`);
+    }
+    if (attempt.earnedBadges && attempt.earnedBadges.length > 0) {
+      strengths.push(`Badges earned: ${attempt.earnedBadges.join(', ')}.`);
+    }
+    if (attempt.scorePercent >= 80) {
+      strengths.push('Final score landed in the excellent band (80% or higher).');
+    }
+
+    const improvements: string[] = [];
+    if (missed > 0) {
+      improvements.push(
+        `${missed} decision${missed === 1 ? '' : 's'} did not match the recommended action. Re-run the scenario and use the Decision Review on the completion screen to walk through each missed step.`,
+      );
+    }
+    if (attempt.branchOutcome === 'critical' || attempt.branchOutcome === 'recovering') {
+      improvements.push(
+        'The simulated incident ended short of a stable state - prioritize earlier escalation and command coordination decisions in the next run.',
+      );
+    }
+    if (attempt.scorePercent < 60) {
+      improvements.push(
+        'The final score fell below the 60% readiness band - a facilitator-led review of this scenario is recommended before the next independent run.',
+      );
+    }
+    if (missed === 0) {
+      improvements.push(
+        attempt.timedMode
+          ? 'No missed decisions were recorded in this run. Keep building readiness with the replay branch challenge for a harder path.'
+          : 'No missed decisions were recorded in this run. Keep building readiness by re-running in timed mode or with the replay branch challenge.',
+      );
+    }
+
+    printAfterActionReport({
+      documentLabel: 'Scenario After-Action Report',
+      exerciseTitle: attempt.scenarioTitle,
+      facility: attempt.facility,
+      organization: attempt.organization,
+      exerciseAt: attempt.completedAt,
+      teamName: attempt.teamName,
+      participants: attempt.learnerName
+        ? [{ name: attempt.learnerName, role: attempt.assignedRole ?? 'Participant' }]
+        : [],
+      modeLine: `${attempt.facilitatorMode ? 'Facilitator-led' : 'Self-paced'} · Timed mode ${attempt.timedMode ? 'on' : 'off'}`,
+      durationSeconds: attempt.durationSeconds,
+      scorePercent: attempt.scorePercent,
+      correctAnswers: attempt.correctAnswers,
+      totalSteps: attempt.totalSteps,
+      branchOutcome: attempt.branchOutcome,
+      multiplierApplied: attempt.multiplierApplied,
+      earnedBadges: attempt.earnedBadges,
+      strengths,
+      improvements,
+      notesLines: true,
+    });
+    toast.success('After-Action Report opened for printing.');
+    await writeAuditLog('after_action_report_generated', {
+      scenarioId: attempt.scenarioId,
+      scorePercent: attempt.scorePercent,
     });
   };
 
@@ -238,6 +270,7 @@ export default function TrainingReports() {
                     <th className="py-2 pr-4">Timed</th>
                     <th className="py-2 pr-4 hidden md:table-cell">Facilitator</th>
                     <th className="py-2 pr-4 hidden md:table-cell">Duration</th>
+                    <th className="py-2 pr-4">Report</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -250,6 +283,16 @@ export default function TrainingReports() {
                       <td className="py-2 pr-4">{attempt.timedMode ? 'Yes' : 'No'}</td>
                       <td className="py-2 pr-4 hidden md:table-cell">{attempt.facilitatorMode ? 'Yes' : 'No'}</td>
                       <td className="py-2 pr-4 hidden md:table-cell">{Math.round(attempt.durationSeconds / 60)} min</td>
+                      <td className="py-2 pr-4">
+                        <button
+                          type="button"
+                          onClick={() => void handleAttemptAar(attempt)}
+                          className="border border-[#6a5578]/50 text-[#5f4390] dark:border-[#a392bc]/50 dark:text-[#d3c2f0] px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#6a5578]/10 dark:hover:bg-white/10"
+                          aria-label={`After-Action Report for ${attempt.scenarioTitle} completed ${new Date(attempt.completedAt).toLocaleString()}`}
+                        >
+                          AAR
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

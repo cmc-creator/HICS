@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { hicsRoles } from '../data/roles';
 import { deleteLiveDrillSession, getLiveDrillSession, saveLiveDrillSession } from '../lib/trainingAnalytics';
+import { printAfterActionReport } from '../lib/printDocuments';
+import { useAuth } from '../lib/authContext';
+import { useTenant } from '../lib/tenantContext';
 
 interface DrillEvent {
   at: string;
@@ -41,6 +44,8 @@ function initialState(): DrillState {
 }
 
 export default function LiveDrillControlPage() {
+  const { user } = useAuth();
+  const { facility } = useTenant();
   const [state, setState] = useState<DrillState>(() => initialState());
   const [participantName, setParticipantName] = useState('');
   const [participantRoleId, setParticipantRoleId] = useState('operations-chief');
@@ -197,6 +202,28 @@ export default function LiveDrillControlPage() {
     setStatus('New live drill session created locally. It will persist after first action.');
   };
 
+  const handlePrintAar = () => {
+    printAfterActionReport({
+      documentLabel: 'Live Drill After-Action Report',
+      exerciseTitle: `Live Drill Session ${state.sessionCode}`,
+      facility,
+      organization: user?.organization,
+      exerciseAt: new Date().toISOString(),
+      sessionCode: state.sessionCode,
+      facilitatorName: user?.fullName,
+      participants: state.participants.map((participant) => ({
+        name: participant.name,
+        role: hicsRoles.find((role) => role.id === participant.roleId)?.title ?? participant.roleId,
+      })),
+      modeLine: `Phase reached: ${phases[state.phaseIndex]} · Session ${state.running ? 'in progress' : 'paused'} when this report was generated`,
+      durationSeconds: state.elapsedSeconds,
+      // Session events are stored newest-first; the report reads chronologically.
+      events: [...state.events].reverse(),
+      notesLines: true,
+    });
+    setStatus('After-Action Report opened for printing.');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8">
       <div className="max-w-7xl mx-auto">
@@ -239,6 +266,9 @@ export default function LiveDrillControlPage() {
             </button>
             <button type="button" onClick={resetSession} className="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">
               Reset Session
+            </button>
+            <button type="button" onClick={handlePrintAar} className="rounded-lg border border-[#6a5578]/50 px-4 py-2 text-sm font-semibold text-[#5f4390] hover:bg-[#6a5578]/10">
+              Print After-Action Report
             </button>
           </div>
         </div>

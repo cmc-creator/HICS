@@ -409,6 +409,18 @@ export default function ScenariosPage() {
             <p className="text-amber-700 text-sm mt-1">
               Try a different playlist or broaden one of your filters.
             </p>
+            <button
+              type="button"
+              className="mt-3 touch-target bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+              onClick={() => {
+                setSelectedDifficulty('all');
+                setSelectedType('all');
+                setSelectedDuration('all');
+                setSelectedPlaylist('all');
+              }}
+            >
+              Clear all filters
+            </button>
           </div>
         )}
 

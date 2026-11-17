@@ -6,6 +6,7 @@ import { getScenarioAttempts, type ScenarioAttempt } from '../lib/trainingAnalyt
 import { publicApiRequest } from '../lib/apiClient';
 import { resetAiAssistantEnabledCache } from '../lib/assistantSettings';
 import { writeAuditLog } from '../lib/notifications';
+import { useToast } from '../lib/toast';
 
 interface AdminUser {
   id: string;
@@ -42,6 +43,7 @@ export default function FacilityAdminPage() {
   // role above is only a preview switcher for reporting scope -
   // it is not a permission and is labeled as such below.
   const { user: authUser } = useAuth();
+  const toast = useToast();
   const signedInRoleLabel = authUser?.role
     ? (roleOptions.find((option) => option.value === authUser.role)?.label ?? authUser.role)
     : 'Not recorded - sign in again';
@@ -54,7 +56,8 @@ export default function FacilityAdminPage() {
   const [newUserRole, setNewUserRole] = useState('facilitator');
   const [newUserFacility, setNewUserFacility] = useState<FacilityType>('general-acute-care');
   const [addUserError, setAddUserError] = useState<string | null>(null);
-  const [addUserSuccess, setAddUserSuccess] = useState(false);
+  const [addingUser, setAddingUser] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(true);
 
   // Per-facility AI assistant switch (store setting, admin write).
   // Null = still loading; the toggle renders once the value lands.
@@ -92,6 +95,7 @@ export default function FacilityAdminPage() {
       // The assistant entry points cache the setting per page
       // load; drop the cache so this browser reflects the change.
       resetAiAssistantEnabledCache();
+      toast.success(next ? 'AI assistant enabled for this facility.' : 'AI assistant disabled for this facility.');
     } catch (err) {
       setAiToggleError(err instanceof Error ? err.message : 'Failed to update the AI assistant setting.');
     } finally {
@@ -113,6 +117,8 @@ export default function FacilityAdminPage() {
     } catch {
       setUsers([]);
       setAuditLogs([]);
+    } finally {
+      setAdminLoading(false);
     }
   };
 
@@ -133,13 +139,13 @@ export default function FacilityAdminPage() {
   const handleCreateUser = async (event: React.FormEvent) => {
     event.preventDefault();
     setAddUserError(null);
-    setAddUserSuccess(false);
 
     if (!newUserName.trim() || !newUserEmail.includes('@')) {
       setAddUserError('Enter a valid full name and work email address.');
       return;
     }
 
+    setAddingUser(true);
     try {
       await publicApiRequest('/admin/users', {
         method: 'POST',
@@ -160,10 +166,12 @@ export default function FacilityAdminPage() {
       setNewUserEmail('');
       setNewUserRole('facilitator');
       setNewUserFacility('psychiatric-inpatient');
-      setAddUserSuccess(true);
+      toast.success(`User invited - ${newUserEmail.trim().toLowerCase()} will set their password from the email link.`);
       await loadAdminData();
     } catch (err) {
       setAddUserError(err instanceof Error ? err.message : 'Failed to create user. Please try again.');
+    } finally {
+      setAddingUser(false);
     }
   };
 
@@ -305,18 +313,24 @@ export default function FacilityAdminPage() {
                   </select>
                 </div>
               </div>
-              <button type="submit" className="nyx-button-metal px-4 py-2 rounded-lg text-sm font-semibold" disabled={!canManageUsers}>
-                Add User
+              <button type="submit" className="nyx-button-metal px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed" disabled={!canManageUsers || addingUser}>
+                {addingUser ? <><span className="spinner" aria-hidden="true" /> Adding...</> : 'Add User'}
               </button>
               {addUserError && (
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{addUserError}</p>
-              )}
-              {addUserSuccess && (
-                <p className="text-xs text-green-700 dark:text-green-400 mt-1">User added successfully.</p>
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1" role="alert">{addUserError}</p>
               )}
             </form>
 
             <div className="mt-4 space-y-2">
+              {adminLoading ? (
+                <div aria-busy="true" aria-label="Loading users">
+                  {[0, 1].map((row) => <div key={row} className="skeleton-block h-14 rounded-lg mb-2" />)}
+                </div>
+              ) : users.length === 0 ? (
+                <p className="text-xs text-gray-500 dark:text-white/50 border border-dashed border-gray-300 dark:border-white/15 rounded-lg p-3">
+                  No users yet in this view. Add the first user above - they will receive an email to set their password.
+                </p>
+              ) : null}
               {users.slice(0, 8).map((u) => (
                 <div key={u.id} className="rounded-lg border border-gray-200 dark:border-white/10 p-3 flex items-center justify-between text-sm">
                   <div>
@@ -352,7 +366,11 @@ export default function FacilityAdminPage() {
 
             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2">Recent Audit Entries</h3>
             <div className="space-y-2">
-              {auditLogs.length === 0 ? (
+              {adminLoading ? (
+                <div aria-busy="true" aria-label="Loading audit entries">
+                  {[0, 1].map((row) => <div key={row} className="skeleton-block h-12 rounded-lg mb-2" />)}
+                </div>
+              ) : auditLogs.length === 0 ? (
                 <p className="text-xs text-gray-500 dark:text-white/50">No audit entries yet.</p>
               ) : (
                 auditLogs.map((log) => (

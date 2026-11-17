@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import EnterpriseFooter from './components/EnterpriseFooter';
 import Dashboard from './pages/Dashboard';
@@ -34,6 +34,7 @@ import GlobalAssistant from './components/GlobalAssistant';
 
 function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggleTheme: () => void }) {
   const { isAuthenticated, touchActivity, sessionRemainingMs, user } = useAuth();
+  const location = useLocation();
   const [sessionAlerted, setSessionAlerted] = useState(false);
   const sessionMinutes = Math.ceil(sessionRemainingMs / 60000);
 
@@ -77,7 +78,9 @@ function ProtectedLayout({ theme, onToggleTheme }: { theme: 'light' | 'dark'; on
           Session expires in {Math.max(1, sessionMinutes)} minute(s). Continue activity to keep your secure session alive.
         </div>
       )}
-      <main className="flex-1 animate-fade-in">
+      {/* Keyed by route so the fade-in replays on every navigation:
+          a small, consistent page transition across the whole app. */}
+      <main className="flex-1 animate-fade-in" key={location.pathname}>
         <Outlet />
       </main>
       <GlobalAssistant />

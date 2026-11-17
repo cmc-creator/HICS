@@ -31,12 +31,18 @@ export default function RequestDemoPage() {
   const [goals, setGoals] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; email?: string; organization?: string }>({});
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!name || !email.includes('@') || !organization) {
-      setError('Please provide name, organization, and a valid work email.');
+    const errors: { name?: string; email?: string; organization?: string } = {};
+    if (!name.trim()) errors.name = 'Enter your name.';
+    if (!email.includes('@')) errors.email = 'Enter a valid work email.';
+    if (!organization.trim()) errors.organization = 'Enter your organization.';
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setError('');
       return;
     }
 
@@ -93,15 +99,18 @@ export default function RequestDemoPage() {
             <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="lead-name" className="text-xs font-semibold text-gray-600">Full Name</label>
-                <input id="lead-name" value={name} onChange={(e) => setName(e.target.value)} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                <input id="lead-name" value={name} onChange={(e) => setName(e.target.value)} aria-invalid={fieldErrors.name ? true : undefined} aria-describedby={fieldErrors.name ? 'lead-name-error' : undefined} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                {fieldErrors.name && <p id="lead-name-error" className="text-xs text-red-600 mt-1" role="alert">{fieldErrors.name}</p>}
               </div>
               <div>
                 <label htmlFor="lead-email" className="text-xs font-semibold text-gray-600">Work Email</label>
-                <input id="lead-email" value={email} onChange={(e) => setEmail(e.target.value)} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                <input id="lead-email" value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={fieldErrors.email ? true : undefined} aria-describedby={fieldErrors.email ? 'lead-email-error' : undefined} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                {fieldErrors.email && <p id="lead-email-error" className="text-xs text-red-600 mt-1" role="alert">{fieldErrors.email}</p>}
               </div>
               <div>
                 <label htmlFor="lead-org" className="text-xs font-semibold text-gray-600">Organization</label>
-                <input id="lead-org" value={organization} onChange={(e) => setOrganization(e.target.value)} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                <input id="lead-org" value={organization} onChange={(e) => setOrganization(e.target.value)} aria-invalid={fieldErrors.organization ? true : undefined} aria-describedby={fieldErrors.organization ? 'lead-org-error' : undefined} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                {fieldErrors.organization && <p id="lead-org-error" className="text-xs text-red-600 mt-1" role="alert">{fieldErrors.organization}</p>}
               </div>
               <div>
                 <label htmlFor="lead-size" className="text-xs font-semibold text-gray-600">Team Size</label>
@@ -125,10 +134,10 @@ export default function RequestDemoPage() {
                 <label htmlFor="lead-goals" className="text-xs font-semibold text-gray-600">Primary Goals</label>
                 <textarea id="lead-goals" value={goals} onChange={(e) => setGoals(e.target.value)} rows={4} className="nyx-input mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Tell us what incidents, teams, or compliance targets you need to cover." />
               </div>
-              {error && <p className="md:col-span-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+              {error && <p className="md:col-span-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert">{error}</p>}
               <div className="md:col-span-2 flex gap-2">
                 <button type="submit" disabled={submitting} className="nyx-button-metal px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed">
-                  {submitting ? 'Submitting...' : 'Submit Demo Request'}
+                  {submitting ? <><span className="spinner" aria-hidden="true" /> Submitting...</> : 'Submit Demo Request'}
                 </button>
                 <Link to="/" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">Back to Home</Link>
               </div>

@@ -324,6 +324,18 @@ html.dark .fun-callout {
 		transition: none !important;
 		transform: none !important;
 	}
+
+	/* Every other animation in the app (orbs, sheens, metallic
+	   borders, gradients, skeletons, toasts) also stands down:
+	   reduced motion means reduced motion, everywhere. */
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
 }
 
 /* Dark theme overrides for common utility classes used throughout the app */
@@ -1002,6 +1014,72 @@ html.dark .toast-info .toast-icon { color: #e7cf8f; }
 	font-family: "Segoe Script", "Bradley Hand", "Brush Script MT", Georgia, serif;
 	font-style: italic;
 	letter-spacing: 0.01em;
+}
+
+/* ---- Polish utilities (UI/UX pass) ---- */
+
+/* Comfortable reading measure for long-form text (Learning
+   Center modules, legal pages, agreement-adjacent copy). */
+.prose-comfort {
+	max-width: 72ch;
+	line-height: 1.7;
+}
+
+/* Roomier line height for every paragraph/list inside a
+   long-form panel (privacy policy, terms). */
+.relaxed-copy p,
+.relaxed-copy li {
+	line-height: 1.7;
+}
+
+/* Inline spinner for submit/working states. Uses currentColor so
+   it inherits the button's text color in both themes. */
+.spinner {
+	display: inline-block;
+	width: 0.95em;
+	height: 0.95em;
+	border-radius: 9999px;
+	border: 2px solid currentColor;
+	border-top-color: transparent;
+	animation: spin 700ms linear infinite;
+	vertical-align: -0.12em;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
+/* Invalid fields announce themselves visually as well as through
+   their inline error text (paired with aria-invalid). */
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+	border-color: #dc2626 !important;
+	box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.35);
+}
+
+html.dark input[aria-invalid="true"],
+html.dark select[aria-invalid="true"],
+html.dark textarea[aria-invalid="true"] {
+	border-color: #f87171 !important;
+	box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.35);
+}
+
+/* Scenario player progress: a soft light sweep rides the bar so
+   progress feels alive without moving anything else. */
+.training-progress-bar {
+	position: relative;
+	overflow: hidden;
+}
+
+.training-progress-bar::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+	transform: translateX(-130%);
+	animation: sheenSweep 2.8s ease-in-out infinite;
+	pointer-events: none;
 }
 
 /* ---- Print: signed-copy view prints the document alone ---- */

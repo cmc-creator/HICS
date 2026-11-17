@@ -14,6 +14,7 @@ import { useAuth } from '../lib/authContext';
 import { publicApiRequest } from '../lib/apiClient';
 import { getAchievementSummary, getFacilityLeaderboard } from '../lib/gamification';
 import { writeAuditLog } from '../lib/notifications';
+import { useToast } from '../lib/toast';
 
 interface AuditLogEntry {
   id: string;
@@ -72,6 +73,7 @@ function downloadCertificate(userName: string, attempt: ScenarioAttempt) {
 
 export default function TrainingReports() {
   const { facility, canManageData, canExportReports } = useTenant();
+  const toast = useToast();
   const { user } = useAuth();
   const [attempts, setAttempts] = useState<ScenarioAttempt[]>([]);
   const [eventCounts, setEventCounts] = useState<Array<{ event: string; count: number }>>([]);
@@ -132,12 +134,14 @@ export default function TrainingReports() {
     link.click();
     URL.revokeObjectURL(url);
     await writeAuditLog('report_csv_exported', { facility, rows: scopedAttempts.length });
+    toast.success(`CSV exported - ${scopedAttempts.length} attempt${scopedAttempts.length === 1 ? '' : 's'} included.`);
   };
 
   const handleClear = async () => {
     await Promise.all([clearScenarioAttempts(), clearEvents()]);
     await writeAuditLog('report_data_cleared', { facility });
     await reload();
+    toast.info('Training data cleared for this view.');
   };
 
   const handleCertificate = async () => {
@@ -147,6 +151,7 @@ export default function TrainingReports() {
 
     const bestAttempt = [...scopedAttempts].sort((a, b) => b.scorePercent - a.scorePercent)[0];
     downloadCertificate(user?.fullName ?? 'HICS Learner', bestAttempt);
+    toast.success('Certificate downloaded.');
     await writeAuditLog('certificate_generated', {
       scenarioId: bestAttempt.scenarioId,
       scorePercent: bestAttempt.scorePercent,

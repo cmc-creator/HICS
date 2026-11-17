@@ -17,7 +17,7 @@ export default function PrivacyPage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-12">
-        <div className="nyx-panel p-8 space-y-8">
+        <div className="nyx-panel p-8 space-y-8 relaxed-copy">
           <div>
             <p className="text-xs font-bold tracking-[0.2em] text-gray-500 dark:text-white/50">LEGAL</p>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{PRODUCT} Privacy Policy</h1>

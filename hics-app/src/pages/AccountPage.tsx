@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../lib/authContext';
 import { useTenant } from '../lib/tenantContext';
 import { publicApiRequest } from '../lib/apiClient';
+import { useToast } from '../lib/toast';
 
 interface MfaStatus {
   mfaEnabled: boolean;
@@ -16,6 +17,7 @@ interface MfaStatus {
 // codes are shown exactly once.
 export default function AccountPage() {
   const { user } = useAuth();
+  const toast = useToast();
   const { roleOptions } = useTenant();
 
   const [status, setStatus] = useState<MfaStatus | null>(null);
@@ -74,6 +76,7 @@ export default function AccountPage() {
         body: JSON.stringify({ code: confirmCode.trim() }),
       });
       setRecoveryCodes(result.recoveryCodes);
+      toast.success('Two-factor authentication is on. Save your recovery codes now - they are shown only once.');
       setEnrollment(null);
       setConfirmCode('');
       await loadStatus();
@@ -96,6 +99,7 @@ export default function AccountPage() {
       });
       setDisableCode('');
       setActionMessage('Two-factor authentication is now off for your account.');
+      toast.info('Two-factor authentication is now off for your account.');
       await loadStatus();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Could not disable MFA.');
@@ -147,6 +151,12 @@ export default function AccountPage() {
           </p>
 
           {statusError && <p className="text-sm text-red-600 dark:text-red-400" role="alert">{statusError}</p>}
+          {!status && !statusError && (
+            <div aria-busy="true" aria-label="Loading security settings" className="space-y-2">
+              <div className="skeleton-block h-5 rounded w-2/3" />
+              <div className="skeleton-block h-10 rounded w-1/3" />
+            </div>
+          )}
           {actionMessage && <p className="text-sm text-green-700 dark:text-green-400 mb-3" role="status">{actionMessage}</p>}
           {actionError && <p className="text-sm text-red-600 dark:text-red-400 mb-3" role="alert">{actionError}</p>}
 

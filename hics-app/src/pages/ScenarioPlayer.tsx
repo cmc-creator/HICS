@@ -703,7 +703,15 @@ export default function ScenarioPlayer() {
               {timedMode && <span className="font-semibold text-gray-700">Timer: {secondsLeft}s</span>}
             </div>
           </div>
-          <div className="w-full bg-gray-200/70 rounded-full h-2.5">
+          <div
+            className="w-full bg-gray-200/70 rounded-full h-2.5"
+            role="progressbar"
+            aria-label="Scenario progress"
+            aria-valuemin={0}
+            aria-valuemax={scenario.steps.length}
+            aria-valuenow={currentStepIndex + 1}
+            aria-valuetext={`Step ${currentStepIndex + 1} of ${scenario.steps.length}`}
+          >
             <div
               className="training-progress-bar h-2.5 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}

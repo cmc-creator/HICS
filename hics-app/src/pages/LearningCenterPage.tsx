@@ -281,7 +281,7 @@ export default function LearningCenterPage() {
             <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-[0.14em]">Storyboard Frame</p>
               <p className="text-lg font-bold text-gray-900 mt-1">{frame.title}</p>
-              <p className="text-sm text-gray-700 mt-1">{frame.cue}</p>
+              <p className="text-sm text-gray-700 mt-1 prose-comfort">{frame.cue}</p>
               <p className="text-xs text-gray-500 mt-2">Suggested narration time: {frame.seconds}s</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
@@ -303,7 +303,7 @@ export default function LearningCenterPage() {
 
             <div className="mt-4">
               <h3 className="text-sm font-bold text-gray-800 mb-2">Learning Objectives</h3>
-              <ul className="space-y-2 text-sm text-gray-700">
+              <ul className="space-y-2 text-sm text-gray-700 prose-comfort">
                 {activeModule.objectives.map((objective) => (
                   <li key={objective} className="rounded-lg border border-gray-200 bg-white p-3">{objective}</li>
                 ))}
@@ -320,18 +320,21 @@ export default function LearningCenterPage() {
                 <input
                   value={uploadTitle}
                   onChange={(event) => setUploadTitle(event.target.value)}
+                  aria-label="Video title"
                   placeholder="Video title"
                   className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
                 />
                 <input
                   value={streamUrl}
                   onChange={(event) => setStreamUrl(event.target.value)}
+                  aria-label="Direct stream URL"
                   placeholder="https://... direct stream URL"
                   className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
                 />
                 <input
                   value={uploadDescription}
                   onChange={(event) => setUploadDescription(event.target.value)}
+                  aria-label="Video description (optional)"
                   placeholder="Description (optional)"
                   className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
                 />

@@ -34,6 +34,12 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
     ...(isAdmin ? [{ path: '/admin', label: 'Admin', icon: publicAsset('lux-icons/admin.svg') }] : []),
     ...(isEnterpriseAdmin ? [{ path: '/admin/contracts', label: 'Contracts', icon: publicAsset('lux-icons/reports.svg') }] : []),
   ];
+  // Active state follows the LONGEST matching nav path, so
+  // /admin/contracts/123 lights up Contracts, not Admin, while
+  // /scenarios/4 still lights up Scenarios.
+  const activeNavPath = navItems
+    .filter((item) => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`))
+    .sort((a, b) => b.path.length - a.path.length)[0]?.path;
 
   return (
     <nav className="sticky top-0 z-50 text-white shadow-lg border-b border-white/10 backdrop-blur-xl lux-nav-shell" aria-label="Primary">
@@ -115,8 +121,9 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
               <Link
                 key={item.path}
                 to={item.path}
+                aria-current={activeNavPath === item.path ? 'page' : undefined}
                 className={`touch-target flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap lux-nav-link lux-nav-item ${
-                  location.pathname === item.path
+                  activeNavPath === item.path
                     ? 'text-white lux-nav-active'
                     : 'text-stone-200 hover:bg-white/10 hover:text-white'
                 }`}
@@ -138,8 +145,9 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
                   key={item.path}
                   to={item.path}
                   onClick={() => setMobileOpen(false)}
+                  aria-current={activeNavPath === item.path ? 'page' : undefined}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    location.pathname === item.path
+                    activeNavPath === item.path
                       ? 'text-white lux-nav-active'
                       : 'text-stone-200 hover:bg-white/10 hover:text-white'
                   }`}

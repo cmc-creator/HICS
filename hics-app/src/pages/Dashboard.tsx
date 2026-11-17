@@ -7,6 +7,7 @@ import { getScenarioAttempts, getTrainingSummary, type ScenarioAttempt } from '.
 import { getAchievementSummary, getFacilityLeaderboard } from '../lib/gamification';
 import { writeAuditLog } from '../lib/notifications';
 import { publicAsset } from '../lib/publicAsset';
+import { useCountUp } from '../lib/useCountUp';
 
 const ONBOARDING_KEY = 'nyx-first-run-complete';
 
@@ -92,12 +93,20 @@ const quickLinks = [
   },
 ];
 
+function AnimatedStat({ value, suffix = '' }: { value: number; suffix?: string }) {
+  const animated = useCountUp(value);
+  return <>{animated}{suffix}</>;
+}
+
 export default function Dashboard() {
   const [attempts, setAttempts] = useState<ScenarioAttempt[]>([]);
+  const [attemptsLoaded, setAttemptsLoaded] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    void getScenarioAttempts().then(setAttempts);
+    void getScenarioAttempts()
+      .then(setAttempts)
+      .finally(() => setAttemptsLoaded(true));
 
     const alreadySeen = localStorage.getItem(ONBOARDING_KEY) === 'true';
     if (!alreadySeen) {
@@ -173,7 +182,7 @@ export default function Dashboard() {
                 <img src={stat.icon} alt="" className="h-7 w-7 object-contain" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white"><AnimatedStat value={stat.value} /></div>
                 <div className="text-sm text-gray-500 dark:text-white/60">{stat.label}</div>
               </div>
             </Link>
@@ -202,20 +211,34 @@ export default function Dashboard() {
 
         <div className="bg-white dark:bg-white/5 rounded-xl shadow-sm p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Learner Progress Snapshot</h2>
+          {!attemptsLoaded ? (
+            <div className="grid sm:grid-cols-3 gap-4" aria-busy="true" aria-label="Loading your progress">
+              {[0, 1, 2].map((tile) => (
+                <div key={tile} className="skeleton-block h-[74px] rounded-lg" />
+              ))}
+            </div>
+          ) : attempts.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-gray-300 dark:border-white/15 p-5 text-center">
+              <p className="text-sm font-semibold text-gray-800 dark:text-white">No training attempts yet</p>
+              <p className="text-sm text-gray-500 dark:text-white/50 mt-1">Your scores, streaks, and facility rankings will appear here after your first scenario.</p>
+              <Link to="/scenarios" className="nyx-button-metal inline-block px-4 py-2 rounded-lg text-sm font-semibold mt-3">Run your first scenario</Link>
+            </div>
+          ) : (
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="rounded-lg border border-gray-200 dark:border-white/10 p-4">
               <div className="text-xs text-gray-500 dark:text-white/50">Attempts Logged</div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">{progressSummary.totalAttempts}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white"><AnimatedStat value={progressSummary.totalAttempts} /></div>
             </div>
             <div className="rounded-lg border border-gray-200 dark:border-white/10 p-4">
               <div className="text-xs text-gray-500 dark:text-white/50">Average Score</div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">{progressSummary.averageScore}%</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white"><AnimatedStat value={progressSummary.averageScore} suffix="%" /></div>
             </div>
             <div className="rounded-lg border border-gray-200 dark:border-white/10 p-4">
               <div className="text-xs text-gray-500 dark:text-white/50">Best Score</div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">{progressSummary.bestScore}%</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white"><AnimatedStat value={progressSummary.bestScore} suffix="%" /></div>
             </div>
           </div>
+          )}
           <div className="mt-4">
             <Link to="/reports" className="text-blue-600 hover:text-blue-800 text-sm font-medium">Open full training reports →</Link>
           </div>

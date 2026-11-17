@@ -12,10 +12,10 @@ import { useCountUp } from '../lib/useCountUp';
 const ONBOARDING_KEY = 'nyx-first-run-complete';
 
 const stats = [
-  { label: 'HICS Roles', value: hicsRoles.length, icon: publicAsset('lux-icons/roles.svg'), color: 'bg-blue-500', path: '/roles' },
-  { label: 'Training Scenarios', value: scenarios.length, icon: publicAsset('lux-icons/scenarios.svg'), color: 'bg-green-500', path: '/scenarios' },
-  { label: 'Quiz Questions', value: quizQuestions.length, icon: publicAsset('lux-icons/quiz.svg'), color: 'bg-purple-500', path: '/quiz' },
-  { label: 'HICS Sections', value: 5, icon: publicAsset('lux-icons/admin.svg'), color: 'bg-red-500', path: '/roles' },
+  { label: 'HICS Roles', value: hicsRoles.length, icon: publicAsset('lux-icons/roles.svg'), path: '/roles' },
+  { label: 'Training Scenarios', value: scenarios.length, icon: publicAsset('lux-icons/scenarios.svg'), path: '/scenarios' },
+  { label: 'Quiz Questions', value: quizQuestions.length, icon: publicAsset('lux-icons/quiz.svg'), path: '/quiz' },
+  { label: 'HICS Sections', value: 5, icon: publicAsset('lux-icons/admin.svg'), path: '/roles' },
 ];
 
 const quickLinks = [
@@ -24,7 +24,6 @@ const quickLinks = [
     title: 'Explore HICS Roles',
     description: 'Learn about each position in the HICS organizational structure, including responsibilities and reporting relationships.',
     icon: publicAsset('lux-icons/roles.svg'),
-    color: 'border-blue-500',
     badge: 'Interactive Chart',
   },
   {
@@ -32,7 +31,6 @@ const quickLinks = [
     title: 'Training Scenarios',
     description: 'Practice responding to real-world hospital emergencies including mass casualty incidents, fires, and hazmat events.',
     icon: publicAsset('lux-icons/scenarios.svg'),
-    color: 'border-green-500',
     badge: `${scenarios.length} Scenarios`,
   },
   {
@@ -40,7 +38,6 @@ const quickLinks = [
     title: 'Knowledge Quiz',
     description: 'Test your HICS knowledge with scenario-based questions covering triage, protocols, and emergency management.',
     icon: publicAsset('lux-icons/quiz.svg'),
-    color: 'border-purple-500',
     badge: `${quizQuestions.length} Questions`,
   },
   {
@@ -48,7 +45,6 @@ const quickLinks = [
     title: 'AI Training Assistant',
     description: 'Ask questions and get instant answers about HICS protocols, procedures, and best practices from our AI assistant.',
     icon: publicAsset('lux-icons/assistant.svg'),
-    color: 'border-orange-500',
     badge: '24/7 Available',
   },
   {
@@ -56,7 +52,6 @@ const quickLinks = [
     title: 'Facilitator Quick Start',
     description: 'Launch guided setup, debrief prompts, and a practical 30-minute training flow for team leads.',
     icon: publicAsset('lux-icons/guide.svg'),
-    color: 'border-amber-500',
     badge: 'Session Guide',
   },
   {
@@ -64,7 +59,6 @@ const quickLinks = [
     title: 'Training Reports',
     description: 'Review completion trends, score performance, and export facilitator-friendly training records.',
     icon: publicAsset('lux-icons/reports.svg'),
-    color: 'border-slate-500',
     badge: 'CSV Export',
   },
   {
@@ -72,7 +66,6 @@ const quickLinks = [
     title: 'Learning Center',
     description: 'Walk through storyboard-style training modules with guided frames and role-based objectives.',
     icon: publicAsset('lux-icons/scenarios.svg'),
-    color: 'border-cyan-500',
     badge: 'Storyboard Modules',
   },
   {
@@ -80,7 +73,6 @@ const quickLinks = [
     title: 'Rapid Challenge',
     description: 'Play a timed mini-game with streak multipliers to sharpen high-pressure command decisions.',
     icon: publicAsset('lux-icons/quiz.svg'),
-    color: 'border-indigo-500',
     badge: 'Timed Mode',
   },
   {
@@ -88,7 +80,6 @@ const quickLinks = [
     title: 'Live Drill Control',
     description: 'Run facilitator-led sessions with phase control, role assignments, and live announcements.',
     icon: publicAsset('lux-icons/guide.svg'),
-    color: 'border-rose-500',
     badge: 'Facilitator Mode',
   },
 ];
@@ -147,24 +138,20 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-12 px-4 relative overflow-hidden">
+      <div className="nyx-hero text-white">
         <div className="lux-grid-pattern" />
         <div className="lux-orb lux-orb-a" />
         <div className="lux-orb lux-orb-b" />
         <div className="max-w-7xl mx-auto">
           <div className="lux-hero-shell">
-            <div className="flex items-center gap-4 mb-4">
-              <span className="h-14 w-14 rounded-xl overflow-hidden border border-white/45 bg-white/90 shadow-lg flex items-center justify-center">
-                <img src={publicAsset('hicslogo.png')} alt="HICS" className="h-12 w-12 object-contain" />
-              </span>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold lux-title">NyxHICSlab</h1>
-                <p className="text-blue-100/95 text-base md:text-lg lux-subtitle">Enterprise hospital incident command simulation platform</p>
-              </div>
-            </div>
-            <p className="text-blue-100/95 max-w-3xl text-base leading-relaxed">
-              Prepare behavioral health teams for real-world incidents with premium interactive scenarios, role-based training,
-              and an AI assistant designed for psychiatric inpatient operations.
+            {/* No logo here (UI review B4): the header carries the
+                one logo lockup; this hero leads with the pitch. */}
+            <h1 className="text-3xl md:text-4xl font-bold lux-title">Hospital incident command training for every facility type</h1>
+            <p className="text-amber-50/90 text-base md:text-lg lux-subtitle mt-2">Interactive HICS scenarios, role-based drills, and audit-ready training records</p>
+            <p className="text-amber-50/90 max-w-3xl text-base leading-relaxed mt-4">
+              Prepare your teams for real-world incidents with interactive scenarios, role-based training, and an AI
+              assistant - built for general acute care and community hospitals, long-term care, and ambulatory centers,
+              with deep behavioral health and psychiatric inpatient content as a specialty strength.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/scenarios" className="lux-button-primary px-5 py-2.5 font-semibold">Start Training</Link>
@@ -178,7 +165,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 motion-stagger">
           {stats.map((stat) => (
             <Link key={stat.label} to={stat.path} className="lux-stat-card p-5 flex items-center gap-4 card-lift hover:shadow-md transition-shadow">
-              <div className={`${stat.color} text-white rounded-xl p-2.5 flex items-center justify-center w-12 h-12 shadow-lg`}>
+              <div className="stat-chip rounded-xl p-2.5 flex items-center justify-center w-12 h-12">
                 <img src={stat.icon} alt="" className="h-7 w-7 object-contain" />
               </div>
               <div>
@@ -195,7 +182,7 @@ export default function Dashboard() {
             <Link
               key={link.path}
               to={link.path}
-              className={`bg-white dark:bg-white/5 rounded-xl shadow-sm p-6 border-l-4 ${link.color} hover:shadow-md transition-all group card-lift`}
+              className="bg-white dark:bg-white/5 rounded-xl shadow-sm p-6 border-l-4 border-l-amber-700/60 dark:border-l-amber-300/50 hover:shadow-md transition-all group card-lift"
             >
               <div className="flex items-start justify-between mb-3">
                 <span className="rounded-lg bg-slate-900/90 text-white p-2.5">
@@ -203,7 +190,7 @@ export default function Dashboard() {
                 </span>
                 <span className="text-xs bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white/70 px-2 py-1 rounded-full font-medium">{link.badge}</span>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-700 transition-colors">{link.title}</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-[#5f4390] dark:group-hover:text-[#d3c2f0] transition-colors">{link.title}</h3>
               <p className="text-gray-600 dark:text-white/70 text-sm leading-relaxed">{link.description}</p>
             </Link>
           ))}
@@ -240,7 +227,7 @@ export default function Dashboard() {
           </div>
           )}
           <div className="mt-4">
-            <Link to="/reports" className="text-blue-600 hover:text-blue-800 text-sm font-medium">Open full training reports →</Link>
+            <Link to="/reports" className="nyx-link text-sm">Open full training reports →</Link>
           </div>
         </div>
 

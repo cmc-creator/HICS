@@ -86,13 +86,19 @@ export function normalizeFacility(value: string | null): FacilityType {
 }
 
 export function adaptScenarioText(text: string, facility: FacilityType): string {
-  if (facility === 'all' || facility === 'psychiatric-inpatient') {
+  if (facility === 'psychiatric-inpatient') {
     return text;
   }
 
   let adapted = text;
 
-  if (facility === 'general-acute-care') {
+  // 'All Facilities' is the default, general-audience view, so it
+  // deliberately gets the general-acute-care wording (UI review
+  // P16). The psychiatric-inpatient wording now appears only when
+  // that profile is explicitly selected - previously 'all'
+  // silently kept the psychiatric text, which made the whole
+  // product read as psych-only.
+  if (facility === 'general-acute-care' || facility === 'all') {
     adapted = adapted
       .replace(/locked psychiatric inpatient unit/gi, 'high-observation inpatient unit')
       .replace(/locked psych unit/gi, 'high-observation unit')

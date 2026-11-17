@@ -11,6 +11,15 @@ export default async function handler(req, res) {
     return json(res, 405, { error: 'Method not allowed' });
   }
 
+  // Customer deployments (CUSTOMER_DEPLOYMENT=true) are working
+  // training systems, not sales sites: the Request Demo endpoint
+  // does not exist there, so a stray submission can never persist
+  // a demo lead into a customer's store. The public site leaves
+  // the variable unset and behaves exactly as before.
+  if (process.env.CUSTOMER_DEPLOYMENT === 'true') {
+    return json(res, 404, { error: 'Not found' });
+  }
+
   if (!enforceRateLimit(req, res, { scope: 'sales-leads', maxRequests: 10, windowMs: 60 * 60 * 1000 })) {
     return;
   }

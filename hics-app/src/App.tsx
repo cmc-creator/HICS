@@ -27,6 +27,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import { TenantProvider } from './lib/tenantContext';
+import { IS_CUSTOMER_DEPLOYMENT } from './lib/deployment';
 import { AuthProvider, useAuth } from './lib/authContext';
 import { ToastProvider } from './lib/toast';
 import { sendNotification } from './lib/notifications';
@@ -121,10 +122,12 @@ function AppRoutes({ theme, onToggleTheme }: { theme: 'light' | 'dark'; onToggle
 
   return (
     <Routes>
-      <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage theme={theme} onToggleTheme={onToggleTheme} />} />
+      {/* Customer deployments skip the marketing landing entirely:
+          the front door is the sign-in page (lib/deployment.ts). */}
+      <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : IS_CUSTOMER_DEPLOYMENT ? <LoginPage theme={theme} onToggleTheme={onToggleTheme} /> : <LandingPage theme={theme} onToggleTheme={onToggleTheme} />} />
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage theme={theme} onToggleTheme={onToggleTheme} />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
-      <Route path="/request-demo" element={<RequestDemoPage />} />
+      <Route path="/request-demo" element={IS_CUSTOMER_DEPLOYMENT ? <Navigate to="/login" replace /> : <RequestDemoPage />} />
       <Route path="/health" element={<HealthCheckPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />

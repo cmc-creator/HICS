@@ -210,6 +210,31 @@ const savedLead = storeAfterLead.leads.find((lead) => lead.email === leadEmail);
 assert.ok(savedLead, 'posted lead is persisted in the store');
 assert.equal(savedLead.id, leadPosted.body.leadId, 'persisted lead matches the returned id');
 
+// --- Customer-deployment mode: with CUSTOMER_DEPLOYMENT=true
+// the demo-lead endpoint does not exist (404) and nothing is
+// persisted into what would be a customer's store. With the
+// flag off again, B6 behavior above is unchanged.
+process.env.CUSTOMER_DEPLOYMENT = 'true';
+const customerLeadEmail = `customer.mode+${runId}@example.com`;
+const customerLead = await call(leads, createBaseReq('POST', {
+  name: 'Should Not Persist',
+  email: customerLeadEmail,
+  organization: 'Customer Health System',
+}));
+assert.equal(customerLead.status, 404, `customer-deployment lead post should 404 (got ${customerLead.status})`);
+const storeAfterCustomerLead = await getStore();
+assert.ok(
+  !storeAfterCustomerLead.leads.some((lead) => lead.email === customerLeadEmail),
+  'customer-deployment lead must not be persisted',
+);
+delete process.env.CUSTOMER_DEPLOYMENT;
+const leadAfterModeOff = await call(leads, createBaseReq('POST', {
+  name: 'Public Site Buyer',
+  email: `public.mode+${runId}@example.com`,
+  organization: 'Example Health System',
+}));
+assert.equal(leadAfterModeOff.status, 201, 'lead posts work again once customer mode is off');
+
 // --- B7: /api/chat refuses unauthenticated calls before any
 // provider work happens.
 const chatRefused = await call(chat, createBaseReq('POST', { message: 'How do I run a drill?' }));

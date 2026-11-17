@@ -36,7 +36,7 @@ html.dark {
 }
 
 body {
-	font-family: "Aptos Display", "Aptos", "Segoe UI Variable Display", "Bahnschrift", sans-serif;
+	font-family: "Inter", "Aptos", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
 	background: var(--app-bg);
 	color: var(--text-main);
 	transition: background-color 240ms ease, color 240ms ease;
@@ -46,7 +46,7 @@ h1,
 h2,
 h3,
 .lux-brand-title {
-	font-family: "Aptos Display", "Bahnschrift", "Segoe UI Variable Display", sans-serif;
+	font-family: "Libre Franklin", "Inter", "Aptos Display", "Segoe UI Variable Display", sans-serif;
 	letter-spacing: -0.03em;
 	text-wrap: balance;
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-16 - Beef-up step 4, batch 2: five more Situation Briefing videos
+
+### Added
+- **Briefing videos for five more scenarios:** power-failure, pediatric-surge, water-contamination, supply-chain, ed-overcrowding. Same recipe as batch 1: each is a 10-second animation of that scenario's still (slow cinematic push-in with scene-true atmosphere - pulsing emergency lights and a flashlight sweep in the dark corridor, slow water drips at the utility pipes, drifting dust in the storeroom light, blinking monitor lights in the crowded ED hallway), compressed for the web at 720p with no audio track, 0.9-1.3 MB each. Five entries added to the `scenarioBriefings` map in `src/data/scenarioImages.ts`; no other code change. The mp4 files are uploaded to the repository separately from this code change (the connector cannot carry binaries); the player hides the briefing panel gracefully until a file lands.
+- **Batch 2 note:** patient-elopement's video generation failed in the media pipeline and produced no file, so it has no map entry yet. It carries into the next batch; until then its runs start exactly as before.
+
 ## 2026-11-16 - Beef-up step 4: Situation Briefing videos (player support + batch 1)
 
 ### Added

@@ -51,6 +51,11 @@ export const scenarioBriefings: Record<string, string> = {
   'cyber-attack': publicAsset('briefings/cyber-attack.mp4'),
   'active-shooter-lockdown': publicAsset('briefings/active-shooter-lockdown.mp4'),
   'severe-weather': publicAsset('briefings/severe-weather.mp4'),
+  'power-failure': publicAsset('briefings/power-failure.mp4'),
+  'pediatric-surge': publicAsset('briefings/pediatric-surge.mp4'),
+  'water-contamination': publicAsset('briefings/water-contamination.mp4'),
+  'supply-chain': publicAsset('briefings/supply-chain.mp4'),
+  'ed-overcrowding': publicAsset('briefings/ed-overcrowding.mp4'),
 };
 
 export function getScenarioBriefing(id: string): string | undefined {

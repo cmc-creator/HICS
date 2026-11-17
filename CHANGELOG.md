@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-11-16 - Beef-up steps 2 and 3: After-Action Reports and designed certificates
+
+### Added
+- **After-Action Report (AAR):** a branded, print-optimized report a facility can save or print as PDF, rendered in the app's established print-window pattern (no new PDF library) as a clean light document from either app theme. It carries the NyxHICSlab header with the facility name and organization, the exercise title and date, the facilitator and the participant list with HICS roles, a scores summary band (score, correct/total decisions, branch outcome, challenge multiplier, earned badges), the exercise objectives, strengths and improvement items derived from the recorded run, and the generated-by footer with the NyxHICSlab(TM) mark and the Nyx Collective LLC copyright. Entry points:
+  - **Training Reports:** a per-attempt AAR button on every row of the attempts table. Historical attempts do not store per-step answers, so this report builds its strengths and improvement items from the stored aggregates (correct/total decisions, branch outcome, badges, score band) and leaves ruled lines for facilitator notes.
+  - **Scenario completion screen:** an After-Action Report button next to Print Certificate, with the full decision timeline - every step, the choice made, whether it matched the recommended action, and the scenario's feedback - plus hint/reveal usage folded into the findings.
+  - **Live Drill Control Room:** a Print After-Action Report button with the session code, phase reached, elapsed time, role assignments, and the session's timestamped event feed in chronological order.
+  - Report generation is audit-logged from Training Reports (`after_action_report_generated`) and tracked as a training event from the completion screen, matching each surface's existing pattern.
+- **Shared print library:** `src/lib/printDocuments.ts` holds the print-window plumbing, HTML escaping, and both document renderers, so certificates and AARs stay visually consistent and are fixed in one place.
+
+### Changed
+- **Designed certificates:** the two plain print certificates (scenario completion screen and Training Reports) are replaced by one shared branded renderer used by both call sites, with the same buttons, triggers, and data. The new certificate is landscape: a deep-plum frame with a gold inner border, the NyxHICSlab logo and wordmark, a gold seal (inline SVG, no external assets), the recipient name over a gold rule, the scenario title, a plum score pill, a facility/completed/duration meta row (facility now prints as its label, not the raw profile key), a facilitator signature line, and the Nyx Collective LLC footer.
+- The frontend `ScenarioAttempt` type now declares the `learnerName`, `learnerEmail`, and `organization` fields the API already stores and returns, so reports can use them.
+
 ## 2026-11-16 - Beef-up step 1: cinematic scenario imagery
 
 Every one of the 20 training scenarios now has a photorealistic cinematic header image (hospital emergency response and incident command scenes, one consistent plum-and-amber grade, no text or logos in frame, no graphic medical content). Images are 1600px JPEGs in `hics-app/public/scenarios/<scenario-id>.jpg`, about 150 KB each, about 2.9 MB total.

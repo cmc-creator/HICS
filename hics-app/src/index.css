@@ -589,6 +589,47 @@ html.dark .shadow-lg {
 	}
 }
 
+/* Situation Briefing video (beef-up step 4): same frame language as the
+   scenario hero still, plus a poster play affordance used when the
+   visitor prefers reduced motion and the video waits for a tap. */
+.scenario-briefing-video {
+	display: block;
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+	border: 1px solid var(--surface-border);
+	border-radius: 0.75rem;
+	background: #120a18;
+}
+
+.scenario-briefing-play {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.6rem;
+	border: none;
+	border-radius: 0.75rem;
+	background: rgba(18, 10, 24, 0.38);
+	color: #ffffff;
+	cursor: pointer;
+}
+
+.scenario-briefing-play-disc {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 64px;
+	height: 64px;
+	border-radius: 9999px;
+	padding-left: 4px;
+	background: linear-gradient(140deg, #c9a45c, #a3824d);
+	color: #1d1425;
+	box-shadow: 0 10px 24px rgba(18, 10, 24, 0.45);
+}
+
 .training-progress-shell {
 	overflow: hidden;
 }

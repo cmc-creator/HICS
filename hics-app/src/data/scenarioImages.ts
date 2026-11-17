@@ -34,3 +34,25 @@ export const scenarioImages: Record<string, string> = {
 export function getScenarioImage(id: string): string | undefined {
   return scenarioImages[id];
 }
+
+/**
+ * Situation Briefing videos (beef-up step 4, 2026-11-16). Short ambient
+ * animations of the scenario still, served from public/briefings/<id>.mp4.
+ * Batch 1 covers the six flagship scenarios; the other fourteen can get
+ * briefings in later batches without any code change beyond this map.
+ * ScenarioPlayer shows the briefing panel only for ids present here, and
+ * the ScenarioBriefing component hides itself if the file fails to load,
+ * so a missing video never changes the run.
+ */
+export const scenarioBriefings: Record<string, string> = {
+  'mass-casualty': publicAsset('briefings/mass-casualty.mp4'),
+  'hospital-fire': publicAsset('briefings/hospital-fire.mp4'),
+  hazmat: publicAsset('briefings/hazmat.mp4'),
+  'cyber-attack': publicAsset('briefings/cyber-attack.mp4'),
+  'active-shooter-lockdown': publicAsset('briefings/active-shooter-lockdown.mp4'),
+  'severe-weather': publicAsset('briefings/severe-weather.mp4'),
+};
+
+export function getScenarioBriefing(id: string): string | undefined {
+  return scenarioBriefings[id];
+}

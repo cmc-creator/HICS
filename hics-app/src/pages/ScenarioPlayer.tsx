@@ -21,6 +21,8 @@ import {
 import { sendNotification } from '../lib/notifications';
 import { useAuth } from '../lib/authContext';
 import ScenarioImage from '../components/ScenarioImage';
+import ScenarioBriefing from '../components/ScenarioBriefing';
+import { getScenarioBriefing } from '../data/scenarioImages';
 
 const FACILITATOR_KEY = 'nyx-facilitator-mode';
 const TIMED_KEY = 'nyx-timed-mode';
@@ -104,6 +106,8 @@ export default function ScenarioPlayer() {
   const [isPaused, setIsPaused] = useState(false);
   const [timeoutNotice, setTimeoutNotice] = useState<string | null>(null);
   const [momentQuip, setMomentQuip] = useState<string>('');
+  const [briefingDone, setBriefingDone] = useState(false);
+  const [briefingUnavailable, setBriefingUnavailable] = useState(false);
 
   const [facilitatorMode, setFacilitatorMode] = useState(() => localStorage.getItem(FACILITATOR_KEY) === 'true');
   const [timedMode, setTimedMode] = useState(() => localStorage.getItem(TIMED_KEY) === 'true');
@@ -121,6 +125,12 @@ export default function ScenarioPlayer() {
       startedAtRef.current = Date.now();
     }
   }, []);
+
+  // A new scenario starts at the briefing gate again.
+  useEffect(() => {
+    setBriefingDone(false);
+    setBriefingUnavailable(false);
+  }, [scenario?.id]);
 
   useEffect(() => {
     if (!scenario) {
@@ -236,8 +246,20 @@ export default function ScenarioPlayer() {
   const isLastStep = currentStepIndex === totalSteps - 1;
   const progress = ((currentStepIndex + (selectedOption ? 1 : 0)) / totalSteps) * 100;
 
+  // Situation Briefing gate (beef-up step 4): shown only on a fresh run
+  // (step 1, nothing answered) for scenarios that have a briefing video.
+  // Skipping, finishing, or a failed video load all drop the gate and the
+  // run proceeds exactly as before; the step timer waits behind it.
+  const showBriefing = !!scenario
+    && !!getScenarioBriefing(scenario.id)
+    && !briefingDone
+    && !briefingUnavailable
+    && currentStepIndex === 0
+    && answers.length === 0
+    && !completed;
+
   useEffect(() => {
-    if (!scenario || !currentStep || !timedMode || selectedOption || completed || isPaused) {
+    if (!scenario || !currentStep || !timedMode || selectedOption || completed || isPaused || showBriefing) {
       return;
     }
 
@@ -271,7 +293,7 @@ export default function ScenarioPlayer() {
     }, 1000);
 
     return () => window.clearTimeout(timer);
-  }, [scenario, timedMode, selectedOption, completed, isPaused, secondsLeft, currentStep, selectedFacility, currentStepIndex]);
+  }, [scenario, timedMode, selectedOption, completed, isPaused, secondsLeft, currentStep, selectedFacility, currentStepIndex, showBriefing]);
 
   useEffect(() => {
     if (!completed || completionSavedRef.current) {
@@ -906,6 +928,15 @@ export default function ScenarioPlayer() {
           )}
         </div>
 
+        {showBriefing ? (
+          <ScenarioBriefing
+            scenarioId={scenario.id}
+            title={adaptText(scenario.title)}
+            onBegin={() => setBriefingDone(true)}
+            onUnavailable={() => setBriefingUnavailable(true)}
+          />
+        ) : (
+          <>
         <div className="nyx-hero text-white rounded-xl p-5 mb-4">
           <div className="text-xs text-amber-100/80 mb-1 font-medium uppercase tracking-wide">
             Step {currentStepIndex + 1} | {adaptedStep.title}
@@ -1012,6 +1043,8 @@ export default function ScenarioPlayer() {
               {isLastStep ? 'View Results' : 'Next Step'}
             </button>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

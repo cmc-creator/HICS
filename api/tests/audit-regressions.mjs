@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 
 // Regression suite for the 2026-11-16 security/reliability audit
 // fixes (B2, B3, B5, B6, B7, W8) plus the same-day permissions
@@ -288,5 +289,34 @@ assert.ok(Array.isArray(adminListUsers.body.users), 'user list response carries 
 const adminReadLogs = await call(auditLogs, createBaseReq('GET', {}, facilityAdminHeaders));
 assert.equal(adminReadLogs.status, 200, `facility-admin should read the audit logs (got ${adminReadLogs.status})`);
 assert.ok(Array.isArray(adminReadLogs.body.logs), 'audit log response carries a logs array');
+
+// --- APP_BASE_URL trap (deployment runbook blocker #1): in
+// production with APP_BASE_URL unset, link building still uses
+// the default (behavior unchanged) but now logs a loud warning
+// naming the risk; in local dev it stays quiet. Child processes
+// because NODE_ENV / module state are per-process.
+const baseUrlChildScript = [
+  `const email = await import(${JSON.stringify(new URL('../_email.js', import.meta.url).href)});`,
+  'console.log(email.buildPasswordSetUrl("tok123"));',
+].join('\n');
+const prodEnv = { ...process.env, NODE_ENV: 'production' };
+delete prodEnv.APP_BASE_URL;
+const prodChild = spawnSync(process.execPath, ['--input-type=module', '-e', baseUrlChildScript], {
+  encoding: 'utf8',
+  env: prodEnv,
+});
+assert.equal(prodChild.status, 0, 'production child process should run');
+assert.match(prodChild.stdout, /https:\/\/www\.nyxhicslab\.com\/reset-password\?token=tok123/, 'default base URL still applies when APP_BASE_URL is unset');
+assert.match(prodChild.stderr, /APP_BASE_URL is not set in production/, 'production without APP_BASE_URL logs the loud warning');
+
+const devEnv = { ...process.env };
+delete devEnv.APP_BASE_URL;
+delete devEnv.NODE_ENV;
+const devChild = spawnSync(process.execPath, ['--input-type=module', '-e', baseUrlChildScript], {
+  encoding: 'utf8',
+  env: devEnv,
+});
+assert.equal(devChild.status, 0, 'dev child process should run');
+assert.doesNotMatch(devChild.stderr, /APP_BASE_URL is not set/, 'local dev keeps the default quietly');
 
 console.log('audit-regressions: PASS');

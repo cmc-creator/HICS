@@ -9,8 +9,29 @@ import { createId, getStore, saveStore } from './_store.js';
 // reset, admin invites) can keep their anti-enumeration /
 // success-first behavior.
 
+let warnedAboutDefaultBaseUrl = false;
+
 export function getAppBaseUrl() {
-  return String(process.env.APP_BASE_URL || 'https://www.nyxhicslab.com').replace(/\/+$/, '');
+  const configured = String(process.env.APP_BASE_URL || '').trim();
+  if (!configured && process.env.NODE_ENV === 'production' && !warnedAboutDefaultBaseUrl) {
+    // The default below is the public demo site. On a customer
+    // deployment that forgot APP_BASE_URL, every password-set,
+    // reset, invite, and contract-signing link would send that
+    // customer's users to the wrong site (deployment runbook
+    // blocker #1) - and from the outside it looks like "the
+    // email link is broken", not a config error. Shout once per
+    // cold start, in the same loud-log pattern as S3/S4. Local
+    // development keeps the default quietly.
+    warnedAboutDefaultBaseUrl = true;
+    console.error(
+      '[NyxHICSlab] WARNING: APP_BASE_URL is not set in production - '
+      + 'password-set, reset, invite, and signing links are being built '
+      + 'with the default https://www.nyxhicslab.com. On a customer '
+      + 'deployment this sends every user to the WRONG site. Set '
+      + 'APP_BASE_URL to this deployment\'s own URL.',
+    );
+  }
+  return String(configured || 'https://www.nyxhicslab.com').replace(/\/+$/, '');
 }
 
 export function buildPasswordSetUrl(rawToken) {

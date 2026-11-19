@@ -144,6 +144,9 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
               <Link to="/login" className="nyx-button-metal px-5 py-2.5 rounded-lg text-sm font-semibold">Launch Enterprise Workspace</Link>
               <Link to="/request-demo" className="border border-white/20 opacity-80 hover:opacity-100 px-5 py-2.5 rounded-lg text-sm font-semibold transition-opacity">Request Demo</Link>
               <a href="#capabilities" className="border border-white/20 opacity-80 hover:opacity-100 px-5 py-2.5 rounded-lg text-sm font-semibold transition-opacity">Explore Capabilities</a>
+              <a href="https://play.google.com/store/apps/details?id=com.nyxcollective.nyxhicslab" target="_blank" rel="noopener noreferrer" aria-label="Get NyxHICSlab on Google Play">
+                <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" className="h-[42px] w-auto block" />
+              </a>
             </div>
           </div>
           <div className="nyx-panel p-3 flex items-center">

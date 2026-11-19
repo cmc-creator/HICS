@@ -147,6 +147,10 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
               <a href="https://play.google.com/store/apps/details?id=com.nyxcollective.nyxhicslab" target="_blank" rel="noopener noreferrer" aria-label="Get NyxHICSlab on Google Play">
                 <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" className="h-[42px] w-auto block" />
               </a>
+              <a href="https://apps.microsoft.com/detail/9P8KGL8PPW0T" target="_blank" rel="noopener noreferrer" aria-label="Get NyxHICSlab from the Microsoft Store" className="inline-flex items-center gap-2 bg-black border border-white/25 rounded-md px-3.5 h-[42px] text-white">
+                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" aria-hidden="true"><path fill="#f25022" d="M3 3h8.5v8.5H3z"/><path fill="#7fba00" d="M12.5 3H21v8.5h-8.5z"/><path fill="#00a4ef" d="M3 12.5h8.5V21H3z"/><path fill="#ffb900" d="M12.5 12.5H21V21h-8.5z"/></svg>
+                <span className="leading-tight text-left"><span className="block text-[9px] tracking-wide">Get it from</span><span className="block text-[15px] font-semibold -mt-0.5">Microsoft</span></span>
+              </a>
             </div>
           </div>
           <div className="nyx-panel p-3 flex items-center">

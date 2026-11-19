@@ -230,12 +230,12 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
         <section className="nyx-panel p-6 text-center">
           <p className="text-xs tracking-[0.2em] opacity-50 font-bold mb-4">MORE FROM NYX COLLECTIVE</p>
           <div className="flex flex-wrap justify-center gap-2">
-            <a href="https://www.nyxsurvive.com" target="_blank" rel="noreferrer" className="border border-white/20 opacity-80 hover:opacity-100 px-4 py-2 rounded-full text-sm font-semibold transition-opacity">NyxSurvive\u2122 - survival planner</a>
-            <a href="https://nyxmunchling.com" target="_blank" rel="noreferrer" className="border border-white/20 opacity-80 hover:opacity-100 px-4 py-2 rounded-full text-sm font-semibold transition-opacity">Munchling\u2122 - get healthier, raise a critter</a>
-            <a href="https://nyxecho.com" target="_blank" rel="noreferrer" className="border border-white/20 opacity-80 hover:opacity-100 px-4 py-2 rounded-full text-sm font-semibold transition-opacity">NyxEcho\u2122 - AI meeting notes</a>
-            <a href="https://nyxthrive.com" target="_blank" rel="noreferrer" className="border border-white/20 opacity-80 hover:opacity-100 px-4 py-2 rounded-full text-sm font-semibold transition-opacity">NyxThrive\u2122 - employee recognition</a>
-            <a href="https://feed-the-bear.com" target="_blank" rel="noreferrer" className="border border-white/20 opacity-80 hover:opacity-100 px-4 py-2 rounded-full text-sm font-semibold transition-opacity">Feed the Bear\u2122 - food diary</a>
-            <a href="https://nyxprism.com" target="_blank" rel="noreferrer" className="border border-white/20 opacity-80 hover:opacity-100 px-4 py-2 rounded-full text-sm font-semibold transition-opacity">NyxPrism\u2122 - documents, signed and tracked</a>
+            <a href="https://www.nyxsurvive.com" target="_blank" rel="noreferrer" className="border border-white/20 opacity-80 hover:opacity-100 px-4 py-2 rounded-full text-sm font-semibold transition-opacity">NyxSurvive™ - survival planner</a>
+            <a href="https://nyxmunchling.com" target="_blank" rel="noreferrer" className="border border-white/20 opacity-80 hover:opacity-100 px-4 py-2 rounded-full text-sm font-semibold transition-opacity">Munchling™ - get healthier, raise a critter</a>
+            <a href="https://nyxecho.com" target="_blank" rel="noreferrer" className="border border-white/20 opacity-80 hover:opacity-100 px-4 py-2 rounded-full text-sm font-semibold transition-opacity">NyxEcho™ - AI meeting notes</a>
+            <a href="https://nyxthrive.com" target="_blank" rel="noreferrer" className="border border-white/20 opacity-80 hover:opacity-100 px-4 py-2 rounded-full text-sm font-semibold transition-opacity">NyxThrive™ - employee recognition</a>
+            <a href="https://feed-the-bear.com" target="_blank" rel="noreferrer" className="border border-white/20 opacity-80 hover:opacity-100 px-4 py-2 rounded-full text-sm font-semibold transition-opacity">Feed the Bear™ - food diary</a>
+            <a href="https://nyxprism.com" target="_blank" rel="noreferrer" className="border border-white/20 opacity-80 hover:opacity-100 px-4 py-2 rounded-full text-sm font-semibold transition-opacity">NyxPrism™ - documents, signed and tracked</a>
           </div>
         </section>
 

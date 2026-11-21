@@ -34,7 +34,7 @@ const pillars = [
   },
   {
     title: 'High-Fidelity Simulation',
-    detail: 'Scenarios spanning acute care, long-term care, ambulatory, and specialty settings — covering command activation, surge, safety incidents, and infrastructure failure.',
+    detail: 'Scenarios spanning acute care, long-term care, ambulatory, and specialty settings - covering command activation, surge, safety incidents, and infrastructure failure.',
     image: publicAsset('landing/scenario-mockup.svg'),
     alt: 'NyxHICSlab scenario player with timed mode and facilitator notes',
   },
@@ -154,7 +154,7 @@ export default function LandingPage({ theme, onToggleTheme }: LandingPageProps) 
             </div>
           </div>
           <div className="nyx-panel p-3 flex items-center">
-            <img src={publicAsset('landing/dashboard-mockup.svg')} alt="NyxHICSlab enterprise dashboard — stat cards, quick-link modules, and facilitator controls" className="w-full h-auto rounded-xl" />
+            <img src={publicAsset('landing/dashboard-mockup.svg')} alt="NyxHICSlab enterprise dashboard - stat cards, quick-link modules, and facilitator controls" className="w-full h-auto rounded-xl" />
           </div>
         </section>
 

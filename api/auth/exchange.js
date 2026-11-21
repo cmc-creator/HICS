@@ -422,7 +422,7 @@ export default async function handler(req, res) {
     });
     refreshToken = refreshSession.refreshToken;
   } catch (err) {
-    // Refresh session store unavailable — return access-token-only response; client will re-auth at expiry.
+    // Refresh session store unavailable - return access-token-only response; client will re-auth at expiry.
     return json(res, 200, {
       accessToken,
       refreshToken: '',

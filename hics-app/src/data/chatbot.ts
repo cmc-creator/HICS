@@ -34,9 +34,9 @@ The IC is typically a senior administrator or physician. **Unity of Command** me
     patterns: [/command staff/i, /safety officer/i, /public information/i, /pio/i, /liaison/i],
     response: `**HICS Command Staff** consists of three positions reporting directly to the Incident Commander:
 
-1. **Safety Officer (SO)** – Monitors safety conditions; can STOP unsafe operations immediately
-2. **Public Information Officer (PIO)** – Manages all media communications and public information
-3. **Liaison Officer (LNO)** – Coordinates with external agencies and organizations
+1. **Safety Officer (SO)** - Monitors safety conditions; can STOP unsafe operations immediately
+2. **Public Information Officer (PIO)** - Manages all media communications and public information
+3. **Liaison Officer (LNO)** - Coordinates with external agencies and organizations
 
 These three positions support the IC in areas that are too important to delegate to sections but don't directly manage operations.`,
   },
@@ -80,7 +80,7 @@ The IAP is the master planning document that outlines objectives, strategies, an
   - Facility management
 - **Units include:** Supply, Communications, Food, Transportation
 
-Think of Logistics as the "support" section – they ensure that Operations has everything they need to do their job.`,
+Think of Logistics as the "support" section - they ensure that Operations has everything they need to do their job.`,
   },
   {
     patterns: [/finance section/i, /finance chief/i, /fsc/i, /cost/i, /documentation.*cost/i],
@@ -122,9 +122,9 @@ Proper financial documentation during an incident can enable significant reimbur
 
 Assess patients in 30 seconds or less using three checks:
 
-1. **Respirations** – Can they breathe? If not breathing after repositioning airway → BLACK
-2. **Perfusion** – Check radial pulse or capillary refill (<2 sec normal)
-3. **Mental Status** – Can they follow simple commands?
+1. **Respirations** - Can they breathe? If not breathing after repositioning airway → BLACK
+2. **Perfusion** - Check radial pulse or capillary refill (<2 sec normal)
+3. **Mental Status** - Can they follow simple commands?
 
 **Color Categories:**
 | Color | Meaning | Criteria |
@@ -139,10 +139,10 @@ Assess patients in 30 seconds or less using three checks:
     response: `**Hospital Fire Response**
 
 **RACE Protocol:**
-- **R**escue – Rescue anyone in immediate danger
-- **A**larm – Pull alarm and call 911
-- **C**onfine – Close all doors to contain fire
-- **E**xtinguish/Evacuate – Extinguish if small and safe, or evacuate
+- **R**escue - Rescue anyone in immediate danger
+- **A**larm - Pull alarm and call 911
+- **C**onfine - Close all doors to contain fire
+- **E**xtinguish/Evacuate - Extinguish if small and safe, or evacuate
 
 **PASS (Fire Extinguisher Use):**
 - **P**ull the pin
@@ -151,9 +151,9 @@ Assess patients in 30 seconds or less using three checks:
 - **S**weep from side to side
 
 **Evacuation Types (in order of preference):**
-1. **Horizontal** – Move to another zone on same floor
-2. **Vertical** – Move to floor above or below
-3. **External** – Move outside the building
+1. **Horizontal** - Move to another zone on same floor
+2. **Vertical** - Move to floor above or below
+3. **External** - Move outside the building
 
 Never use elevators during a fire evacuation!`,
   },
@@ -205,12 +205,12 @@ HIPAA is **NOT** suspended during emergencies, but specific provisions allow:
 The IAP is the master document for each operational period (typically 8-12 hours).
 
 **IAP Sections:**
-1. **Incident Objectives** – What we need to accomplish
-2. **Incident Organization Chart** – Who is in charge of what
-3. **Assignment List** – Specific tasks for each section
-4. **Communication Plan** – Radio/phone frequencies and contacts
-5. **Medical Plan** – Staff health and safety
-6. **Traffic Plan** – Vehicle routing
+1. **Incident Objectives** - What we need to accomplish
+2. **Incident Organization Chart** - Who is in charge of what
+3. **Assignment List** - Specific tasks for each section
+4. **Communication Plan** - Radio/phone frequencies and contacts
+5. **Medical Plan** - Staff health and safety
+6. **Traffic Plan** - Vehicle routing
 
 **Planning Cycle:**
 1. Incident briefing
@@ -298,10 +298,10 @@ The EOP is the hospital's master emergency planning document that:
 **Required by:** The Joint Commission (TJC), CMS Conditions of Participation, and OSHA
 
 **EOP Structure:**
-1. Basic Plan – Overall emergency management approach
-2. Functional Annexes – Communications, evacuation, etc.
-3. Hazard-Specific Annexes – Specific procedures for each hazard type
-4. Supporting Documents – Resource lists, contact directories
+1. Basic Plan - Overall emergency management approach
+2. Functional Annexes - Communications, evacuation, etc.
+3. Hazard-Specific Annexes - Specific procedures for each hazard type
+4. Supporting Documents - Resource lists, contact directories
 
 **Review:** Must be reviewed annually and tested with exercises.`,
   },
@@ -507,10 +507,10 @@ Regular exercises, simulations, and drills are essential for maintaining HICS re
 
 **Types of Exercises:**
 
-1. **Tabletop Exercise** – Discussion-based; command staff discuss scenario and decisions. Low cost, high learning.
-2. **Functional Exercise** – Tests specific functions (EOC activation, communication system launch). Moderate cost and complexity.
-3. **Full-Scale Exercise** – Simulates actual incident with realistic props, actors, and operational testing. High cost but most effective.
-4. **Drill** – Tests one specific skill or system (fire evacuation, lockdown procedures). Frequent, low-cost practice.
+1. **Tabletop Exercise** - Discussion-based; command staff discuss scenario and decisions. Low cost, high learning.
+2. **Functional Exercise** - Tests specific functions (EOC activation, communication system launch). Moderate cost and complexity.
+3. **Full-Scale Exercise** - Simulates actual incident with realistic props, actors, and operational testing. High cost but most effective.
+4. **Drill** - Tests one specific skill or system (fire evacuation, lockdown procedures). Frequent, low-cost practice.
 
 **Scheduling & Frequency:**
 - Full-scale exercise: At least annually
